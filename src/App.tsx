@@ -62,7 +62,8 @@ function IconProfile() {
   );
 }
 
-const WING_LABELS = ["MKT", "Wanita", "Pemuda", "Belia"] as const;
+const KENALI_PARTI_LABELS = ["About", "Amanat", "Constitution", "Structure"] as const;
+const SAYAP_PARTI_LABELS = ["MKT", "Wanita", "Pemuda", "Belia"] as const;
 
 export function App() {
   const phoneFrameRef = useRef<HTMLDivElement>(null);
@@ -278,7 +279,7 @@ export function App() {
                     {row === 0 ? "Kenali Parti" : "Sayap Parti"}
                   </h2>
                   <ul className="wings-row">
-                    {WING_LABELS.map((label) => (
+                    {(row === 0 ? KENALI_PARTI_LABELS : SAYAP_PARTI_LABELS).map((label) => (
                       <li key={`${row}-${label}`} className="wing-item">
                         <button type="button" className="wing-button">
                           <span className="wing-circle" />
