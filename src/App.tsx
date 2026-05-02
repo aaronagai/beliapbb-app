@@ -65,8 +65,61 @@ function IconProfile() {
 const KENALI_PARTI_LABELS = ["About", "Amanat", "Constitution", "Structure"] as const;
 const SAYAP_PARTI_LABELS = ["MKT", "Wanita", "Pemuda", "Belia"] as const;
 
+/** Public-folder photos (`public/sayap/`). */
+const SAYAP_PARTI_PHOTO_SRC: Record<(typeof SAYAP_PARTI_LABELS)[number], string> = {
+  MKT: `${import.meta.env.BASE_URL}sayap/mkt.jpg`,
+  Wanita: `${import.meta.env.BASE_URL}sayap/wanita.jpg.webp`,
+  Pemuda: `${import.meta.env.BASE_URL}sayap/pemuda.jpg`,
+  Belia: `${import.meta.env.BASE_URL}sayap/belia.jpeg`,
+};
+
+function KenaliPartiIcon({ label }: { label: (typeof KENALI_PARTI_LABELS)[number] }) {
+  const cls = "wing-circle-icon";
+  switch (label) {
+    case "About":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+          />
+        </svg>
+      );
+    case "Amanat":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"
+          />
+        </svg>
+      );
+    case "Constitution":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
+          />
+        </svg>
+      );
+    case "Structure":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M4 15h17v2H4v-2zm0-5h17v2H4v-2zm0-5h17v2H4V5z"
+          />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 export function App() {
   const phoneFrameRef = useRef<HTMLDivElement>(null);
+  const appHeaderRef = useRef<HTMLElement>(null);
   const bottomNavRef = useRef<HTMLElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ startY: number; startOffset: number; moved: boolean } | null>(
@@ -110,19 +163,26 @@ export function App() {
     return () => ro.disconnect();
   }, [tab]);
 
-  /** Match pull-up host inset to real tab bar height so news #ececec does not show as a gap strip. */
+  /** Tab bar + header height → CSS vars so pull-up fills space between them (up to header). */
   useLayoutEffect(() => {
     const phone = phoneFrameRef.current;
     const nav = bottomNavRef.current;
-    if (!phone || !nav) return;
+    const header = appHeaderRef.current;
+    if (!phone || !nav || !header) return;
     const sync = () => {
       phone.style.setProperty("--phone-nav-height", `${nav.offsetHeight}px`);
+      phone.style.setProperty("--app-header-height", `${header.offsetHeight}px`);
     };
     sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(nav);
-    return () => ro.disconnect();
-  }, []);
+    const roNav = new ResizeObserver(sync);
+    const roHead = new ResizeObserver(sync);
+    roNav.observe(nav);
+    roHead.observe(header);
+    return () => {
+      roNav.disconnect();
+      roHead.disconnect();
+    };
+  }, [tab]);
 
   const maxOffset = Math.max(0, sheetHeight - peekPx);
 
@@ -132,13 +192,28 @@ export function App() {
     setOffset((o) => Math.min(o, maxOffset));
   }, [maxOffset]);
 
+  const snapStops = useCallback((): number[] => {
+    if (maxOffset <= 0) return [0];
+    const half = maxOffset / 2;
+    const stops = [0, half, maxOffset];
+    return [...new Set(stops)].sort((a, b) => a - b);
+  }, [maxOffset]);
+
   const snapFrom = useCallback(
     (value: number) => {
-      if (maxOffset <= 0) return 0;
-      const mid = maxOffset / 2;
-      return value > mid ? maxOffset : 0;
+      const stops = snapStops();
+      let best = stops[0]!;
+      let bestDist = Math.abs(value - best);
+      for (const s of stops) {
+        const d = Math.abs(value - s);
+        if (d < bestDist) {
+          best = s;
+          bestDist = d;
+        }
+      }
+      return best;
     },
-    [maxOffset]
+    [snapStops]
   );
 
   const onHandlePointerDown = useCallback(
@@ -174,12 +249,26 @@ export function App() {
       dragRef.current = null;
       if (!d) return;
       if (!d.moved) {
-        setOffset((o) => (o > maxOffset / 2 ? 0 : maxOffset));
+        const stops = snapStops();
+        if (stops.length < 2) return;
+        setOffset((o) => {
+          let closest = 0;
+          let closestDist = Infinity;
+          stops.forEach((s, idx) => {
+            const dist = Math.abs(s - o);
+            if (dist < closestDist) {
+              closestDist = dist;
+              closest = idx;
+            }
+          });
+          const nextIdx = (closest + 1) % stops.length;
+          return stops[nextIdx]!;
+        });
         return;
       }
       setOffset((o) => snapFrom(o));
     },
-    [maxOffset, snapFrom]
+    [maxOffset, snapFrom, snapStops]
   );
 
   const visibleLift = tab === "home" ? Math.max(0, sheetHeight - offset) : 0;
@@ -195,7 +284,7 @@ export function App() {
           } as React.CSSProperties
         }
       >
-        <header className="app-header">
+        <header ref={appHeaderRef} className="app-header">
           {tab === "members" ? (
             <div className="app-header-sub">
               <button
@@ -233,6 +322,7 @@ export function App() {
           {tab === "home" ? (
             <section className="section section--news">
               <h1 className="greeting">Hey User!</h1>
+              <div className="home-empty-card" aria-hidden />
               <h2 className="section-title">
                 Latest News
                 <a
@@ -263,7 +353,7 @@ export function App() {
             <button
               type="button"
               className="wings-pullup-handle"
-              aria-expanded={maxOffset <= 0 ? true : offset < maxOffset / 2}
+              aria-expanded={maxOffset <= 0 ? true : offset < maxOffset - 4}
               aria-label="Seret untuk naik atau turun: Sayap Parti"
               onPointerDown={onHandlePointerDown}
               onPointerMove={onHandlePointerMove}
@@ -279,14 +369,27 @@ export function App() {
                     {row === 0 ? "Kenali Parti" : "Sayap Parti"}
                   </h2>
                   <ul className="wings-row">
-                    {(row === 0 ? KENALI_PARTI_LABELS : SAYAP_PARTI_LABELS).map((label) => (
-                      <li key={`${row}-${label}`} className="wing-item">
-                        <button type="button" className="wing-button">
-                          <span className="wing-circle" />
-                          <span className="wing-label">{label}</span>
-                        </button>
-                      </li>
-                    ))}
+                    {row === 0
+                      ? KENALI_PARTI_LABELS.map((label) => (
+                          <li key={label} className="wing-item">
+                            <button type="button" className="wing-button">
+                              <span className="wing-circle">
+                                <KenaliPartiIcon label={label} />
+                              </span>
+                              <span className="wing-label">{label}</span>
+                            </button>
+                          </li>
+                        ))
+                      : SAYAP_PARTI_LABELS.map((label) => (
+                          <li key={label} className="wing-item">
+                            <button type="button" className="wing-button">
+                              <span className="wing-circle wing-circle--photo">
+                                <img src={SAYAP_PARTI_PHOTO_SRC[label]} alt="" width={52} height={52} />
+                              </span>
+                              <span className="wing-label">{label}</span>
+                            </button>
+                          </li>
+                        ))}
                   </ul>
                 </div>
               ))}
