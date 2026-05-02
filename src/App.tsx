@@ -1,10 +1,16 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import logoSvgUrl from "../logo.svg?url";
+import { useI18n, type MessageKey } from "./i18n";
+import { HomeMembershipCard } from "./HomeMembershipCard";
 import { LatestNews } from "./LatestNews";
 import { MembersPage } from "./MembersPage";
+import { ProfilePage } from "./ProfilePage";
 import "./App.css";
 
-type AppTab = "home" | "members";
+type AppTab = "home" | "members" | "profile";
+
+/** Gap between the header and the sheet when the pull-up is fully expanded (px). */
+const PULLUP_HEADER_GAP_PX = 10;
 
 function IconHome() {
   return (
@@ -63,6 +69,16 @@ function IconProfile() {
 }
 
 const KENALI_PARTI_LABELS = ["About", "Amanat", "Constitution", "Structure"] as const;
+
+const KENALI_LABEL_TO_KEY: Record<(typeof KENALI_PARTI_LABELS)[number], MessageKey> = {
+  About: "kenaliAbout",
+  Amanat: "kenaliAmanat",
+  Constitution: "kenaliConstitution",
+  Structure: "kenaliStructure",
+};
+/** Malay Wikipedia — Kenali Parti → About. */
+const KENALI_ABOUT_WIKI_MS =
+  "https://ms.wikipedia.org/wiki/Parti_Pesaka_Bumiputera_Bersatu_Sarawak";
 const SAYAP_PARTI_LABELS = ["MKT", "Wanita", "Pemuda", "Belia"] as const;
 
 /** Public-folder photos (`public/sayap/`). */
@@ -105,11 +121,19 @@ function KenaliPartiIcon({ label }: { label: (typeof KENALI_PARTI_LABELS)[number
       );
     case "Structure":
       return (
-        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
-          <path
-            fill="currentColor"
-            d="M4 15h17v2H4v-2zm0-5h17v2H4v-2zm0-5h17v2H4V5z"
-          />
+        <svg className={cls} viewBox="0 0 24 24" aria-hidden fill="none">
+          <g
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="7.5" y="2" width="9" height="4" rx="1.2" />
+            <path d="M12 6v2.5M6 8.5h12M6 8.5v2M12 8.5v2M18 8.5v2" />
+            <rect x="4" y="10.5" width="4" height="3.8" rx="0.9" />
+            <rect x="10" y="10.5" width="4" height="3.8" rx="0.9" />
+            <rect x="16" y="10.5" width="4" height="3.8" rx="0.9" />
+          </g>
         </svg>
       );
     default:
@@ -118,6 +142,7 @@ function KenaliPartiIcon({ label }: { label: (typeof KENALI_PARTI_LABELS)[number
 }
 
 export function App() {
+  const { t } = useI18n();
   const phoneFrameRef = useRef<HTMLDivElement>(null);
   const appHeaderRef = useRef<HTMLElement>(null);
   const bottomNavRef = useRef<HTMLElement>(null);
@@ -130,6 +155,24 @@ export function App() {
   const [sheetDragging, setSheetDragging] = useState(false);
   const defaultOffsetAppliedRef = useRef(false);
   const [tab, setTab] = useState<AppTab>("home");
+  const defaultGreetingName = "Aaron";
+  const [greetingName, setGreetingName] = useState(defaultGreetingName);
+
+  useEffect(() => {
+    if (tab !== "home") return;
+    try {
+      const raw = localStorage.getItem("beliapbb_profile");
+      if (!raw) {
+        setGreetingName(defaultGreetingName);
+        return;
+      }
+      const p = JSON.parse(raw) as { name?: string };
+      const n = typeof p.name === "string" ? p.name.trim() : "";
+      setGreetingName(n || defaultGreetingName);
+    } catch {
+      setGreetingName(defaultGreetingName);
+    }
+  }, [tab]);
 
   const goHome = useCallback(() => {
     defaultOffsetAppliedRef.current = false;
@@ -137,7 +180,8 @@ export function App() {
   }, []);
 
   /** Minimum visible height when fully collapsed (handle + title + wing row must clear nav). */
-  const peekPx = 168;
+  /** Min visible strip when fully collapsed; includes taller drag handle. */
+  const peekPx = 192;
 
   useLayoutEffect(() => {
     const el = sheetRef.current;
@@ -151,8 +195,9 @@ export function App() {
         /** Default strip: at least peek, ~26% of frame, and 200px so icons are not clipped. */
         const targetVisible = Math.min(h, Math.max(peekPx, pageH * 0.26, 200));
         const max = Math.max(0, h - peekPx);
+        const minO = max > 0 && PULLUP_HEADER_GAP_PX <= max ? PULLUP_HEADER_GAP_PX : 0;
         const visible = targetVisible;
-        const next = Math.min(max, Math.max(0, h - visible));
+        const next = Math.min(max, Math.max(minO, h - visible));
         setOffset(next);
         defaultOffsetAppliedRef.current = true;
       }
@@ -185,19 +230,21 @@ export function App() {
   }, [tab]);
 
   const maxOffset = Math.max(0, sheetHeight - peekPx);
+  const sheetMinOffset =
+    maxOffset > 0 && PULLUP_HEADER_GAP_PX <= maxOffset ? PULLUP_HEADER_GAP_PX : 0;
 
   /** Never clamp while maxOffset is 0 — that would force offset to 0 and wipe the default strip. */
   useLayoutEffect(() => {
     if (maxOffset <= 0) return;
-    setOffset((o) => Math.min(o, maxOffset));
-  }, [maxOffset]);
+    setOffset((o) => Math.min(Math.max(o, sheetMinOffset), maxOffset));
+  }, [maxOffset, sheetMinOffset]);
 
   const snapStops = useCallback((): number[] => {
     if (maxOffset <= 0) return [0];
-    const half = maxOffset / 2;
-    const stops = [0, half, maxOffset];
+    const half = (sheetMinOffset + maxOffset) / 2;
+    const stops = [sheetMinOffset, half, maxOffset];
     return [...new Set(stops)].sort((a, b) => a - b);
-  }, [maxOffset]);
+  }, [maxOffset, sheetMinOffset]);
 
   const snapFrom = useCallback(
     (value: number) => {
@@ -231,10 +278,10 @@ export function App() {
       if (!d) return;
       const dy = e.clientY - d.startY;
       if (Math.abs(dy) > 6) d.moved = true;
-      const next = Math.min(maxOffset, Math.max(0, d.startOffset + dy));
+      const next = Math.min(maxOffset, Math.max(sheetMinOffset, d.startOffset + dy));
       setOffset(next);
     },
-    [maxOffset]
+    [maxOffset, sheetMinOffset]
   );
 
   const onHandlePointerUp = useCallback(
@@ -285,13 +332,13 @@ export function App() {
         }
       >
         <header ref={appHeaderRef} className="app-header">
-          {tab === "members" ? (
+          {tab === "members" || tab === "profile" ? (
             <div className="app-header-sub">
               <button
                 type="button"
                 className="app-header-back"
                 onClick={goHome}
-                aria-label="Kembali"
+                aria-label={t("back")}
               >
                 <svg className="app-header-back-icon" viewBox="0 0 24 24" aria-hidden>
                   <path
@@ -300,14 +347,16 @@ export function App() {
                   />
                 </svg>
               </button>
-              <h1 className="app-header-title">Members</h1>
+              <h1 className="app-header-title">
+                {tab === "profile" ? t("profileTitle") : t("membersTitle")}
+              </h1>
               <span aria-hidden="true" />
             </div>
           ) : (
             <div className="site-brand-row" translate="no">
               <img
                 src={logoSvgUrl}
-                alt="Logo PBB"
+                alt={t("logoAlt")}
                 className="site-brand-logo"
                 width={120}
                 height={32}
@@ -321,23 +370,40 @@ export function App() {
         <main className="app-main">
           {tab === "home" ? (
             <section className="section section--news">
-              <h1 className="greeting">Hey User!</h1>
-              <div className="home-empty-card" aria-hidden />
+              <h1 className="greeting">
+                {t("greetingHey").replace(/\{\{name\}\}/g, greetingName)}
+              </h1>
+              <HomeMembershipCard />
               <h2 className="section-title">
-                Latest News
+                <span className="section-title-inline">
+                  {t("latestNews")}
+                  <span className="section-title-sep">|</span>
+                </span>
                 <a
                   className="news-source-link"
                   href="https://jiwabakti.com.my/"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Jiwa Bakti
+                  {t("jiwaBaktiLink")}
                 </a>
               </h2>
               <LatestNews />
+              <p className="news-see-more">
+                <a
+                  className="news-source-link"
+                  href="https://jiwabakti.com.my/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("newsSeeMore")}
+                </a>
+              </p>
             </section>
-          ) : (
+          ) : tab === "members" ? (
             <MembersPage />
+          ) : (
+            <ProfilePage />
           )}
         </main>
 
@@ -354,7 +420,7 @@ export function App() {
               type="button"
               className="wings-pullup-handle"
               aria-expanded={maxOffset <= 0 ? true : offset < maxOffset - 4}
-              aria-label="Seret untuk naik atau turun: Sayap Parti"
+              aria-label={t("sheetDragAria")}
               onPointerDown={onHandlePointerDown}
               onPointerMove={onHandlePointerMove}
               onPointerUp={onHandlePointerUp}
@@ -366,18 +432,32 @@ export function App() {
               {[0, 1].map((row) => (
                 <div key={row} className="wings-block">
                   <h2 className="wings-heading">
-                    {row === 0 ? "Kenali Parti" : "Sayap Parti"}
+                    {row === 0 ? t("kenaliParti") : t("sayapParti")}
                   </h2>
                   <ul className="wings-row">
                     {row === 0
                       ? KENALI_PARTI_LABELS.map((label) => (
                           <li key={label} className="wing-item">
-                            <button type="button" className="wing-button">
-                              <span className="wing-circle">
-                                <KenaliPartiIcon label={label} />
-                              </span>
-                              <span className="wing-label">{label}</span>
-                            </button>
+                            {label === "About" ? (
+                              <a
+                                className="wing-button"
+                                href={KENALI_ABOUT_WIKI_MS}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <span className="wing-circle">
+                                  <KenaliPartiIcon label={label} />
+                                </span>
+                                <span className="wing-label">{t(KENALI_LABEL_TO_KEY[label])}</span>
+                              </a>
+                            ) : (
+                              <button type="button" className="wing-button">
+                                <span className="wing-circle">
+                                  <KenaliPartiIcon label={label} />
+                                </span>
+                                <span className="wing-label">{t(KENALI_LABEL_TO_KEY[label])}</span>
+                              </button>
+                            )}
                           </li>
                         ))
                       : SAYAP_PARTI_LABELS.map((label) => (
@@ -398,7 +478,7 @@ export function App() {
         </div>
         ) : null}
 
-        <nav ref={bottomNavRef} className="bottom-nav" aria-label="Navigasi utama">
+        <nav ref={bottomNavRef} className="bottom-nav" aria-label={t("navMain")}>
           <a
             className={`nav-item${tab === "home" ? " nav-item--active" : ""}`}
             href="#home"
@@ -408,7 +488,7 @@ export function App() {
             }}
           >
             <IconHome />
-            <span>Home</span>
+            <span>{t("navHome")}</span>
           </a>
           <a
             className={`nav-item${tab === "members" ? " nav-item--active" : ""}`}
@@ -419,20 +499,27 @@ export function App() {
             }}
           >
             <IconMembers />
-            <span>Members</span>
+            <span>{t("navMembers")}</span>
           </a>
-          <a className="nav-item nav-item--fab" href="#chat" aria-label="Sorotan">
+          <a className="nav-item nav-item--fab" href="#chat" aria-label={t("fabAria")}>
             <span className="fab-circle">
               <IconSparkles />
             </span>
           </a>
           <a className="nav-item" href="#resources">
             <IconResources />
-            <span>Resources</span>
+            <span>{t("navResources")}</span>
           </a>
-          <a className="nav-item" href="#profile">
+          <a
+            className={`nav-item${tab === "profile" ? " nav-item--active" : ""}`}
+            href="#profile"
+            onClick={(e) => {
+              e.preventDefault();
+              setTab("profile");
+            }}
+          >
             <IconProfile />
-            <span>Profile</span>
+            <span>{t("navProfile")}</span>
           </a>
         </nav>
       </div>

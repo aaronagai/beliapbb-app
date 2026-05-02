@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "./i18n";
 import { fetchNewsFeed, type NewsCardModel } from "./jiwabakti";
 
 const PINNED_SLUG = "gps-beri-peluang-pada-generasi-muda-demi-kesinambungan-parti";
-const CARD_COUNT = 3;
+const CARD_COUNT = 5;
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string): string {
   try {
-    return new Intl.DateTimeFormat("ms-MY", {
+    return new Intl.DateTimeFormat(locale, {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -22,8 +23,11 @@ function shorten(text: string, max: number): string {
 }
 
 export function LatestNews() {
+  const { t, language } = useI18n();
   const [items, setItems] = useState<NewsCardModel[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  const dateLocale = language === "en" ? "en-MY" : "ms-MY";
 
   useEffect(() => {
     let cancelled = false;
@@ -34,10 +38,8 @@ export function LatestNews() {
           pinnedSlug: PINNED_SLUG,
         });
         if (!cancelled) setItems(list);
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Gagal memuat berita");
-        }
+      } catch {
+        if (!cancelled) setLoadFailed(true);
       }
     })();
     return () => {
@@ -45,10 +47,10 @@ export function LatestNews() {
     };
   }, []);
 
-  if (error) {
+  if (loadFailed) {
     return (
       <p className="news-error" role="alert">
-        {error}
+        {t("newsLoadError")}
       </p>
     );
   }
@@ -56,7 +58,7 @@ export function LatestNews() {
   if (!items) {
     return (
       <ul className="news-list">
-        {[0, 1, 2].map((i) => (
+        {Array.from({ length: CARD_COUNT }, (_, i) => (
           <li key={i} className="news-card news-card--skeleton" aria-hidden />
         ))}
       </ul>
@@ -91,7 +93,7 @@ export function LatestNews() {
                 {shorten(item.excerpt, 110)}
               </span>
               <span className="news-card-meta">
-                {formatDate(item.date)} · Jiwa Bakti
+                {formatDate(item.date, dateLocale)} · {t("newsSource")}
               </span>
             </span>
           </a>
