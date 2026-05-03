@@ -5,10 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "node server/server.mjs",
+    "dev:full": "concurrently -k \"npm run dev\" \"npm run dev:api\"",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ingest:constitution": "node scripts/ingest-constitution.mjs"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "openai": "^4.83.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-qr-code": "^2.0.21"
@@ -17,6 +23,8 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^9.1.2",
+    "pdf-parse": "^1.1.1",
     "typescript": "~5.8.3",
     "vite": "^6.3.4"
   }

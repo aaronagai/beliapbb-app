@@ -6,6 +6,7 @@ import { LatestNews } from "./LatestNews";
 import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
 import { MembersPage } from "./MembersPage";
 import { ProfilePage } from "./ProfilePage";
+import { ConstitutionChatSheet } from "./ConstitutionChatSheet";
 import { ResourcesPage } from "./ResourcesPage";
 import "./App.css";
 
@@ -183,6 +184,7 @@ export function App() {
   const [tab, setTab] = useState<AppTab>(initialTabFromHash);
   const defaultGreetingName = "Aaron";
   const [greetingName, setGreetingName] = useState(defaultGreetingName);
+  const [constitutionChatOpen, setConstitutionChatOpen] = useState(false);
 
   useLayoutEffect(() => {
     stripFragmentFromLocation();
@@ -554,9 +556,7 @@ export function App() {
             type="button"
             className="nav-item nav-item--fab"
             aria-label={t("fabAria")}
-            onClick={() => {
-              /* Sorotan — placeholder */
-            }}
+            onClick={() => setConstitutionChatOpen(true)}
           >
             <span className="fab-circle">
               <IconSparkles />
@@ -582,6 +582,11 @@ export function App() {
           </button>
         </nav>
       </div>
+
+      <ConstitutionChatSheet
+        open={constitutionChatOpen}
+        onClose={() => setConstitutionChatOpen(false)}
+      />
     </div>
   );
 }

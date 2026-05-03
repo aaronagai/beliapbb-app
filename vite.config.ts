@@ -14,4 +14,12 @@ function baseFromEnv(): string {
 export default defineConfig({
   base: baseFromEnv(),
   plugins: [react()],
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:8787",
+        changeOrigin: true,
+      },
+    },
+  },
 });
