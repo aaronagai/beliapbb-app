@@ -146,8 +146,34 @@
 .profile-lang-row {
   display: flex;
   justify-content: center;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
   padding-top: 0.25rem;
+}
+
+.profile-credit {
+  margin: 1.5rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgb(0 0 0 / 0.08);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #777;
+  text-align: center;
+}
+
+.profile-credit-link {
+  color: #1e40af;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.profile-credit-link:hover {
+  text-decoration: underline;
+}
+
+.profile-credit-link:focus-visible {
+  outline: 2px solid #1e40af;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
 }
 
 .profile-save-row {

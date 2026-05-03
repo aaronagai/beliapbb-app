@@ -7,6 +7,7 @@ import {
 import { useI18n } from "./i18n";
 
 const PROFILE_STORAGE_KEY = "beliapbb_profile";
+const PROFILE_CREDIT_HREF = "https://www.linkedin.com/in/aaronagai/";
 
 type ProfileState = {
   name: string;
@@ -185,6 +186,15 @@ export function ProfilePage() {
         </label>
       </div>
 
+      <div className="profile-save-row">
+        <button type="button" className="profile-save-btn" onClick={saveProfile}>
+          {t("profileSave")}
+        </button>
+        <p className="profile-saved-msg" role="status" aria-live="polite">
+          {showSaved ? t("profileSaved") : null}
+        </p>
+      </div>
+
       <div className="profile-lang-row">
         <label className="profile-lang-wrap profile-lang-wrap--combined">
           <span className="visually-hidden">{t("languageLabel")}</span>
@@ -203,14 +213,18 @@ export function ProfilePage() {
         </label>
       </div>
 
-      <div className="profile-save-row">
-        <button type="button" className="profile-save-btn" onClick={saveProfile}>
-          {t("profileSave")}
-        </button>
-        <p className="profile-saved-msg" role="status" aria-live="polite">
-          {showSaved ? t("profileSaved") : null}
-        </p>
-      </div>
+      <p className="profile-credit">
+        <span>{t("profileCreditLead")}</span>{" "}
+        <a
+          href={PROFILE_CREDIT_HREF}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="profile-credit-link"
+          aria-label={t("profileCreditHandleAria")}
+        >
+          @aaronagai
+        </a>
+      </p>
     </section>
   );
 }
