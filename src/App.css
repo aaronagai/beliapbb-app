@@ -114,7 +114,8 @@
   padding: 1rem 1rem max(1.25rem, calc(var(--wings-sheet-lift) + 0.75rem));
 }
 
-.section--members {
+.section--members,
+.section--resources {
   flex: 1;
   min-height: 0;
   background: #ececec;
@@ -413,8 +414,30 @@
   border-bottom: 1px solid rgb(0 0 0 / 0.08);
 }
 
-.members-item:last-child {
+.members-item:last-child,
+.members-list > li:last-child .members-item {
   border-bottom: none;
+}
+
+.members-item--link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.members-item--link:hover {
+  background: rgb(0 0 0 / 0.03);
+}
+
+.members-item--link:focus-visible {
+  outline: 2px solid #1e40af;
+  outline-offset: -2px;
 }
 
 .members-item-icon {
@@ -904,17 +927,21 @@ a.wing-button {
   position: relative;
   z-index: 10;
   flex-shrink: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto minmax(0, 1fr) minmax(0, 1fr);
-  align-items: end;
-  justify-items: center;
-  column-gap: 0.125rem;
-  row-gap: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0.125rem;
   padding: 0.5rem max(0.35rem, env(safe-area-inset-left, 0px))
     calc(0.5rem + env(safe-area-inset-bottom, 0px)) max(0.35rem, env(safe-area-inset-right, 0px));
   background: #fff;
   border-radius: 1.125rem 1.125rem 0 0;
   border-top: 1px solid #e0e0e0;
+}
+
+.bottom-nav > .nav-item:not(.nav-item--fab) {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .nav-item {
@@ -926,12 +953,27 @@ a.wing-button {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  padding: 0.25rem 0.1rem;
+  padding: 0.35rem 0.15rem;
   box-sizing: border-box;
-  text-decoration: none;
-  color: #555;
+  border: none;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 0.625rem;
   font-weight: 600;
+  text-decoration: none;
+  color: #555;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 2.75rem;
+}
+
+/* Tabs sit above the FAB paint stack so labels/icons stay tappable beside the spotlight. */
+.nav-item:not(.nav-item--fab) {
+  position: relative;
+  z-index: 3;
 }
 
 .nav-item:not(.nav-item--fab) > span:last-child {
@@ -964,14 +1006,20 @@ a.wing-button {
 }
 
 .nav-item--fab {
+  flex: 0 0 auto;
   position: relative;
+  z-index: 1;
   top: calc(0.2rem + clamp(-1.25rem, -2.8vw, -0.85rem));
-  width: auto;
+  width: 3.25rem;
+  height: 3.25rem;
   max-width: none;
-  padding-left: 0;
-  padding-right: 0;
-  padding-bottom: 0;
-  justify-self: center;
+  padding: 0;
+  min-height: unset;
+  align-items: center;
+  justify-content: center;
+  /* Clip hit-testing to the circle — border-radius alone leaves a square tap target on many browsers. */
+  clip-path: circle(50% at 50% 50%);
+  cursor: pointer;
 }
 
 .fab-circle {
@@ -983,7 +1031,7 @@ a.wing-button {
   border-radius: 50%;
   background: #c41e3a;
   color: #fff;
-  box-shadow: 0 4px 14px rgb(196 30 58 / 0.45);
+  filter: drop-shadow(0 4px 10px rgb(196 30 58 / 0.42));
 }
 
 .nav-icon--fab {

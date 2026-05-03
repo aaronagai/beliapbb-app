@@ -3,14 +3,40 @@ import logoSvgUrl from "../logo.svg?url";
 import { useI18n, type MessageKey } from "./i18n";
 import { HomeMembershipCard } from "./HomeMembershipCard";
 import { LatestNews } from "./LatestNews";
+import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
 import { MembersPage } from "./MembersPage";
 import { ProfilePage } from "./ProfilePage";
+import { ResourcesPage } from "./ResourcesPage";
 import "./App.css";
 
-type AppTab = "home" | "members" | "profile";
+type AppTab = "home" | "members" | "resources" | "profile";
 
 /** Gap between the header and the sheet when the pull-up is fully expanded (px). */
 const PULLUP_HEADER_GAP_PX = 10;
+
+/** Tab switching is React state only — drop `#fragment` so the URL stays clean (legacy `#resources` etc.). */
+function stripFragmentFromLocation() {
+  if (typeof window === "undefined") return;
+  const { pathname, search, hash } = window.location;
+  if (!hash) return;
+  window.history.replaceState(null, "", `${pathname}${search}`);
+}
+
+function initialTabFromHash(): AppTab {
+  if (typeof window === "undefined") return "home";
+  switch (window.location.hash.slice(1).toLowerCase()) {
+    case "members":
+      return "members";
+    case "resources":
+      return "resources";
+    case "profile":
+      return "profile";
+    case "home":
+      return "home";
+    default:
+      return "home";
+  }
+}
 
 function IconHome() {
   return (
@@ -79,8 +105,6 @@ const KENALI_LABEL_TO_KEY: Record<(typeof KENALI_PARTI_LABELS)[number], MessageK
 /** Malay Wikipedia — Kenali Parti → About. */
 const KENALI_ABOUT_WIKI_MS =
   "https://ms.wikipedia.org/wiki/Parti_Pesaka_Bumiputera_Bersatu_Sarawak";
-/** `public/perlembagaan.pdf` — opens in the device/browser PDF viewer. */
-const KENALI_CONSTITUTION_PDF = `${import.meta.env.BASE_URL}perlembagaan.pdf`;
 const SAYAP_PARTI_LABELS = ["MKT", "Wanita", "Pemuda", "Belia"] as const;
 
 /** Public-folder photos (`public/sayap/`). */
@@ -156,9 +180,13 @@ export function App() {
   const [offset, setOffset] = useState(0);
   const [sheetDragging, setSheetDragging] = useState(false);
   const defaultOffsetAppliedRef = useRef(false);
-  const [tab, setTab] = useState<AppTab>("home");
+  const [tab, setTab] = useState<AppTab>(initialTabFromHash);
   const defaultGreetingName = "Aaron";
   const [greetingName, setGreetingName] = useState(defaultGreetingName);
+
+  useLayoutEffect(() => {
+    stripFragmentFromLocation();
+  }, []);
 
   useEffect(() => {
     if (tab !== "home") return;
@@ -176,10 +204,15 @@ export function App() {
     }
   }, [tab]);
 
+  const selectTab = useCallback((next: AppTab) => {
+    setTab(next);
+    stripFragmentFromLocation();
+  }, []);
+
   const goHome = useCallback(() => {
     defaultOffsetAppliedRef.current = false;
-    setTab("home");
-  }, []);
+    selectTab("home");
+  }, [selectTab]);
 
   /** Minimum visible height when fully collapsed (handle + title + wing row must clear nav). */
   /** Min visible strip when fully collapsed; includes taller drag handle. */
@@ -334,7 +367,7 @@ export function App() {
         }
       >
         <header ref={appHeaderRef} className="app-header">
-          {tab === "members" || tab === "profile" ? (
+          {tab === "members" || tab === "resources" || tab === "profile" ? (
             <div className="app-header-sub">
               <button
                 type="button"
@@ -350,7 +383,11 @@ export function App() {
                 </svg>
               </button>
               <h1 className="app-header-title">
-                {tab === "profile" ? t("profileTitle") : t("membersTitle")}
+                {tab === "profile"
+                  ? t("profileTitle")
+                  : tab === "resources"
+                    ? t("navResources")
+                    : t("membersTitle")}
               </h1>
               <span aria-hidden="true" />
             </div>
@@ -404,6 +441,8 @@ export function App() {
             </section>
           ) : tab === "members" ? (
             <MembersPage />
+          ) : tab === "resources" ? (
+            <ResourcesPage />
           ) : (
             <ProfilePage />
           )}
@@ -455,7 +494,7 @@ export function App() {
                             ) : label === "Constitution" ? (
                               <a
                                 className="wing-button"
-                                href={KENALI_CONSTITUTION_PDF}
+                                href={CONSTITUTION_PDF_URL}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
@@ -493,48 +532,54 @@ export function App() {
         ) : null}
 
         <nav ref={bottomNavRef} className="bottom-nav" aria-label={t("navMain")}>
-          <a
+          <button
+            type="button"
             className={`nav-item${tab === "home" ? " nav-item--active" : ""}`}
-            href="#home"
-            onClick={(e) => {
-              e.preventDefault();
-              goHome();
-            }}
+            aria-current={tab === "home" ? "page" : undefined}
+            onClick={() => goHome()}
           >
             <IconHome />
             <span>{t("navHome")}</span>
-          </a>
-          <a
+          </button>
+          <button
+            type="button"
             className={`nav-item${tab === "members" ? " nav-item--active" : ""}`}
-            href="#members"
-            onClick={(e) => {
-              e.preventDefault();
-              setTab("members");
-            }}
+            aria-current={tab === "members" ? "page" : undefined}
+            onClick={() => selectTab("members")}
           >
             <IconMembers />
             <span>{t("navMembers")}</span>
-          </a>
-          <a className="nav-item nav-item--fab" href="#chat" aria-label={t("fabAria")}>
+          </button>
+          <button
+            type="button"
+            className="nav-item nav-item--fab"
+            aria-label={t("fabAria")}
+            onClick={() => {
+              /* Sorotan — placeholder */
+            }}
+          >
             <span className="fab-circle">
               <IconSparkles />
             </span>
-          </a>
-          <a className="nav-item" href="#resources">
+          </button>
+          <button
+            type="button"
+            className={`nav-item${tab === "resources" ? " nav-item--active" : ""}`}
+            aria-current={tab === "resources" ? "page" : undefined}
+            onClick={() => selectTab("resources")}
+          >
             <IconResources />
             <span>{t("navResources")}</span>
-          </a>
-          <a
+          </button>
+          <button
+            type="button"
             className={`nav-item${tab === "profile" ? " nav-item--active" : ""}`}
-            href="#profile"
-            onClick={(e) => {
-              e.preventDefault();
-              setTab("profile");
-            }}
+            aria-current={tab === "profile" ? "page" : undefined}
+            onClick={() => selectTab("profile")}
           >
             <IconProfile />
             <span>{t("navProfile")}</span>
-          </a>
+          </button>
         </nav>
       </div>
     </div>
