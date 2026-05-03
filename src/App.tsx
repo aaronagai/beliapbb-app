@@ -79,6 +79,8 @@ const KENALI_LABEL_TO_KEY: Record<(typeof KENALI_PARTI_LABELS)[number], MessageK
 /** Malay Wikipedia — Kenali Parti → About. */
 const KENALI_ABOUT_WIKI_MS =
   "https://ms.wikipedia.org/wiki/Parti_Pesaka_Bumiputera_Bersatu_Sarawak";
+/** `public/perlembagaan.pdf` — opens in the device/browser PDF viewer. */
+const KENALI_CONSTITUTION_PDF = `${import.meta.env.BASE_URL}perlembagaan.pdf`;
 const SAYAP_PARTI_LABELS = ["MKT", "Wanita", "Pemuda", "Belia"] as const;
 
 /** Public-folder photos (`public/sayap/`). */
@@ -442,6 +444,18 @@ export function App() {
                               <a
                                 className="wing-button"
                                 href={KENALI_ABOUT_WIKI_MS}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <span className="wing-circle">
+                                  <KenaliPartiIcon label={label} />
+                                </span>
+                                <span className="wing-label">{t(KENALI_LABEL_TO_KEY[label])}</span>
+                              </a>
+                            ) : label === "Constitution" ? (
+                              <a
+                                className="wing-button"
+                                href={KENALI_CONSTITUTION_PDF}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
