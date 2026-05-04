@@ -4,13 +4,14 @@ import { useI18n, type MessageKey } from "./i18n";
 import { HomeMembershipCard } from "./HomeMembershipCard";
 import { LatestNews } from "./LatestNews";
 import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
+import { ApplicationPage } from "./ApplicationPage";
 import { MembersPage } from "./MembersPage";
 import { ProfilePage } from "./ProfilePage";
 import { ConstitutionChatSheet } from "./ConstitutionChatSheet";
 import { ResourcesPage } from "./ResourcesPage";
 import "./App.css";
 
-type AppTab = "home" | "members" | "resources" | "profile";
+type AppTab = "home" | "members" | "resources" | "apply" | "profile";
 
 /** Gap between the header and the sheet when the pull-up is fully expanded (px). */
 const PULLUP_HEADER_GAP_PX = 10;
@@ -32,6 +33,8 @@ function initialTabFromHash(): AppTab {
       return "resources";
     case "profile":
       return "profile";
+    case "apply":
+      return "apply";
     case "home":
       return "home";
     default:
@@ -95,13 +98,21 @@ function IconProfile() {
   );
 }
 
-const KENALI_PARTI_LABELS = ["About", "Amanat", "Constitution", "Structure"] as const;
+const KENALI_PARTI_LABELS = ["About", "Structure", "Constitution", "Apply"] as const;
+
+/** Flex `order` so Kenali row always reads left-to-right: About → Structure → Constitution → Apply. */
+const KENALI_PARTI_UI_ORDER: Record<(typeof KENALI_PARTI_LABELS)[number], number> = {
+  About: 1,
+  Structure: 2,
+  Constitution: 3,
+  Apply: 4,
+};
 
 const KENALI_LABEL_TO_KEY: Record<(typeof KENALI_PARTI_LABELS)[number], MessageKey> = {
   About: "kenaliAbout",
-  Amanat: "kenaliAmanat",
-  Constitution: "kenaliConstitution",
   Structure: "kenaliStructure",
+  Constitution: "kenaliConstitution",
+  Apply: "kenaliApply",
 };
 /** Malay Wikipedia — Kenali Parti → About. */
 const KENALI_ABOUT_WIKI_MS =
@@ -128,24 +139,6 @@ function KenaliPartiIcon({ label }: { label: (typeof KENALI_PARTI_LABELS)[number
           />
         </svg>
       );
-    case "Amanat":
-      return (
-        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
-          <path
-            fill="currentColor"
-            d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"
-          />
-        </svg>
-      );
-    case "Constitution":
-      return (
-        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
-          <path
-            fill="currentColor"
-            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
-          />
-        </svg>
-      );
     case "Structure":
       return (
         <svg className={cls} viewBox="0 0 24 24" aria-hidden fill="none">
@@ -161,6 +154,24 @@ function KenaliPartiIcon({ label }: { label: (typeof KENALI_PARTI_LABELS)[number
             <rect x="10" y="10.5" width="4" height="3.8" rx="0.9" />
             <rect x="16" y="10.5" width="4" height="3.8" rx="0.9" />
           </g>
+        </svg>
+      );
+    case "Constitution":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
+          />
+        </svg>
+      );
+    case "Apply":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 14H8v-2h8v2zm0-3H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+          />
         </svg>
       );
     default:
@@ -369,7 +380,7 @@ export function App() {
         }
       >
         <header ref={appHeaderRef} className="app-header">
-          {tab === "members" || tab === "resources" || tab === "profile" ? (
+          {tab === "members" || tab === "resources" || tab === "apply" || tab === "profile" ? (
             <div className="app-header-sub">
               <button
                 type="button"
@@ -389,7 +400,9 @@ export function App() {
                   ? t("profileTitle")
                   : tab === "resources"
                     ? t("navResources")
-                    : t("membersTitle")}
+                    : tab === "apply"
+                      ? t("applicationTitle")
+                      : t("membersTitle")}
               </h1>
               <span aria-hidden="true" />
             </div>
@@ -445,6 +458,8 @@ export function App() {
             <MembersPage />
           ) : tab === "resources" ? (
             <ResourcesPage />
+          ) : tab === "apply" ? (
+            <ApplicationPage />
           ) : (
             <ProfilePage />
           )}
@@ -480,7 +495,12 @@ export function App() {
                   <ul className="wings-row">
                     {row === 0
                       ? KENALI_PARTI_LABELS.map((label) => (
-                          <li key={label} className="wing-item">
+                          <li
+                            key={label}
+                            className="wing-item"
+                            data-wing={label}
+                            style={{ order: KENALI_PARTI_UI_ORDER[label] }}
+                          >
                             {label === "About" ? (
                               <a
                                 className="wing-button"
@@ -505,6 +525,17 @@ export function App() {
                                 </span>
                                 <span className="wing-label">{t(KENALI_LABEL_TO_KEY[label])}</span>
                               </a>
+                            ) : label === "Apply" ? (
+                              <button
+                                type="button"
+                                className="wing-button"
+                                onClick={() => selectTab("apply")}
+                              >
+                                <span className="wing-circle">
+                                  <KenaliPartiIcon label={label} />
+                                </span>
+                                <span className="wing-label">{t(KENALI_LABEL_TO_KEY[label])}</span>
+                              </button>
                             ) : (
                               <button type="button" className="wing-button">
                                 <span className="wing-circle">
