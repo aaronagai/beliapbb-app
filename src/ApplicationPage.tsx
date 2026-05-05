@@ -486,7 +486,7 @@ export function ApplicationPage() {
         </div>
 
         <h2 className="application-section-title">{t("applicationSectionProposer")}</h2>
-        <div className="profile-card">
+        <div className="profile-card profile-card--tight-top">
           <p className="application-hint">{t("applicationProposerHint")}</p>
           <label className="profile-field" htmlFor="app-pen-n">
             <span className="profile-label">{t("applicationLblProposerName")}</span>
@@ -516,7 +516,7 @@ export function ApplicationPage() {
             />
           </label>
         </div>
-        <div className="profile-card">
+        <div className="profile-card profile-card--tight-top">
           <label className="profile-field" htmlFor="app-peny-n">
             <span className="profile-label">{t("applicationLblSupporterName")}</span>
             <input
@@ -547,7 +547,7 @@ export function ApplicationPage() {
         </div>
 
         <h2 className="application-section-title">{t("applicationSectionDeclaration")}</h2>
-        <div className="profile-card">
+        <div className="profile-card profile-card--tight-top">
           <p className="application-declaration-text">{t("applicationDeclarationBody")}</p>
           <label className="application-check application-declaration-check">
             <input type="checkbox" checked={d.pengakuan} onChange={(e) => patch({ pengakuan: e.target.checked })} />

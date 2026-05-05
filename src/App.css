@@ -434,6 +434,10 @@
   margin-bottom: 0.75rem;
 }
 
+.profile-card--tight-top {
+  padding-top: 0.6rem;
+}
+
 .profile-photo-row {
   display: flex;
   flex-direction: column;
