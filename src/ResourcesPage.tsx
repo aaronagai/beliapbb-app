@@ -35,6 +35,17 @@ export function ResourcesPage() {
               </div>
             </a>
           </li>
+          <li>
+            <div className="members-item members-item--disabled" aria-disabled="true">
+              <span className="members-item-icon" aria-hidden>
+                <ConstitutionDocIcon />
+              </span>
+              <div className="members-item-text">
+                <div className="members-item-name">{t("resourcesMeetingRulesTitle")}</div>
+                <div className="members-item-cawangan">{t("resourcesMeetingRulesHint")}</div>
+              </div>
+            </div>
+          </li>
         </ul>
       </div>
     </section>

@@ -608,6 +608,11 @@
   outline-offset: -2px;
 }
 
+.members-item--disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .members-item-icon {
   flex-shrink: 0;
   display: flex;
