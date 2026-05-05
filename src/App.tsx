@@ -202,6 +202,18 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    const brand = "Belia PBB";
+    const byTab: Record<AppTab, string> = {
+      home: brand,
+      members: `${t("membersTitle")} · ${brand}`,
+      resources: `${t("navResources")} · ${brand}`,
+      apply: `${t("applicationTitle")} · ${brand}`,
+      profile: `${t("profileTitle")} · ${brand}`,
+    };
+    document.title = byTab[tab];
+  }, [tab, t]);
+
+  useEffect(() => {
     if (tab !== "home") return;
     try {
       const raw = localStorage.getItem("beliapbb_profile");
@@ -395,7 +407,7 @@ export function App() {
                   />
                 </svg>
               </button>
-              <h1 className="app-header-title">
+              <h1 className="app-header-title" translate="no">
                 {tab === "profile"
                   ? t("profileTitle")
                   : tab === "resources"

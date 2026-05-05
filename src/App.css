@@ -97,6 +97,8 @@
   text-align: center;
   color: #1a1a1a;
   letter-spacing: -0.02em;
+  text-transform: none;
+  font-variant: normal;
 }
 
 .app-main {
