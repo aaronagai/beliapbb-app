@@ -490,29 +490,59 @@ export function ApplicationPage() {
           <p className="application-hint">{t("applicationProposerHint")}</p>
           <label className="profile-field" htmlFor="app-pen-n">
             <span className="profile-label">{t("applicationLblProposerName")}</span>
-            <input id="app-pen-n" className="profile-input" value={d.pencadangNama} onChange={(e) => patch({ pencadangNama: e.target.value })} />
+            <input
+              id="app-pen-n"
+              className="profile-input application-input-branch-reserved"
+              value={d.pencadangNama}
+              disabled
+            />
           </label>
           <label className="profile-field application-field-spaced" htmlFor="app-pen-ic">
             <span className="profile-label">{t("applicationLblProposerIc")}</span>
-            <input id="app-pen-ic" className="profile-input" value={d.pencadangIc} onChange={(e) => patch({ pencadangIc: e.target.value })} />
+            <input
+              id="app-pen-ic"
+              className="profile-input application-input-branch-reserved"
+              value={d.pencadangIc}
+              disabled
+            />
           </label>
           <label className="profile-field application-field-spaced" htmlFor="app-pen-j">
             <span className="profile-label">{t("applicationLblProposerJawatan")}</span>
-            <input id="app-pen-j" className="profile-input" value={d.pencadangJawatan} onChange={(e) => patch({ pencadangJawatan: e.target.value })} />
+            <input
+              id="app-pen-j"
+              className="profile-input application-input-branch-reserved"
+              value={d.pencadangJawatan}
+              disabled
+            />
           </label>
         </div>
         <div className="profile-card">
           <label className="profile-field" htmlFor="app-peny-n">
             <span className="profile-label">{t("applicationLblSupporterName")}</span>
-            <input id="app-peny-n" className="profile-input" value={d.penyokongNama} onChange={(e) => patch({ penyokongNama: e.target.value })} />
+            <input
+              id="app-peny-n"
+              className="profile-input application-input-branch-reserved"
+              value={d.penyokongNama}
+              disabled
+            />
           </label>
           <label className="profile-field application-field-spaced" htmlFor="app-peny-ic">
             <span className="profile-label">{t("applicationLblSupporterIc")}</span>
-            <input id="app-peny-ic" className="profile-input" value={d.penyokongIc} onChange={(e) => patch({ penyokongIc: e.target.value })} />
+            <input
+              id="app-peny-ic"
+              className="profile-input application-input-branch-reserved"
+              value={d.penyokongIc}
+              disabled
+            />
           </label>
           <label className="profile-field application-field-spaced" htmlFor="app-peny-j">
             <span className="profile-label">{t("applicationLblSupporterJawatan")}</span>
-            <input id="app-peny-j" className="profile-input" value={d.penyokongJawatan} onChange={(e) => patch({ penyokongJawatan: e.target.value })} />
+            <input
+              id="app-peny-j"
+              className="profile-input application-input-branch-reserved"
+              value={d.penyokongJawatan}
+              disabled
+            />
           </label>
         </div>
 

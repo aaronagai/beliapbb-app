@@ -132,7 +132,8 @@ export const messages = {
     applicationBangsa_kenyah: "Kenyah",
     applicationBangsa_lun_bawang: "Lun Bawang",
     applicationBangsa_lain: "Lain-lain",
-    applicationProposerHint: "Isi seperti di muka borang rasmi; tandatangan fizikal pada PDF dicadangkan.",
+    applicationProposerHint:
+      "Ruangan pencadang dan penyokong dipaparkan seperti di borang rasmi tetapi dilengkapkan oleh cawangan / ibu pejabat — tidak diisi dalam borang digital ini.",
     applicationDeclarationBody:
       "Saya memohon menjadi ahli Parti Pesaka Bumiputera Bersatu Sarawak. Jika diterima, saya sanggup mematuhi undang-undang pertubuhan PBB seperti dalam Perlembagaan, dan mengaku bukan ahli parti lain. Saya mengaku semua keterangan di atas adalah benar.",
     applicationDeclarationCheckbox: "Saya bersetuju dengan pengakuan di atas.",
@@ -264,7 +265,8 @@ export const messages = {
     applicationBangsa_kenyah: "Kenyah",
     applicationBangsa_lun_bawang: "Lun Bawang",
     applicationBangsa_lain: "Other",
-    applicationProposerHint: "Match the printed form; physical signatures on the PDF are recommended.",
+    applicationProposerHint:
+      "Proposer and supporter fields mirror the printed form but are completed by the branch / headquarters — they are not filled in this digital form by design.",
     applicationDeclarationBody:
       "I apply to become a member of Parti Pesaka Bumiputera Bersatu Sarawak. If accepted, I agree to comply with PBB’s laws as in the Constitution, and confirm I am not a member of another party. I declare the information above is true.",
     applicationDeclarationCheckbox: "I agree with the declaration above.",

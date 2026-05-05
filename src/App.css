@@ -300,6 +300,14 @@
   line-height: 1.4;
 }
 
+.application-input-branch-reserved:disabled {
+  cursor: not-allowed;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #e5e7eb;
+  opacity: 1;
+}
+
 .profile-save-row {
   display: flex;
   flex-direction: column;
