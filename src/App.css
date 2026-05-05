@@ -210,6 +210,8 @@
 
 .application-section-title {
   margin: 0.75rem 0 0.15rem;
+  padding-inline: 1rem;
+  box-sizing: border-box;
   font-size: 0.9375rem;
   font-weight: 700;
   color: #1a1a1a;
@@ -280,7 +282,7 @@
 
 .application-office-note {
   margin: 0.5rem 0 0;
-  padding: 0.65rem 0.75rem;
+  padding: 0.65rem 1rem;
   font-size: 0.6875rem;
   line-height: 1.4;
   color: #666;
@@ -293,6 +295,8 @@
   flex-direction: column;
   gap: 0.5rem;
   margin-top: 0.75rem;
+  padding-inline: 1rem;
+  box-sizing: border-box;
 }
 
 .application-saved-msg {
