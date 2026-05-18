@@ -1,22 +1,18 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import logoSvgUrl from "../logo.svg?url";
 import { useI18n, type MessageKey } from "./i18n";
 import { HomeMembershipCard } from "./HomeMembershipCard";
 import { LatestNews } from "./LatestNews";
-import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
 import { ApplicationPage } from "./ApplicationPage";
 import { MembersPage } from "./MembersPage";
 import { ProfilePage } from "./ProfilePage";
 import { ConstitutionChatSheet } from "./ConstitutionChatSheet";
 import { ResourcesPage } from "./ResourcesPage";
+import { PartyWingsSection } from "./PartyWingsSection";
 import "./App.css";
 
 type AppTab = "home" | "members" | "resources" | "apply" | "profile";
 
-/** Gap between the header and the sheet when the pull-up is fully expanded (px). */
-const PULLUP_HEADER_GAP_PX = 10;
-
-/** Tab switching is React state only — drop `#fragment` so the URL stays clean (legacy `#resources` etc.). */
 function stripFragmentFromLocation() {
   if (typeof window === "undefined") return;
   const { pathname, search, hash } = window.location;
@@ -45,10 +41,7 @@ function initialTabFromHash(): AppTab {
 function IconHome() {
   return (
     <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z"
-      />
+      <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z" />
     </svg>
   );
 }
@@ -66,7 +59,7 @@ function IconMembers() {
 
 function IconSparkles() {
   return (
-    <svg className="nav-icon nav-icon--fab" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -98,82 +91,23 @@ function IconProfile() {
   );
 }
 
-const KENALI_PARTI_LABELS = ["About", "Structure", "Constitution", "Apply"] as const;
+const NAV_ITEMS: { tab: AppTab; labelKey: MessageKey; icon: () => ReactNode }[] = [
+  { tab: "home", labelKey: "navHome", icon: IconHome },
+  { tab: "members", labelKey: "navMembers", icon: IconMembers },
+  { tab: "resources", labelKey: "navResources", icon: IconResources },
+  { tab: "profile", labelKey: "navProfile", icon: IconProfile },
+];
 
-/** Flex `order` so Kenali row always reads left-to-right: About → Structure → Constitution → Apply. */
-const KENALI_PARTI_UI_ORDER: Record<(typeof KENALI_PARTI_LABELS)[number], number> = {
-  About: 1,
-  Structure: 2,
-  Constitution: 3,
-  Apply: 4,
-};
-
-const KENALI_LABEL_TO_KEY: Record<(typeof KENALI_PARTI_LABELS)[number], MessageKey> = {
-  About: "kenaliAbout",
-  Structure: "kenaliStructure",
-  Constitution: "kenaliConstitution",
-  Apply: "kenaliApply",
-};
-/** Malay Wikipedia — Kenali Parti → About. */
-const KENALI_ABOUT_WIKI_MS =
-  "https://ms.wikipedia.org/wiki/Parti_Pesaka_Bumiputera_Bersatu_Sarawak";
-const SAYAP_PARTI_LABELS = ["MKT", "Wanita", "Pemuda", "Belia"] as const;
-
-/** Public-folder photos (`public/sayap/`). */
-const SAYAP_PARTI_PHOTO_SRC: Record<(typeof SAYAP_PARTI_LABELS)[number], string> = {
-  MKT: `${import.meta.env.BASE_URL}sayap/mkt.jpg`,
-  Wanita: `${import.meta.env.BASE_URL}sayap/wanita.jpg.webp`,
-  Pemuda: `${import.meta.env.BASE_URL}sayap/pemuda.jpg`,
-  Belia: `${import.meta.env.BASE_URL}sayap/belia.jpeg`,
-};
-
-function KenaliPartiIcon({ label }: { label: (typeof KENALI_PARTI_LABELS)[number] }) {
-  const cls = "wing-circle-icon";
-  switch (label) {
-    case "About":
-      return (
-        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
-          <path
-            fill="currentColor"
-            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-          />
-        </svg>
-      );
-    case "Structure":
-      return (
-        <svg className={cls} viewBox="0 0 24 24" aria-hidden fill="none">
-          <g
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="7.5" y="2" width="9" height="4" rx="1.2" />
-            <path d="M12 6v2.5M6 8.5h12M6 8.5v2M12 8.5v2M18 8.5v2" />
-            <rect x="4" y="10.5" width="4" height="3.8" rx="0.9" />
-            <rect x="10" y="10.5" width="4" height="3.8" rx="0.9" />
-            <rect x="16" y="10.5" width="4" height="3.8" rx="0.9" />
-          </g>
-        </svg>
-      );
-    case "Constitution":
-      return (
-        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
-          <path
-            fill="currentColor"
-            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
-          />
-        </svg>
-      );
-    case "Apply":
-      return (
-        <svg className={cls} viewBox="0 0 24 24" aria-hidden>
-          <path
-            fill="currentColor"
-            d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 14H8v-2h8v2zm0-3H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
-          />
-        </svg>
-      );
+function pageHeadingKey(tab: AppTab): MessageKey | null {
+  switch (tab) {
+    case "members":
+      return "membersTitle";
+    case "resources":
+      return "navResources";
+    case "apply":
+      return "applicationTitle";
+    case "profile":
+      return "profileTitle";
     default:
       return null;
   }
@@ -181,17 +115,6 @@ function KenaliPartiIcon({ label }: { label: (typeof KENALI_PARTI_LABELS)[number
 
 export function App() {
   const { t } = useI18n();
-  const phoneFrameRef = useRef<HTMLDivElement>(null);
-  const appHeaderRef = useRef<HTMLElement>(null);
-  const bottomNavRef = useRef<HTMLElement>(null);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ startY: number; startOffset: number; moved: boolean } | null>(
-    null
-  );
-  const [sheetHeight, setSheetHeight] = useState(0);
-  const [offset, setOffset] = useState(0);
-  const [sheetDragging, setSheetDragging] = useState(false);
-  const defaultOffsetAppliedRef = useRef(false);
   const [tab, setTab] = useState<AppTab>(initialTabFromHash);
   const defaultGreetingName = "Aaron";
   const [greetingName, setGreetingName] = useState(defaultGreetingName);
@@ -232,240 +155,102 @@ export function App() {
   const selectTab = useCallback((next: AppTab) => {
     setTab(next);
     stripFragmentFromLocation();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const goHome = useCallback(() => {
-    defaultOffsetAppliedRef.current = false;
-    selectTab("home");
-  }, [selectTab]);
-
-  /** Minimum visible height when fully collapsed (handle + title + wing row must clear nav). */
-  /** Min visible strip when fully collapsed; includes taller drag handle. */
-  const peekPx = 192;
-
-  useLayoutEffect(() => {
-    const el = sheetRef.current;
-    if (!el) return;
-    const measure = () => {
-      const h = el.offsetHeight;
-      setSheetHeight(h);
-      if (!defaultOffsetAppliedRef.current && h > 0) {
-        const phone = el.closest(".phone-frame") as HTMLElement | null;
-        const pageH = phone?.clientHeight ?? window.innerHeight;
-        /** Default strip: at least peek, ~26% of frame, and 200px so icons are not clipped. */
-        const targetVisible = Math.min(h, Math.max(peekPx, pageH * 0.26, 200));
-        const max = Math.max(0, h - peekPx);
-        const minO = max > 0 && PULLUP_HEADER_GAP_PX <= max ? PULLUP_HEADER_GAP_PX : 0;
-        const visible = targetVisible;
-        const next = Math.min(max, Math.max(minO, h - visible));
-        setOffset(next);
-        defaultOffsetAppliedRef.current = true;
-      }
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [tab]);
-
-  /** Tab bar + header height → CSS vars so pull-up fills space between them (up to header). */
-  useLayoutEffect(() => {
-    const phone = phoneFrameRef.current;
-    const nav = bottomNavRef.current;
-    const header = appHeaderRef.current;
-    if (!phone || !nav || !header) return;
-    const sync = () => {
-      phone.style.setProperty("--phone-nav-height", `${nav.offsetHeight}px`);
-      phone.style.setProperty("--app-header-height", `${header.offsetHeight}px`);
-    };
-    sync();
-    const roNav = new ResizeObserver(sync);
-    const roHead = new ResizeObserver(sync);
-    roNav.observe(nav);
-    roHead.observe(header);
-    return () => {
-      roNav.disconnect();
-      roHead.disconnect();
-    };
-  }, [tab]);
-
-  const maxOffset = Math.max(0, sheetHeight - peekPx);
-  const sheetMinOffset =
-    maxOffset > 0 && PULLUP_HEADER_GAP_PX <= maxOffset ? PULLUP_HEADER_GAP_PX : 0;
-
-  /** Never clamp while maxOffset is 0 — that would force offset to 0 and wipe the default strip. */
-  useLayoutEffect(() => {
-    if (maxOffset <= 0) return;
-    setOffset((o) => Math.min(Math.max(o, sheetMinOffset), maxOffset));
-  }, [maxOffset, sheetMinOffset]);
-
-  const snapStops = useCallback((): number[] => {
-    if (maxOffset <= 0) return [0];
-    const half = (sheetMinOffset + maxOffset) / 2;
-    const stops = [sheetMinOffset, half, maxOffset];
-    return [...new Set(stops)].sort((a, b) => a - b);
-  }, [maxOffset, sheetMinOffset]);
-
-  const snapFrom = useCallback(
-    (value: number) => {
-      const stops = snapStops();
-      let best = stops[0]!;
-      let bestDist = Math.abs(value - best);
-      for (const s of stops) {
-        const d = Math.abs(value - s);
-        if (d < bestDist) {
-          best = s;
-          bestDist = d;
-        }
-      }
-      return best;
-    },
-    [snapStops]
-  );
-
-  const onHandlePointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      e.currentTarget.setPointerCapture(e.pointerId);
-      setSheetDragging(true);
-      dragRef.current = { startY: e.clientY, startOffset: offset, moved: false };
-    },
-    [offset]
-  );
-
-  const onHandlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      const d = dragRef.current;
-      if (!d) return;
-      const dy = e.clientY - d.startY;
-      if (Math.abs(dy) > 6) d.moved = true;
-      const next = Math.min(maxOffset, Math.max(sheetMinOffset, d.startOffset + dy));
-      setOffset(next);
-    },
-    [maxOffset, sheetMinOffset]
-  );
-
-  const onHandlePointerUp = useCallback(
-    (e: React.PointerEvent) => {
-      try {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch {
-        /* ignore */
-      }
-      setSheetDragging(false);
-      const d = dragRef.current;
-      dragRef.current = null;
-      if (!d) return;
-      if (!d.moved) {
-        const stops = snapStops();
-        if (stops.length < 2) return;
-        setOffset((o) => {
-          let closest = 0;
-          let closestDist = Infinity;
-          stops.forEach((s, idx) => {
-            const dist = Math.abs(s - o);
-            if (dist < closestDist) {
-              closestDist = dist;
-              closest = idx;
-            }
-          });
-          const nextIdx = (closest + 1) % stops.length;
-          return stops[nextIdx]!;
-        });
-        return;
-      }
-      setOffset((o) => snapFrom(o));
-    },
-    [maxOffset, snapFrom, snapStops]
-  );
-
-  const visibleLift = tab === "home" ? Math.max(0, sheetHeight - offset) : 0;
+  const headingKey = pageHeadingKey(tab);
 
   return (
     <div className="app-shell">
-      <div
-        ref={phoneFrameRef}
-        className="phone-frame"
-        style={
-          {
-            "--wings-sheet-lift": `${visibleLift}px`,
-          } as React.CSSProperties
-        }
-      >
-        <header ref={appHeaderRef} className="app-header">
-          {tab === "members" || tab === "resources" || tab === "apply" || tab === "profile" ? (
-            <div className="app-header-sub">
-              <button
-                type="button"
-                className="app-header-back"
-                onClick={goHome}
-                aria-label={t("back")}
-              >
-                <svg className="app-header-back-icon" viewBox="0 0 24 24" aria-hidden>
-                  <path
-                    fill="currentColor"
-                    d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
-                  />
-                </svg>
-              </button>
-              <h1 className="app-header-title" translate="no">
-                {tab === "profile"
-                  ? t("profileTitle")
-                  : tab === "resources"
-                    ? t("navResources")
-                    : tab === "apply"
-                      ? t("applicationTitle")
-                      : t("membersTitle")}
-              </h1>
-              <span aria-hidden="true" />
-            </div>
-          ) : (
-            <div className="site-brand-row" translate="no">
-              <img
-                src={logoSvgUrl}
-                alt={t("logoAlt")}
-                className="site-brand-logo"
-                width={120}
-                height={32}
-                decoding="async"
-              />
-              <span className="site-brand">beliapbb.app</span>
-            </div>
-          )}
-        </header>
+      <header className="app-header">
+        <div className="app-header-inner">
+          <button
+            type="button"
+            className="site-brand-row site-brand-row--button"
+            onClick={() => selectTab("home")}
+            translate="no"
+          >
+            <img
+              src={logoSvgUrl}
+              alt={t("logoAlt")}
+              className="site-brand-logo"
+              width={120}
+              height={32}
+              decoding="async"
+            />
+            <span className="site-brand">beliapbb.app</span>
+          </button>
 
-        <main className="app-main">
+          <nav className="app-nav" aria-label={t("navMain")}>
+            {NAV_ITEMS.map(({ tab: navTab, labelKey, icon: Icon }) => (
+              <button
+                key={navTab}
+                type="button"
+                className={`app-nav-item${tab === navTab ? " app-nav-item--active" : ""}`}
+                aria-current={tab === navTab ? "page" : undefined}
+                onClick={() => selectTab(navTab)}
+              >
+                <Icon />
+                <span>{t(labelKey)}</span>
+              </button>
+            ))}
+          </nav>
+
+          <button
+            type="button"
+            className="header-ai-btn"
+            aria-label={t("fabAria")}
+            onClick={() => setConstitutionChatOpen(true)}
+          >
+            <IconSparkles />
+            <span className="header-ai-btn-label">{t("constitutionChatTitle")}</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="app-main">
+        <div className="page-inner">
+          {headingKey ? (
+            <h1 className="page-heading" translate="no">
+              {t(headingKey)}
+            </h1>
+          ) : null}
+
           {tab === "home" ? (
-            <section className="section section--news">
-              <h1 className="greeting">
-                {t("greetingHey").replace(/\{\{name\}\}/g, greetingName)}
-              </h1>
-              <HomeMembershipCard />
-              <h2 className="section-title">
-                <span className="section-title-inline">
-                  {t("latestNews")}
-                  <span className="section-title-sep">|</span>
-                </span>
-                <a
-                  className="news-source-link"
-                  href="https://jiwabakti.com.my/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t("jiwaBaktiLink")}
-                </a>
-              </h2>
-              <LatestNews />
-              <p className="news-see-more">
-                <a
-                  className="news-source-link"
-                  href="https://jiwabakti.com.my/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t("newsSeeMore")}
-                </a>
-              </p>
-            </section>
+            <>
+              <section className="section section--news">
+                <h2 className="greeting">
+                  {t("greetingHey").replace(/\{\{name\}\}/g, greetingName)}
+                </h2>
+                <HomeMembershipCard />
+                <h3 className="section-title">
+                  <span className="section-title-inline">
+                    {t("latestNews")}
+                    <span className="section-title-sep">|</span>
+                  </span>
+                  <a
+                    className="news-source-link"
+                    href="https://jiwabakti.com.my/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t("jiwaBaktiLink")}
+                  </a>
+                </h3>
+                <LatestNews />
+                <p className="news-see-more">
+                  <a
+                    className="news-source-link"
+                    href="https://jiwabakti.com.my/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t("newsSeeMore")}
+                  </a>
+                </p>
+              </section>
+              <PartyWingsSection onSelectApply={() => selectTab("apply")} />
+            </>
           ) : tab === "members" ? (
             <MembersPage />
           ) : tab === "resources" ? (
@@ -475,156 +260,8 @@ export function App() {
           ) : (
             <ProfilePage />
           )}
-        </main>
-
-        {tab === "home" ? (
-        <div className="wings-pullup-host">
-          <div
-            ref={sheetRef}
-            className={`wings-pullup${sheetDragging ? " wings-pullup--dragging" : ""}`}
-            style={{
-              transform: `translateY(${offset}px)`,
-            }}
-          >
-            <button
-              type="button"
-              className="wings-pullup-handle"
-              aria-expanded={maxOffset <= 0 ? true : offset < maxOffset - 4}
-              aria-label={t("sheetDragAria")}
-              onPointerDown={onHandlePointerDown}
-              onPointerMove={onHandlePointerMove}
-              onPointerUp={onHandlePointerUp}
-              onPointerCancel={onHandlePointerUp}
-            >
-              <span className="wings-pullup-pill" />
-            </button>
-            <div className="wings-pullup-body">
-              {[0, 1].map((row) => (
-                <div key={row} className="wings-block">
-                  <h2 className="wings-heading">
-                    {row === 0 ? t("kenaliParti") : t("sayapParti")}
-                  </h2>
-                  <ul className="wings-row">
-                    {row === 0
-                      ? KENALI_PARTI_LABELS.map((label) => (
-                          <li
-                            key={label}
-                            className="wing-item"
-                            data-wing={label}
-                            style={{ order: KENALI_PARTI_UI_ORDER[label] }}
-                          >
-                            {label === "About" ? (
-                              <a
-                                className="wing-button"
-                                href={KENALI_ABOUT_WIKI_MS}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <span className="wing-circle">
-                                  <KenaliPartiIcon label={label} />
-                                </span>
-                                <span className="wing-label">{t(KENALI_LABEL_TO_KEY[label])}</span>
-                              </a>
-                            ) : label === "Constitution" ? (
-                              <a
-                                className="wing-button"
-                                href={CONSTITUTION_PDF_URL}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <span className="wing-circle">
-                                  <KenaliPartiIcon label={label} />
-                                </span>
-                                <span className="wing-label">{t(KENALI_LABEL_TO_KEY[label])}</span>
-                              </a>
-                            ) : label === "Apply" ? (
-                              <button
-                                type="button"
-                                className="wing-button"
-                                onClick={() => selectTab("apply")}
-                              >
-                                <span className="wing-circle">
-                                  <KenaliPartiIcon label={label} />
-                                </span>
-                                <span className="wing-label">{t(KENALI_LABEL_TO_KEY[label])}</span>
-                              </button>
-                            ) : (
-                              <button type="button" className="wing-button">
-                                <span className="wing-circle">
-                                  <KenaliPartiIcon label={label} />
-                                </span>
-                                <span className="wing-label">{t(KENALI_LABEL_TO_KEY[label])}</span>
-                              </button>
-                            )}
-                          </li>
-                        ))
-                      : SAYAP_PARTI_LABELS.map((label) => (
-                          <li key={label} className="wing-item">
-                            <button type="button" className="wing-button">
-                              <span className="wing-circle wing-circle--photo">
-                                <img src={SAYAP_PARTI_PHOTO_SRC[label]} alt="" width={52} height={52} />
-                              </span>
-                              <span className="wing-label">{label}</span>
-                            </button>
-                          </li>
-                        ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
-        ) : null}
-
-        <nav ref={bottomNavRef} className="bottom-nav" aria-label={t("navMain")}>
-          <button
-            type="button"
-            className={`nav-item${tab === "home" ? " nav-item--active" : ""}`}
-            aria-current={tab === "home" ? "page" : undefined}
-            onClick={() => goHome()}
-          >
-            <IconHome />
-            <span>{t("navHome")}</span>
-          </button>
-          <button
-            type="button"
-            className={`nav-item${tab === "members" ? " nav-item--active" : ""}`}
-            aria-current={tab === "members" ? "page" : undefined}
-            onClick={() => selectTab("members")}
-          >
-            <IconMembers />
-            <span>{t("navMembers")}</span>
-          </button>
-          <button
-            type="button"
-            className="nav-item nav-item--fab"
-            aria-label={t("fabAria")}
-            onClick={() => setConstitutionChatOpen(true)}
-          >
-            <span className="fab-circle">
-              <IconSparkles />
-            </span>
-          </button>
-          <button
-            type="button"
-            className={`nav-item${tab === "resources" ? " nav-item--active" : ""}`}
-            aria-current={tab === "resources" ? "page" : undefined}
-            onClick={() => selectTab("resources")}
-          >
-            <IconResources />
-            <span>{t("navResources")}</span>
-          </button>
-          <button
-            type="button"
-            className={`nav-item${tab === "profile" ? " nav-item--active" : ""}`}
-            aria-current={tab === "profile" ? "page" : undefined}
-            onClick={() => selectTab("profile")}
-          >
-            <IconProfile />
-            <span>{t("navProfile")}</span>
-          </button>
-        </nav>
-      </div>
+      </main>
 
       <ConstitutionChatSheet
         open={constitutionChatOpen}
