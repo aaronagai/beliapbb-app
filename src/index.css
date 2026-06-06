@@ -4,6 +4,70 @@
   box-sizing: border-box;
 }
 
+:root {
+  color-scheme: light;
+  --color-bg: #ececec;
+  --color-surface: #fff;
+  --color-surface-muted: #f5f5f5;
+  --color-surface-elevated: #f7f7f7;
+  --color-text: #1a1a1a;
+  --color-text-secondary: #444;
+  --color-text-muted: #777;
+  --color-text-subtle: #555;
+  --color-border: rgb(0 0 0 / 0.08);
+  --color-border-strong: rgb(0 0 0 / 0.12);
+  --color-hover: rgb(0 0 0 / 0.05);
+  --color-hover-strong: rgb(0 0 0 / 0.08);
+  --color-accent: #1e40af;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-bg: rgb(30 64 175 / 0.08);
+  --color-brand: #c41e3a;
+  --color-input-bg: #fff;
+  --color-input-border: #ddd;
+  --color-placeholder: #999;
+  --color-wing-circle: #e8e8e8;
+  --color-wing-photo: #ddd;
+  --color-nav-idle: #555;
+  --color-header-shadow: 0 1px 3px rgb(0 0 0 / 0.04);
+  --color-card-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  --color-overlay: rgb(0 0 0 / 0.45);
+  --color-error-bg: #fff5f5;
+  --color-skeleton: #f0f0f0;
+  --color-focus: #1e40af;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #101014;
+  --color-surface: #1c1c22;
+  --color-surface-muted: #25252d;
+  --color-surface-elevated: #2a2a32;
+  --color-text: #e8e8ec;
+  --color-text-secondary: #b8b8c0;
+  --color-text-muted: #90909a;
+  --color-text-subtle: #a8a8b0;
+  --color-border: rgb(255 255 255 / 0.1);
+  --color-border-strong: rgb(255 255 255 / 0.16);
+  --color-hover: rgb(255 255 255 / 0.06);
+  --color-hover-strong: rgb(255 255 255 / 0.1);
+  --color-accent: #6b9fff;
+  --color-accent-hover: #8bb4ff;
+  --color-accent-bg: rgb(107 159 255 / 0.14);
+  --color-brand: #e0455f;
+  --color-input-bg: #25252d;
+  --color-input-border: rgb(255 255 255 / 0.14);
+  --color-placeholder: #787880;
+  --color-wing-circle: #2e2e36;
+  --color-wing-photo: #3a3a42;
+  --color-nav-idle: #a8a8b0;
+  --color-header-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  --color-card-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  --color-overlay: rgb(0 0 0 / 0.65);
+  --color-error-bg: rgb(224 69 95 / 0.12);
+  --color-skeleton: #2a2a32;
+  --color-focus: #6b9fff;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
@@ -12,8 +76,8 @@ body {
   margin: 0;
   min-height: 100dvh;
   font-family: "DM Sans", system-ui, sans-serif;
-  background: #ececec;
-  color: #1a1a1a;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 #root {

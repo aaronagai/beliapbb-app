@@ -6,9 +6,9 @@ import { LatestNews } from "./LatestNews";
 import { ApplicationPage } from "./ApplicationPage";
 import { MembersPage } from "./MembersPage";
 import { ProfilePage } from "./ProfilePage";
-import { ConstitutionChatSheet } from "./ConstitutionChatSheet";
 import { ResourcesPage } from "./ResourcesPage";
 import { PartyWingsSection } from "./PartyWingsSection";
+import { SiteFooter } from "./SiteFooter";
 import "./App.css";
 
 type AppTab = "home" | "members" | "resources" | "apply" | "profile";
@@ -57,13 +57,12 @@ function IconMembers() {
   );
 }
 
-function IconSparkles() {
+function IconApply() {
   return (
-    <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden>
       <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z"
+        fill="currentColor"
+        d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 14H8v-2h8v2zm0-3H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
       />
     </svg>
   );
@@ -88,6 +87,19 @@ function IconProfile() {
         d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
       />
     </svg>
+  );
+}
+
+function HamburgerIcon({ open }: { open: boolean }) {
+  return (
+    <span
+      className={`hamburger-icon${open ? " hamburger-icon--open" : ""}`}
+      aria-hidden
+    >
+      <span className="hamburger-line" />
+      <span className="hamburger-line" />
+      <span className="hamburger-line" />
+    </span>
   );
 }
 
@@ -118,11 +130,20 @@ export function App() {
   const [tab, setTab] = useState<AppTab>(initialTabFromHash);
   const defaultGreetingName = "Aaron";
   const [greetingName, setGreetingName] = useState(defaultGreetingName);
-  const [constitutionChatOpen, setConstitutionChatOpen] = useState(false);
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
 
   useLayoutEffect(() => {
     stripFragmentFromLocation();
   }, []);
+
+  useEffect(() => {
+    if (!navMenuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setNavMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [navMenuOpen]);
 
   useEffect(() => {
     const brand = "Belia PBB";
@@ -154,6 +175,7 @@ export function App() {
 
   const selectTab = useCallback((next: AppTab) => {
     setTab(next);
+    setNavMenuOpen(false);
     stripFragmentFromLocation();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -181,7 +203,25 @@ export function App() {
             <span className="site-brand">beliapbb.app</span>
           </button>
 
-          <nav className="app-nav" aria-label={t("navMain")}>
+          <button
+            type="button"
+            className="app-nav-toggle"
+            aria-expanded={navMenuOpen}
+            aria-controls="main-nav"
+            onClick={() => setNavMenuOpen((open) => !open)}
+          >
+            <HamburgerIcon open={navMenuOpen} />
+            <span className="visually-hidden">
+              {navMenuOpen ? t("navMenuClose") : t("navMenuOpen")}
+            </span>
+          </button>
+
+          <nav
+            id="main-nav"
+            className={`app-nav${navMenuOpen ? " app-nav--open" : ""}`}
+            aria-label={t("navMain")}
+            hidden={!navMenuOpen}
+          >
             {NAV_ITEMS.map(({ tab: navTab, labelKey, icon: Icon }) => (
               <button
                 key={navTab}
@@ -198,12 +238,13 @@ export function App() {
 
           <button
             type="button"
-            className="header-ai-btn"
-            aria-label={t("fabAria")}
-            onClick={() => setConstitutionChatOpen(true)}
+            className={`header-apply-btn${tab === "apply" ? " header-apply-btn--active" : ""}`}
+            aria-label={t("headerApplyAria")}
+            aria-current={tab === "apply" ? "page" : undefined}
+            onClick={() => selectTab("apply")}
           >
-            <IconSparkles />
-            <span className="header-ai-btn-label">{t("constitutionChatTitle")}</span>
+            <IconApply />
+            <span className="header-apply-btn-label">{t("kenaliApply")}</span>
           </button>
         </div>
       </header>
@@ -263,10 +304,7 @@ export function App() {
         </div>
       </main>
 
-      <ConstitutionChatSheet
-        open={constitutionChatOpen}
-        onClose={() => setConstitutionChatOpen(false)}
-      />
+      <SiteFooter />
     </div>
   );
 }
