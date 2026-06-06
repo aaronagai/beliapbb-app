@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.4.0 — 2026-06-06
+
+### Changed
+- App-wide typography uses Universal Sans with Inter fallback (replaces DM Sans on body and UI)
+- Google Fonts preload trimmed to Inter only; favicon and profile icons use the same stack
+- Membership card top party-color stripe removed for a cleaner card face
+
 ## 0.0.3.0 — 2026-06-06
 
 ### Added
