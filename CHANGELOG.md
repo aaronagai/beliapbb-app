@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.2.1 — 2026-06-06
+
+### Changed
+- Header navigation is always behind a hamburger menu (dropdown on all breakpoints)
+- Red header button is now **Apply** and navigates to the membership application tab
+- Hamburger icon uses CSS line animation; Escape closes the menu
+
+### Removed
+- Constitution AI chat entry point from the header (component remains in repo for future wiring)
+
 ## 0.0.2.0 — 2026-06-06
 
 ### Added
