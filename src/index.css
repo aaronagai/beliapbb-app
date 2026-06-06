@@ -1,3 +1,5 @@
+@import "./fonts/universal-sans.css";
+
 *,
 *::before,
 *::after {
@@ -29,11 +31,13 @@
   --color-wing-photo: #ddd;
   --color-nav-idle: #555;
   --color-header-shadow: 0 1px 3px rgb(0 0 0 / 0.04);
+  --color-header-frost: color-mix(in srgb, var(--color-surface) 72%, transparent);
   --color-card-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
   --color-overlay: rgb(0 0 0 / 0.45);
   --color-error-bg: #fff5f5;
   --color-skeleton: #f0f0f0;
   --color-focus: #1e40af;
+  --font-footer-brand: "Universal Sans", "Inter", system-ui, sans-serif;
 }
 
 [data-theme="dark"] {
@@ -61,6 +65,7 @@
   --color-wing-photo: #3a3a42;
   --color-nav-idle: #a8a8b0;
   --color-header-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  --color-header-frost: color-mix(in srgb, var(--color-surface) 68%, transparent);
   --color-card-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
   --color-overlay: rgb(0 0 0 / 0.65);
   --color-error-bg: rgb(224 69 95 / 0.12);

@@ -1,47 +1,164 @@
-import { useI18n } from "./i18n";
+import logoSvgUrl from "../logo.svg?url";
+import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
+import { useI18n, type Language } from "./i18n";
 import { useTheme } from "./theme";
+
+const JIWABAKTI_HREF = "https://jiwabakti.com.my/";
+
+export type FooterTab = "members" | "resources" | "apply" | "profile";
+
+type SiteFooterProps = {
+  onSelectTab?: (tab: FooterTab) => void;
+};
 
 function IconSun() {
   return (
-    <svg className="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5a1 1 0 011 1v1.5a1 1 0 11-2 0V3a1 1 0 011-1zm0 19a1 1 0 011 1V22a1 1 0 11-2 0v-1.5a1 1 0 011-1zM3 12a1 1 0 011-1h1.5a1 1 0 110 2H4a1 1 0 01-1-1zm17.5 0a1 1 0 011-1H22a1 1 0 110 2h-1.5a1 1 0 01-1-1zM5.64 5.64a1 1 0 011.41 0l1.06 1.06a1 1 0 11-1.41 1.41L5.64 7.05a1 1 0 010-1.41zm12.02 12.02a1 1 0 011.41 0l1.06 1.06a1 1 0 11-1.41 1.41l-1.06-1.06a1 1 0 010-1.41zM18.36 5.64a1 1 0 010 1.41l-1.06 1.06a1 1 0 11-1.41-1.41l1.06-1.06a1 1 0 011.41 0zM6.7 17.66a1 1 0 010 1.41l-1.06 1.06a1 1 0 11-1.41-1.41l1.06-1.06a1 1 0 011.41 0z"
-      />
+    <svg
+      className="site-footer-theme-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2" />
+      <path d="M12 20v2" />
+      <path d="m4.93 4.93 1.41 1.41" />
+      <path d="m17.66 17.66 1.41 1.41" />
+      <path d="M2 12h2" />
+      <path d="M20 12h2" />
+      <path d="m6.34 17.66-1.41 1.41" />
+      <path d="m19.07 4.93-1.41 1.41" />
     </svg>
   );
 }
 
 function IconMoon() {
   return (
-    <svg className="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M9.37 4.51A7.5 7.5 0 1018.5 15.63 6.5 6.5 0 019.37 4.51z"
-      />
+    <svg
+      className="site-footer-theme-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
     </svg>
   );
 }
 
-export function SiteFooter() {
-  const { t } = useI18n();
+export function SiteFooter({ onSelectTab }: SiteFooterProps) {
+  const { language, setLanguage, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
+  const year = new Date().getFullYear();
+
+  const toggleLanguage = () => {
+    setLanguage(language === "ms" ? "en" : "ms");
+  };
+
+  const languageCode: Record<Language, string> = { ms: "BM", en: "EN" };
+
+  const go = (tab: FooterTab) => {
+    onSelectTab?.(tab);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <footer className="site-footer" aria-label={t("footerAria")}>
       <div className="site-footer-inner">
-        <button
-          type="button"
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label={t("themeToggleAria")}
-        >
-          {theme === "dark" ? <IconSun /> : <IconMoon />}
-          <span>{theme === "dark" ? t("themeLight") : t("themeDark")}</span>
-        </button>
-        <p className="site-footer-meta" translate="no">
-          Belia PBB · beliapbb.app
-        </p>
+        <div className="site-footer-brand">
+          <div className="site-footer-brand-mark">
+            <p className="site-footer-wing-label">{t("footerWingLabel")}</p>
+            <div className="site-footer-logo-row">
+              <img className="site-footer-logo" src={logoSvgUrl} alt="" width={28} height={28} />
+              <span className="site-footer-name" translate="no">
+                Belia PBB
+              </span>
+            </div>
+          </div>
+          <p className="site-footer-copy">
+            {t("footerCopyright").replace(/\{\{year\}\}/g, String(year))}
+          </p>
+          <div className="site-footer-brand-foot">
+            <button
+              type="button"
+              className="site-footer-theme-btn"
+              onClick={toggleTheme}
+              aria-label={t("themeToggleAria")}
+            >
+              {theme === "dark" ? <IconSun /> : <IconMoon />}
+            </button>
+            <button
+              type="button"
+              className="site-footer-lang-btn"
+              onClick={toggleLanguage}
+              aria-label={t("languageToggleAria")}
+            >
+              {languageCode[language]}
+            </button>
+          </div>
+        </div>
+
+        <div className="site-footer-divider" aria-hidden />
+
+        <nav className="site-footer-nav" aria-label={t("footerNavAria")}>
+          <div className="site-footer-col">
+            <h3 className="site-footer-col-title">{t("footerSiteHeading")}</h3>
+            <ul className="site-footer-links">
+              <li>
+                <button type="button" className="site-footer-link" onClick={() => go("apply")}>
+                  {t("kenaliApply")}
+                </button>
+              </li>
+              <li>
+                <button type="button" className="site-footer-link" onClick={() => go("members")}>
+                  {t("navMembers")}
+                </button>
+              </li>
+              <li>
+                <button type="button" className="site-footer-link" onClick={() => go("profile")}>
+                  {t("navProfile")}
+                </button>
+              </li>
+            </ul>
+          </div>
+          <div className="site-footer-col">
+            <h3 className="site-footer-col-title">{t("footerResourcesHeading")}</h3>
+            <ul className="site-footer-links">
+              <li>
+                <a
+                  className="site-footer-link"
+                  href={CONSTITUTION_PDF_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("kenaliConstitution")}
+                </a>
+              </li>
+              <li>
+                <a
+                  className="site-footer-link"
+                  href={JIWABAKTI_HREF}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("jiwaBaktiLink")}
+                </a>
+              </li>
+              <li>
+                <button type="button" className="site-footer-link" onClick={() => go("resources")}>
+                  {t("navResources")}
+                </button>
+              </li>
+            </ul>
+          </div>
+        </nav>
       </div>
     </footer>
   );
