@@ -68,7 +68,7 @@ function LanguageScriptIcon() {
         fill="currentColor"
         fontSize="10.5"
         fontWeight="700"
-        fontFamily="'DM Sans',system-ui,sans-serif"
+        fontFamily="'Universal Sans', 'Inter', system-ui, sans-serif"
       >
         A
       </text>

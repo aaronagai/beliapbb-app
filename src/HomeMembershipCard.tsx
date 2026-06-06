@@ -46,7 +46,6 @@ export function HomeMembershipCard() {
 
   return (
     <article className="home-membership-card" aria-label={t("membershipCardAria")}>
-      <div className="home-membership-card-accent" aria-hidden />
       <div className="home-membership-card-body">
         <header className="home-membership-card-top">
           <img

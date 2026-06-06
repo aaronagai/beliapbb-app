@@ -1,5 +1,5 @@
 /* Licensed Universal Sans files from Family Type → public/fonts/ (woff2).
-   Fallback stack for .site-footer-brand: "Universal Sans", "Inter", system-ui, sans-serif */
+   App stack (--font-sans): "Universal Sans", "Inter", system-ui, sans-serif */
 @font-face {
   font-family: "Universal Sans";
   src: url("/fonts/UniversalSans-400.woff2") format("woff2");
