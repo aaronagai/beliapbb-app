@@ -57,17 +57,6 @@ function IconMembers() {
   );
 }
 
-function IconApply() {
-  return (
-    <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 14H8v-2h8v2zm0-3H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
-      />
-    </svg>
-  );
-}
-
 function IconResources() {
   return (
     <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden>
@@ -131,9 +120,19 @@ export function App() {
   const defaultGreetingName = "Aaron";
   const [greetingName, setGreetingName] = useState(defaultGreetingName);
   const [navMenuOpen, setNavMenuOpen] = useState(false);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
 
   useLayoutEffect(() => {
     stripFragmentFromLocation();
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setHeaderScrolled(window.scrollY > 4);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -142,7 +141,12 @@ export function App() {
       if (event.key === "Escape") setNavMenuOpen(false);
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [navMenuOpen]);
 
   useEffect(() => {
@@ -184,7 +188,7 @@ export function App() {
 
   return (
     <div className="app-shell">
-      <header className="app-header">
+      <header className={`app-header${headerScrolled ? " app-header--frosted" : ""}${navMenuOpen ? " app-header--menu-open" : ""}`}>
         <div className="app-header-inner">
           <button
             type="button"
@@ -203,51 +207,52 @@ export function App() {
             <span className="site-brand">beliapbb.app</span>
           </button>
 
-          <button
-            type="button"
-            className="app-nav-toggle"
-            aria-expanded={navMenuOpen}
-            aria-controls="main-nav"
-            onClick={() => setNavMenuOpen((open) => !open)}
-          >
-            <HamburgerIcon open={navMenuOpen} />
-            <span className="visually-hidden">
-              {navMenuOpen ? t("navMenuClose") : t("navMenuOpen")}
-            </span>
-          </button>
+          <div className="header-actions">
+            <button
+              type="button"
+              className={`header-apply-btn${tab === "apply" ? " header-apply-btn--active" : ""}`}
+              aria-label={t("headerApplyAria")}
+              aria-current={tab === "apply" ? "page" : undefined}
+              onClick={() => selectTab("apply")}
+            >
+              {t("headerApplyLabel")}
+            </button>
 
-          <nav
-            id="main-nav"
-            className={`app-nav${navMenuOpen ? " app-nav--open" : ""}`}
-            aria-label={t("navMain")}
-            hidden={!navMenuOpen}
-          >
-            {NAV_ITEMS.map(({ tab: navTab, labelKey, icon: Icon }) => (
-              <button
-                key={navTab}
-                type="button"
-                className={`app-nav-item${tab === navTab ? " app-nav-item--active" : ""}`}
-                aria-current={tab === navTab ? "page" : undefined}
-                onClick={() => selectTab(navTab)}
-              >
-                <Icon />
-                <span>{t(labelKey)}</span>
-              </button>
-            ))}
-          </nav>
-
-          <button
-            type="button"
-            className={`header-apply-btn${tab === "apply" ? " header-apply-btn--active" : ""}`}
-            aria-label={t("headerApplyAria")}
-            aria-current={tab === "apply" ? "page" : undefined}
-            onClick={() => selectTab("apply")}
-          >
-            <IconApply />
-            <span className="header-apply-btn-label">{t("kenaliApply")}</span>
-          </button>
+            <button
+              type="button"
+              className="app-nav-toggle"
+              aria-expanded={navMenuOpen}
+              aria-controls="main-nav"
+              onClick={() => setNavMenuOpen((open) => !open)}
+            >
+              <HamburgerIcon open={navMenuOpen} />
+              <span className="visually-hidden">
+                {navMenuOpen ? t("navMenuClose") : t("navMenuOpen")}
+              </span>
+            </button>
+          </div>
         </div>
       </header>
+
+      <nav
+        id="main-nav"
+        className={`app-nav${navMenuOpen ? " app-nav--open" : ""}`}
+        aria-label={t("navMain")}
+        hidden={!navMenuOpen}
+      >
+        {NAV_ITEMS.map(({ tab: navTab, labelKey, icon: Icon }) => (
+          <button
+            key={navTab}
+            type="button"
+            className={`app-nav-item${tab === navTab ? " app-nav-item--active" : ""}`}
+            aria-current={tab === navTab ? "page" : undefined}
+            onClick={() => selectTab(navTab)}
+          >
+            <Icon />
+            <span>{t(labelKey)}</span>
+          </button>
+        ))}
+      </nav>
 
       <main className="app-main">
         <div className="page-inner">
@@ -304,7 +309,7 @@ export function App() {
         </div>
       </main>
 
-      <SiteFooter />
+      <SiteFooter onSelectTab={selectTab} />
     </div>
   );
 }

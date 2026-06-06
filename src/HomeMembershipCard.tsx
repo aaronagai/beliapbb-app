@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import logoSvgUrl from "../logo.svg?url";
+import checkmarkUrl from "../checkmark.svg.png?url";
 import { formatCawanganLabel, isValidCawangan } from "./cawanganOptions";
 import { useI18n } from "./i18n";
 
@@ -61,7 +62,17 @@ export function HomeMembershipCard() {
         <div className="home-membership-card-main">
           <div className="home-membership-card-text">
             <p className="home-membership-card-kicker">{t("membershipCardTitle")}</p>
-            <p className="home-membership-card-name">{displayName}</p>
+            <p className="home-membership-card-name">
+              <span>{displayName}</span>
+              <img
+                src={checkmarkUrl}
+                alt=""
+                className="home-membership-card-check"
+                width={16}
+                height={16}
+                decoding="async"
+              />
+            </p>
             <p className="home-membership-card-dun">{displayCawangan}</p>
           </div>
           <div className="home-membership-card-qr" aria-hidden>
