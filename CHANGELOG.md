@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.3.0 — 2026-06-06
+
+### Added
+- Expanded site footer with wing branding, site/resource link groups, and bilingual copyright
+- Universal Sans font wiring (`src/fonts/universal-sans.css`) with Inter fallback for footer brand typography
+- Membership card checkmark asset and refreshed home membership styling
+- Footer and header i18n strings (Apply label, language toggle aria, footer nav headings)
+
+### Changed
+- Footer layout and theme/language controls redesigned for mobile and desktop
+- App shell CSS polish across header, membership card, and global theme variables
+- Google Fonts preload in `index.html` (DM Sans + Inter)
+
 ## 0.0.2.1 — 2026-06-06
 
 ### Changed
