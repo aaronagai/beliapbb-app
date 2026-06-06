@@ -9,6 +9,7 @@ import { ProfilePage } from "./ProfilePage";
 import { ConstitutionChatSheet } from "./ConstitutionChatSheet";
 import { ResourcesPage } from "./ResourcesPage";
 import { PartyWingsSection } from "./PartyWingsSection";
+import { SiteFooter } from "./SiteFooter";
 import "./App.css";
 
 type AppTab = "home" | "members" | "resources" | "apply" | "profile";
@@ -91,6 +92,25 @@ function IconProfile() {
   );
 }
 
+function IconMenu() {
+  return (
+    <svg className="app-nav-toggle-icon" viewBox="0 0 24 24" aria-hidden>
+      <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" />
+    </svg>
+  );
+}
+
+function IconClose() {
+  return (
+    <svg className="app-nav-toggle-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M18.3 5.71a1 1 0 00-1.41 0L12 10.59 7.11 5.7A1 1 0 105.7 7.11L10.59 12 5.7 16.89a1 1 0 101.41 1.41L12 13.41l4.89 4.89a1 1 0 001.41-1.41L13.41 12l4.89-4.89a1 1 0 000-1.4z"
+      />
+    </svg>
+  );
+}
+
 const NAV_ITEMS: { tab: AppTab; labelKey: MessageKey; icon: () => ReactNode }[] = [
   { tab: "home", labelKey: "navHome", icon: IconHome },
   { tab: "members", labelKey: "navMembers", icon: IconMembers },
@@ -119,9 +139,20 @@ export function App() {
   const defaultGreetingName = "Aaron";
   const [greetingName, setGreetingName] = useState(defaultGreetingName);
   const [constitutionChatOpen, setConstitutionChatOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useLayoutEffect(() => {
     stripFragmentFromLocation();
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.matchMedia("(min-width: 48rem)").matches) {
+        setMobileNavOpen(false);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   useEffect(() => {
@@ -154,6 +185,7 @@ export function App() {
 
   const selectTab = useCallback((next: AppTab) => {
     setTab(next);
+    setMobileNavOpen(false);
     stripFragmentFromLocation();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -181,7 +213,24 @@ export function App() {
             <span className="site-brand">beliapbb.app</span>
           </button>
 
-          <nav className="app-nav" aria-label={t("navMain")}>
+          <button
+            type="button"
+            className="app-nav-toggle"
+            aria-expanded={mobileNavOpen}
+            aria-controls="main-nav"
+            onClick={() => setMobileNavOpen((open) => !open)}
+          >
+            {mobileNavOpen ? <IconClose /> : <IconMenu />}
+            <span className="visually-hidden">
+              {mobileNavOpen ? t("navMenuClose") : t("navMenuOpen")}
+            </span>
+          </button>
+
+          <nav
+            id="main-nav"
+            className={`app-nav${mobileNavOpen ? " app-nav--open" : ""}`}
+            aria-label={t("navMain")}
+          >
             {NAV_ITEMS.map(({ tab: navTab, labelKey, icon: Icon }) => (
               <button
                 key={navTab}
@@ -262,6 +311,8 @@ export function App() {
           )}
         </div>
       </main>
+
+      <SiteFooter />
 
       <ConstitutionChatSheet
         open={constitutionChatOpen}
