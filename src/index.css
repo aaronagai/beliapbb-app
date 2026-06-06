@@ -1,5 +1,3 @@
-@import "./fonts/universal-sans.css";
-
 *,
 *::before,
 *::after {
@@ -37,7 +35,7 @@
   --color-error-bg: #fff5f5;
   --color-skeleton: #f0f0f0;
   --color-focus: #1e40af;
-  --font-sans: "Universal Sans", "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
 }
 
 [data-theme="dark"] {

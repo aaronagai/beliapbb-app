@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.5.0 — 2026-06-06
+
+### Changed
+- Typography simplified to Inter only; removed Universal Sans wiring and unused font assets
+
+### Removed
+- `src/fonts/universal-sans.css` and `public/fonts/` placeholder
+
 ## 0.0.4.0 — 2026-06-06
 
 ### Changed
