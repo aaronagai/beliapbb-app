@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import logoSvgUrl from "../logo.svg?url";
 import { useI18n, type MessageKey } from "./i18n";
 import { HomeMembershipCard } from "./HomeMembershipCard";
 import { LatestNews } from "./LatestNews";
@@ -8,10 +7,23 @@ import { MembersPage } from "./MembersPage";
 import { ProfilePage } from "./ProfilePage";
 import { ResourcesPage } from "./ResourcesPage";
 import { PartyWingsSection } from "./PartyWingsSection";
+import { FocusAgendaSection } from "./FocusAgendaSection";
+import { AgendaPlaceholderPage } from "./AgendaPlaceholderPage";
 import { SiteFooter } from "./SiteFooter";
+import { Logo } from "./Logo";
+import { WelcomeModal, welcomeDismissedThisSession } from "./WelcomeModal";
+import { JoinFab } from "./JoinFab";
 import "./App.css";
 
-type AppTab = "home" | "members" | "resources" | "apply" | "profile";
+type AppTab =
+  | "home"
+  | "members"
+  | "resources"
+  | "apply"
+  | "profile"
+  | "education"
+  | "employment"
+  | "emergingTech";
 
 function stripFragmentFromLocation() {
   if (typeof window === "undefined") return;
@@ -31,6 +43,13 @@ function initialTabFromHash(): AppTab {
       return "profile";
     case "apply":
       return "apply";
+    case "education":
+      return "education";
+    case "employment":
+      return "employment";
+    case "emergingtech":
+    case "emerging-tech":
+      return "emergingTech";
     case "home":
       return "home";
     default:
@@ -79,16 +98,14 @@ function IconProfile() {
   );
 }
 
-function HamburgerIcon({ open }: { open: boolean }) {
+function NavMenuIcon() {
   return (
-    <span
-      className={`hamburger-icon${open ? " hamburger-icon--open" : ""}`}
-      aria-hidden
-    >
-      <span className="hamburger-line" />
-      <span className="hamburger-line" />
-      <span className="hamburger-line" />
-    </span>
+    <svg className="nav-menu-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M4 7h16a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2zm0 6h16a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2zm0 6h16a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2z"
+      />
+    </svg>
   );
 }
 
@@ -98,6 +115,10 @@ const NAV_ITEMS: { tab: AppTab; labelKey: MessageKey; icon: () => ReactNode }[] 
   { tab: "resources", labelKey: "navResources", icon: IconResources },
   { tab: "profile", labelKey: "navProfile", icon: IconProfile },
 ];
+
+function isAgendaTab(tab: AppTab): tab is "education" | "employment" | "emergingTech" {
+  return tab === "education" || tab === "employment" || tab === "emergingTech";
+}
 
 function pageHeadingKey(tab: AppTab): MessageKey | null {
   switch (tab) {
@@ -109,8 +130,31 @@ function pageHeadingKey(tab: AppTab): MessageKey | null {
       return "applicationTitle";
     case "profile":
       return "profileTitle";
+    case "education":
+      return "agendaEducationTitle";
+    case "employment":
+      return "agendaEmploymentTitle";
+    case "emergingTech":
+      return "agendaEmergingTechTitle";
     default:
       return null;
+  }
+}
+
+/** Navy page-topper is for members/resources/apply/profile only — agenda uses in-page heading on grey bg. */
+function pageTopperHeadingKey(tab: AppTab): MessageKey | null {
+  if (isAgendaTab(tab)) return null;
+  return pageHeadingKey(tab);
+}
+
+function agendaTitleKey(tab: "education" | "employment" | "emergingTech"): MessageKey {
+  switch (tab) {
+    case "education":
+      return "agendaEducationTitle";
+    case "employment":
+      return "agendaEmploymentTitle";
+    case "emergingTech":
+      return "agendaEmergingTechTitle";
   }
 }
 
@@ -121,6 +165,9 @@ export function App() {
   const [greetingName, setGreetingName] = useState(defaultGreetingName);
   const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(
+    () => !welcomeDismissedThisSession()
+  );
 
   useLayoutEffect(() => {
     stripFragmentFromLocation();
@@ -157,6 +204,9 @@ export function App() {
       resources: `${t("navResources")} · ${brand}`,
       apply: `${t("applicationTitle")} · ${brand}`,
       profile: `${t("profileTitle")} · ${brand}`,
+      education: `${t("agendaEducationTitle")} · ${brand}`,
+      employment: `${t("agendaEmploymentTitle")} · ${brand}`,
+      emergingTech: `${t("agendaEmergingTechTitle")} · ${brand}`,
     };
     document.title = byTab[tab];
   }, [tab, t]);
@@ -184,11 +234,24 @@ export function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const headingKey = pageHeadingKey(tab);
+  const topperKey = pageTopperHeadingKey(tab);
+  const immersiveHeader = Boolean(topperKey && !headerScrolled && !navMenuOpen);
+  const headerSolid = tab === "home" || isAgendaTab(tab) || headerScrolled || navMenuOpen;
+  const showJoinFab = tab !== "apply" && !welcomeOpen && !navMenuOpen;
+
+  const headerClass = [
+    "app-header",
+    immersiveHeader ? " app-header--immersive" : "",
+    headerSolid && headerScrolled ? " app-header--frosted" : "",
+    headerSolid && !headerScrolled ? " app-header--solid" : "",
+    navMenuOpen ? " app-header--menu-open" : "",
+  ].join("");
 
   return (
     <div className="app-shell">
-      <header className={`app-header${headerScrolled ? " app-header--frosted" : ""}${navMenuOpen ? " app-header--menu-open" : ""}`}>
+      <WelcomeModal open={welcomeOpen} onClose={() => setWelcomeOpen(false)} />
+
+      <header className={headerClass}>
         <div className="app-header-inner">
           <button
             type="button"
@@ -196,28 +259,11 @@ export function App() {
             onClick={() => selectTab("home")}
             translate="no"
           >
-            <img
-              src={logoSvgUrl}
-              alt={t("logoAlt")}
-              className="site-brand-logo"
-              width={120}
-              height={32}
-              decoding="async"
-            />
+            <Logo className="site-brand-logo" alt={t("logoAlt")} />
             <span className="site-brand">beliapbb.app</span>
           </button>
 
           <div className="header-actions">
-            <button
-              type="button"
-              className={`header-apply-btn${tab === "apply" ? " header-apply-btn--active" : ""}`}
-              aria-label={t("headerApplyAria")}
-              aria-current={tab === "apply" ? "page" : undefined}
-              onClick={() => selectTab("apply")}
-            >
-              {t("headerApplyLabel")}
-            </button>
-
             <button
               type="button"
               className="app-nav-toggle"
@@ -225,7 +271,7 @@ export function App() {
               aria-controls="main-nav"
               onClick={() => setNavMenuOpen((open) => !open)}
             >
-              <HamburgerIcon open={navMenuOpen} />
+              <NavMenuIcon />
               <span className="visually-hidden">
                 {navMenuOpen ? t("navMenuClose") : t("navMenuOpen")}
               </span>
@@ -233,6 +279,14 @@ export function App() {
           </div>
         </div>
       </header>
+
+      {navMenuOpen ? (
+        <div
+          className="app-nav-scrim"
+          role="presentation"
+          onMouseDown={() => setNavMenuOpen(false)}
+        />
+      ) : null}
 
       <nav
         id="main-nav"
@@ -254,14 +308,18 @@ export function App() {
         ))}
       </nav>
 
-      <main className="app-main">
-        <div className="page-inner">
-          {headingKey ? (
-            <h1 className="page-heading" translate="no">
-              {t(headingKey)}
-            </h1>
-          ) : null}
+      <main className={`app-main${topperKey ? " app-main--with-topper" : ""}`}>
+        {topperKey ? (
+          <div className="page-topper">
+            <div className="page-topper-inner">
+              <h1 className="page-heading page-heading--topper" translate="no">
+                {t(topperKey)}
+              </h1>
+            </div>
+          </div>
+        ) : null}
 
+        <div className="page-inner">
           {tab === "home" ? (
             <>
               <section className="section section--news">
@@ -269,33 +327,10 @@ export function App() {
                   {t("greetingHey").replace(/\{\{name\}\}/g, greetingName)}
                 </h2>
                 <HomeMembershipCard />
-                <h3 className="section-title">
-                  <span className="section-title-inline">
-                    {t("latestNews")}
-                    <span className="section-title-sep">|</span>
-                  </span>
-                  <a
-                    className="news-source-link"
-                    href="https://jiwabakti.com.my/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {t("jiwaBaktiLink")}
-                  </a>
-                </h3>
                 <LatestNews />
-                <p className="news-see-more">
-                  <a
-                    className="news-source-link"
-                    href="https://jiwabakti.com.my/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {t("newsSeeMore")}
-                  </a>
-                </p>
               </section>
               <PartyWingsSection onSelectApply={() => selectTab("apply")} />
+              <FocusAgendaSection onSelectAgenda={selectTab} />
             </>
           ) : tab === "members" ? (
             <MembersPage />
@@ -303,6 +338,8 @@ export function App() {
             <ResourcesPage />
           ) : tab === "apply" ? (
             <ApplicationPage />
+          ) : isAgendaTab(tab) ? (
+            <AgendaPlaceholderPage titleKey={agendaTitleKey(tab)} />
           ) : (
             <ProfilePage />
           )}
@@ -310,6 +347,7 @@ export function App() {
       </main>
 
       <SiteFooter onSelectTab={selectTab} />
+      <JoinFab visible={showJoinFab} onJoin={() => selectTab("apply")} />
     </div>
   );
 }

@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useI18n } from "./i18n";
 import { fetchNewsFeed, type NewsCardModel } from "./jiwabakti";
 
+const JIWABAKTI_HREF = "https://jiwabakti.com.my/";
 const PINNED_SLUG = "gps-beri-peluang-pada-generasi-muda-demi-kesinambungan-parti";
-const CARD_COUNT = 5;
+const CARD_COUNT = 6;
 
 function formatDate(iso: string, locale: string): string {
   try {
@@ -17,9 +18,68 @@ function formatDate(iso: string, locale: string): string {
   }
 }
 
-function shorten(text: string, max: number): string {
-  if (text.length <= max) return text;
-  return `${text.slice(0, max - 1).trimEnd()}…`;
+function NewsRow({
+  item,
+  dateLocale,
+  sourceLabel,
+}: {
+  item: NewsCardModel;
+  dateLocale: string;
+  sourceLabel: string;
+}) {
+  return (
+    <li className="news-list-item">
+      <a
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="news-row"
+      >
+        <div
+          className={`news-row-thumb${item.image ? "" : " news-row-thumb--placeholder"}`}
+          aria-hidden={item.image ? undefined : true}
+        >
+          {item.image ? (
+            <img
+              src={item.image}
+              alt=""
+              className="news-row-thumb-image"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : null}
+        </div>
+        <div className="news-row-body">
+          <span className="news-row-title">{item.title}</span>
+          <span className="news-row-meta">
+            {sourceLabel}
+            <span className="news-row-meta-sep" aria-hidden>
+              {" · "}
+            </span>
+            <time dateTime={item.date}>{formatDate(item.date, dateLocale)}</time>
+          </span>
+        </div>
+      </a>
+    </li>
+  );
+}
+
+function NewsListSkeleton() {
+  return (
+    <>
+      {Array.from({ length: CARD_COUNT }, (_, i) => (
+        <li key={i} className="news-list-item" aria-hidden>
+          <div className="news-row news-row--skeleton">
+            <div className="news-row-thumb news-row-thumb--placeholder" />
+            <div className="news-row-body">
+              <span className="news-row-title news-row-title--skeleton" />
+              <span className="news-row-meta news-row-meta--skeleton" />
+            </div>
+          </div>
+        </li>
+      ))}
+    </>
+  );
 }
 
 export function LatestNews() {
@@ -28,6 +88,7 @@ export function LatestNews() {
   const [loadFailed, setLoadFailed] = useState(false);
 
   const dateLocale = language === "en" ? "en-MY" : "ms-MY";
+  const sourceLabel = t("newsSource");
 
   useEffect(() => {
     let cancelled = false;
@@ -47,58 +108,44 @@ export function LatestNews() {
     };
   }, []);
 
-  if (loadFailed) {
-    return (
-      <p className="news-error" role="alert">
-        {t("newsLoadError")}
-      </p>
-    );
-  }
-
-  if (!items) {
-    return (
-      <ul className="news-list">
-        {Array.from({ length: CARD_COUNT }, (_, i) => (
-          <li key={i} className="news-card news-card--skeleton" aria-hidden />
-        ))}
-      </ul>
-    );
-  }
-
   return (
-    <ul className="news-list">
-      {items.map((item) => (
-        <li key={item.id}>
+    <div className="news-recent" role="region" aria-labelledby="news-recent-heading">
+      <div className="news-recent-inner">
+        <div className="news-recent-header">
+          <h3 className="news-recent-heading" id="news-recent-heading">
+            {t("latestNews")}
+          </h3>
           <a
-            href={item.url}
+            className="news-recent-view-all"
+            href={JIWABAKTI_HREF}
             target="_blank"
             rel="noopener noreferrer"
-            className="news-card"
           >
-            {item.image ? (
-              <img
-                src={item.image}
-                alt=""
-                className="news-card-thumb"
-                loading="lazy"
-                width={112}
-                height={72}
-              />
-            ) : (
-              <div className="news-card-thumb news-card-thumb--placeholder" aria-hidden />
-            )}
-            <span className="news-card-text">
-              <span className="news-card-title">{item.title}</span>
-              <span className="news-card-excerpt">
-                {shorten(item.excerpt, 110)}
-              </span>
-              <span className="news-card-meta">
-                {formatDate(item.date, dateLocale)} · {t("newsSource")}
-              </span>
-            </span>
+            {t("newsViewAll")}
           </a>
-        </li>
-      ))}
-    </ul>
+        </div>
+
+        {loadFailed ? (
+          <p className="news-recent-error" role="alert">
+            {t("newsLoadError")}
+          </p>
+        ) : (
+          <ul className="news-list">
+            {!items ? (
+              <NewsListSkeleton />
+            ) : (
+              items.map((item) => (
+                <NewsRow
+                  key={item.id}
+                  item={item}
+                  dateLocale={dateLocale}
+                  sourceLabel={sourceLabel}
+                />
+              ))
+            )}
+          </ul>
+        )}
+      </div>
+    </div>
   );
 }

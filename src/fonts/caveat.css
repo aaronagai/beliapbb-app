@@ -1,0 +1,8 @@
+/* Handwritten annotation — latin 400 only, scoped to join FAB hint */
+@font-face {
+  font-family: "Caveat";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("@fontsource/caveat/files/caveat-latin-400-normal.woff2") format("woff2");
+}

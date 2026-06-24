@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.6.0 — 2026-06-24
+
+### Added
+- Kenali Parti Instagram-style story row with photos (`public/kenali/`) and i18n labels
+- Sayap party wings horizontal carousel with updated PNG wing imagery
+- Floating join CTA (`JoinFab`) with Caveat pencil annotation
+- Welcome modal, focus agenda section, agenda placeholder route, and shared `Logo` component
+- Self-hosted Geist Sans and Caveat via `@fontsource`; `assets/` for bundled imagery
+- Nav icon (`navicon.svg`) for PWA manifest and document favicon
+
+### Changed
+- Home layout and `App.css`: immersive header on hero, nav scrim, carousel spacing, and dead-space fixes
+- `PartyWingsSection`, `LatestNews`, footer, membership card, and profile polish
+- Replaced legacy root `logo.svg` / JPEG–WebP sayap assets with PNG pipeline
+
 ## 0.0.5.0 — 2026-06-06
 
 ### Changed

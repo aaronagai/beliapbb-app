@@ -57,7 +57,7 @@ function LanguageScriptIcon() {
         y="15.5"
         fill="currentColor"
         fontSize="12.5"
-        fontWeight="700"
+        fontWeight="400"
         fontFamily="'PingFang SC','PingFang TC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC',sans-serif"
       >
         文
@@ -67,8 +67,8 @@ function LanguageScriptIcon() {
         y="21"
         fill="currentColor"
         fontSize="10.5"
-        fontWeight="700"
-        fontFamily="'Inter', system-ui, sans-serif"
+        fontWeight="400"
+        fontFamily="'Geist', system-ui, sans-serif"
       >
         A
       </text>
