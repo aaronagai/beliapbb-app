@@ -2,6 +2,14 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import { ExternalLinkArrowIcon } from "./ExternalLinkArrowIcon";
 import { useI18n, type MessageKey } from "./i18n";
 import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
+import kenaliAbout from "../assets/kenali_about.jpg";
+import kenaliStructure from "../assets/kenali_structure.jpg";
+import kenaliConstitution from "../assets/kenali_constitution.jpg";
+import kenaliHistory from "../assets/kenali_sejarah.jpg";
+import sayapMkt from "../assets/sayap_mkt.jpg";
+import sayapWanita from "../assets/sayap_wanita.jpg";
+import sayapPemuda from "../assets/sayap_pemuda.jpg";
+import sayapBelia from "../assets/sayap_belia.jpg";
 
 const KENALI_PARTI_LABELS = ["About", "Structure", "Constitution", "Apply", "History"] as const;
 
@@ -27,11 +35,11 @@ const KENALI_ABOUT_WIKI_MS =
 const KENALI_HISTORY_WIKI_MS = `${KENALI_ABOUT_WIKI_MS}#Sejarah`;
 
 const KENALI_PARTI_PHOTO_SRC: Record<(typeof KENALI_PARTI_LABELS)[number], string> = {
-  About: `${import.meta.env.BASE_URL}kenali/about.jpg`,
-  Structure: `${import.meta.env.BASE_URL}kenali/structure.jpg`,
-  Constitution: `${import.meta.env.BASE_URL}kenali/constitution.jpg`,
+  About: kenaliAbout,
+  Structure: kenaliStructure,
+  Constitution: kenaliConstitution,
   Apply: `${import.meta.env.BASE_URL}kenali/apply.jpg`,
-  History: `${import.meta.env.BASE_URL}kenali/history.jpg`,
+  History: kenaliHistory,
 };
 
 const SAYAP_PARTI_LABELS = ["MKT", "Wanita", "Pemuda", "Belia"] as const;
@@ -47,10 +55,10 @@ const SAYAP_FEATURED: SayapPartiLabel = "MKT";
 const SAYAP_CAROUSEL_LABELS = ["Wanita", "Pemuda", "Belia"] as const satisfies readonly SayapPartiLabel[];
 
 const SAYAP_PARTI_PHOTO_SRC: Record<SayapPartiLabel, string> = {
-  MKT: `${import.meta.env.BASE_URL}sayap/mkt.png`,
-  Wanita: `${import.meta.env.BASE_URL}sayap/wanita.png`,
-  Pemuda: `${import.meta.env.BASE_URL}sayap/pemuda.png`,
-  Belia: `${import.meta.env.BASE_URL}sayap/belia.png`,
+  MKT: sayapMkt,
+  Wanita: sayapWanita,
+  Pemuda: sayapPemuda,
+  Belia: sayapBelia,
 };
 
 function KenaliStoryCard({

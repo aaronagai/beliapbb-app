@@ -1,5 +1,8 @@
 import { ExternalLinkArrowIcon } from "./ExternalLinkArrowIcon";
 import { useI18n, type MessageKey } from "./i18n";
+import focusEducation from "../assets/focus_education.jpg";
+import focusEmployment from "../assets/focus_employment.jpg";
+import focusEmerging from "../assets/focus_emerging.jpg";
 
 export type AgendaTab = "education" | "employment" | "emergingTech";
 
@@ -15,17 +18,17 @@ const AGENDA_ITEMS: {
   {
     tab: "education",
     labelKey: "agendaEducation",
-    imageSrc: `${import.meta.env.BASE_URL}focus/education.png`,
+    imageSrc: focusEducation,
   },
   {
     tab: "employment",
     labelKey: "agendaEmployment",
-    imageSrc: `${import.meta.env.BASE_URL}focus/employment.png`,
+    imageSrc: focusEmployment,
   },
   {
     tab: "emergingTech",
     labelKey: "agendaEmergingTech",
-    imageSrc: `${import.meta.env.BASE_URL}focus/emerging.png`,
+    imageSrc: focusEmerging,
   },
 ];
 
