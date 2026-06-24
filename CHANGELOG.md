@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.7.0 — 2026-06-24
+
+### Added
+- Full-screen hamburger navigation overlay (OpenAI-style) with primary/secondary links and escape-to-close
+- Footer social icon row and footer-only language pill (globe + language name)
+- Local focus agenda photos in `public/focus/` with 16:9 desktop card aspect
+- Shared `ExternalLinkArrowIcon` and `FooterSocialIcons` components
+- Setiausaha Eksekutif cawangan option on the membership application form
+
+### Changed
+- Site brand unified to **Belia PBB** (header, document titles, welcome modal, membership card)
+- Focus Agenda section uses title case headings and refreshed card layout
+- Home section order and Kenali/Sayap polish; membership card logo alignment
+- Nav overlay dark-mode logo treatment; language toggle removed from header (footer only)
+- Footer copyright: Belia PBB © 2026 with bilingual i18n strings
+
 ## 0.0.6.0 — 2026-06-24
 
 ### Added
