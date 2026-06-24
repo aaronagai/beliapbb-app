@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
+import { ExternalLinkArrowIcon } from "./ExternalLinkArrowIcon";
 import { useI18n, type MessageKey } from "./i18n";
 import { HomeMembershipCard } from "./HomeMembershipCard";
 import { LatestNews } from "./LatestNews";
@@ -14,6 +16,10 @@ import { Logo } from "./Logo";
 import { WelcomeModal, welcomeDismissedThisSession } from "./WelcomeModal";
 import { JoinFab } from "./JoinFab";
 import "./App.css";
+
+const JIWABAKTI_HREF = "https://jiwabakti.com.my/";
+const KENALI_ABOUT_WIKI_MS =
+  "https://ms.wikipedia.org/wiki/Parti_Pesaka_Bumiputera_Bersatu_Sarawak";
 
 type AppTab =
   | "home"
@@ -57,47 +63,6 @@ function initialTabFromHash(): AppTab {
   }
 }
 
-function IconHome() {
-  return (
-    <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden>
-      <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z" />
-    </svg>
-  );
-}
-
-function IconMembers() {
-  return (
-    <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.67V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
-      />
-    </svg>
-  );
-}
-
-function IconResources() {
-  return (
-    <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"
-      />
-    </svg>
-  );
-}
-
-function IconProfile() {
-  return (
-    <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-      />
-    </svg>
-  );
-}
-
 function NavMenuIcon() {
   return (
     <svg className="nav-menu-icon" viewBox="0 0 24 24" aria-hidden>
@@ -109,11 +74,35 @@ function NavMenuIcon() {
   );
 }
 
-const NAV_ITEMS: { tab: AppTab; labelKey: MessageKey; icon: () => ReactNode }[] = [
-  { tab: "home", labelKey: "navHome", icon: IconHome },
-  { tab: "members", labelKey: "navMembers", icon: IconMembers },
-  { tab: "resources", labelKey: "navResources", icon: IconResources },
-  { tab: "profile", labelKey: "navProfile", icon: IconProfile },
+function NavCloseIcon() {
+  return (
+    <svg className="nav-menu-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+      />
+    </svg>
+  );
+}
+
+const NAV_PRIMARY: { tab: AppTab; labelKey: MessageKey }[] = [
+  { tab: "home", labelKey: "navHome" },
+  { tab: "resources", labelKey: "navResources" },
+  { tab: "education", labelKey: "agendaEducation" },
+  { tab: "employment", labelKey: "agendaEmployment" },
+  { tab: "emergingTech", labelKey: "agendaEmergingTech" },
+  { tab: "members", labelKey: "navMembers" },
+  { tab: "apply", labelKey: "kenaliApply" },
+];
+
+const NAV_SECONDARY_TABS: { tab: AppTab; labelKey: MessageKey }[] = [
+  { tab: "profile", labelKey: "navProfile" },
+];
+
+const NAV_SECONDARY_EXTERNAL: { href: string; labelKey: MessageKey }[] = [
+  { href: KENALI_ABOUT_WIKI_MS, labelKey: "kenaliAbout" },
+  { href: CONSTITUTION_PDF_URL, labelKey: "kenaliConstitution" },
+  { href: JIWABAKTI_HREF, labelKey: "jiwaBaktiLink" },
 ];
 
 function isAgendaTab(tab: AppTab): tab is "education" | "employment" | "emergingTech" {
@@ -234,6 +223,10 @@ export function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  const closeNavMenu = useCallback(() => {
+    setNavMenuOpen(false);
+  }, []);
+
   const topperKey = pageTopperHeadingKey(tab);
   const immersiveHeader = Boolean(topperKey && !headerScrolled && !navMenuOpen);
   const headerSolid = tab === "home" || isAgendaTab(tab) || headerScrolled || navMenuOpen;
@@ -260,7 +253,7 @@ export function App() {
             translate="no"
           >
             <Logo className="site-brand-logo" alt={t("logoAlt")} />
-            <span className="site-brand">beliapbb.app</span>
+            <span className="site-brand">Belia PBB</span>
           </button>
 
           <div className="header-actions">
@@ -282,31 +275,80 @@ export function App() {
 
       {navMenuOpen ? (
         <div
-          className="app-nav-scrim"
-          role="presentation"
-          onMouseDown={() => setNavMenuOpen(false)}
-        />
-      ) : null}
+          className="app-nav-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("navMain")}
+        >
+          <div className="app-nav-overlay-top">
+            <button
+              type="button"
+              className="app-nav-overlay-brand"
+              onClick={() => selectTab("home")}
+              translate="no"
+            >
+              <Logo className="site-brand-logo" alt={t("logoAlt")} />
+              <span className="app-nav-overlay-brand-text">{t("welcomeTitle")}</span>
+            </button>
+            <button
+              type="button"
+              className="app-nav-overlay-close"
+              onClick={closeNavMenu}
+              aria-label={t("navMenuClose")}
+            >
+              <NavCloseIcon />
+            </button>
+          </div>
 
-      <nav
-        id="main-nav"
-        className={`app-nav${navMenuOpen ? " app-nav--open" : ""}`}
-        aria-label={t("navMain")}
-        hidden={!navMenuOpen}
-      >
-        {NAV_ITEMS.map(({ tab: navTab, labelKey, icon: Icon }) => (
-          <button
-            key={navTab}
-            type="button"
-            className={`app-nav-item${tab === navTab ? " app-nav-item--active" : ""}`}
-            aria-current={tab === navTab ? "page" : undefined}
-            onClick={() => selectTab(navTab)}
-          >
-            <Icon />
-            <span>{t(labelKey)}</span>
-          </button>
-        ))}
-      </nav>
+          <nav id="main-nav" className="app-nav-overlay-body" aria-label={t("navMain")}>
+            <ul className="app-nav-primary">
+              {NAV_PRIMARY.map(({ tab: navTab, labelKey }) => (
+                <li key={navTab}>
+                  <button
+                    type="button"
+                    className={`app-nav-primary-item${tab === navTab ? " app-nav-primary-item--active" : ""}`}
+                    aria-current={tab === navTab ? "page" : undefined}
+                    onClick={() => selectTab(navTab)}
+                  >
+                    {t(labelKey)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <div className="app-nav-separator" role="separator" />
+
+            <ul className="app-nav-secondary">
+              {NAV_SECONDARY_TABS.map(({ tab: navTab, labelKey }) => (
+                <li key={navTab}>
+                  <button
+                    type="button"
+                    className={`app-nav-secondary-item${tab === navTab ? " app-nav-secondary-item--active" : ""}`}
+                    aria-current={tab === navTab ? "page" : undefined}
+                    onClick={() => selectTab(navTab)}
+                  >
+                    {t(labelKey)}
+                  </button>
+                </li>
+              ))}
+              {NAV_SECONDARY_EXTERNAL.map(({ href, labelKey }) => (
+                <li key={href}>
+                  <a
+                    className="app-nav-secondary-item app-nav-secondary-item--external"
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeNavMenu}
+                  >
+                    {t(labelKey)}
+                    <ExternalLinkArrowIcon className="app-nav-external-arrow" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      ) : null}
 
       <main className={`app-main${topperKey ? " app-main--with-topper" : ""}`}>
         {topperKey ? (
@@ -327,9 +369,9 @@ export function App() {
                   {t("greetingHey").replace(/\{\{name\}\}/g, greetingName)}
                 </h2>
                 <HomeMembershipCard />
-                <LatestNews />
               </section>
               <PartyWingsSection onSelectApply={() => selectTab("apply")} />
+              <LatestNews />
               <FocusAgendaSection onSelectAgenda={selectTab} />
             </>
           ) : tab === "members" ? (

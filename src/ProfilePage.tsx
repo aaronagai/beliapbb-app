@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import {
   CAWANGAN_OPTIONS,
-  formatCawanganLabel,
+  getCawanganDisplayLabel,
   isValidCawangan,
 } from "./cawanganOptions";
 import { useI18n } from "./i18n";
@@ -179,7 +179,7 @@ export function ProfilePage() {
             <option value="">{t("profileCawanganSelect")}</option>
             {CAWANGAN_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>
-                {formatCawanganLabel(opt)}
+                {getCawanganDisplayLabel(opt, t)}
               </option>
             ))}
           </select>

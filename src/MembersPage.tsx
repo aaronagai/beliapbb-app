@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { getAhliRows } from "./ahliData";
+import { getCawanganDisplayLabel } from "./cawanganOptions";
 import { useI18n } from "./i18n";
 
 const ALL_AHLI = getAhliRows();
@@ -60,7 +61,9 @@ export function MembersPage() {
                       <span className="members-pending">{t("memberPending")}</span>
                     )}
                   </div>
-                  <div className="members-item-cawangan">{row.cawangan}</div>
+                  <div className="members-item-cawangan">
+                    {getCawanganDisplayLabel(row.cawangan, t)}
+                  </div>
                 </div>
               </li>
             ))}

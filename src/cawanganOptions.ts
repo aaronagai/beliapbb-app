@@ -1,5 +1,8 @@
-/** Sarawak DUN (N.01–N.82) — single-select options for cawangan. */
+import type { MessageKey } from "./i18n";
+
+/** Organizational cawangan plus Sarawak DUN (N.01–N.82) — single-select options for cawangan. */
 export const CAWANGAN_OPTIONS: readonly string[] = [
+  "SETIAUSAHA EKSEKUTIF",
   "N.1 OPAR",
   "N.2 TASIK BIRU",
   "N.3 TANJUNG DATU",
@@ -84,21 +87,43 @@ export const CAWANGAN_OPTIONS: readonly string[] = [
   "N.82 BUKIT SARI",
 ];
 
+/** DUN-only subset — for kawasan negeri fields that must not list organizational cawangan. */
+export const DUN_CAWANGAN_OPTIONS = CAWANGAN_OPTIONS.filter((opt) => /^N\.\d+\s/.test(opt));
+
 const CAWANGAN_SET = new Set(CAWANGAN_OPTIONS);
+
+export const CAWANGAN_I18N: Partial<Record<string, MessageKey>> = {
+  "SETIAUSAHA EKSEKUTIF": "cawanganSetiausahaEksekutif",
+};
 
 /**
  * Shown in the UI: `N.xxx` unchanged; each following word is first letter uppercase,
  * remaining letters lowercase (canonical stored values stay ALL CAPS).
  */
+function titleCaseWords(text: string): string {
+  return text
+    .split(/\s+/)
+    .map((word) => {
+      if (!word) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
 export function formatCawanganLabel(canonical: string): string {
   const m = canonical.match(/^(N\.\d+)\s+(.+)$/);
-  if (!m) return canonical;
+  if (!m) return titleCaseWords(canonical);
   const [, code, rest] = m;
-  const words = rest.split(/\s+/).map((word) => {
-    if (!word) return word;
-    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-  });
-  return `${code} ${words.join(" ")}`;
+  return `${code} ${titleCaseWords(rest)}`;
+}
+
+export function getCawanganDisplayLabel(
+  canonical: string,
+  t?: (key: MessageKey) => string
+): string {
+  const key = CAWANGAN_I18N[canonical];
+  if (key && t) return t(key);
+  return formatCawanganLabel(canonical);
 }
 
 export function isValidCawangan(value: string): boolean {
