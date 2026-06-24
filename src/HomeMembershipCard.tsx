@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { Logo } from "./Logo";
 import checkmarkUrl from "../assets/checkmark.svg.png?url";
-import { formatCawanganLabel, isValidCawangan } from "./cawanganOptions";
+import { getCawanganDisplayLabel, isValidCawangan } from "./cawanganOptions";
 import { useI18n } from "./i18n";
 
 /** Static payload — visual only; not wired to validation or deep links. */
@@ -28,7 +28,7 @@ function readCardFields(): { name: string; cawangan: string } {
 }
 
 export function HomeMembershipCard() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [displayName, setDisplayName] = useState(PLACEHOLDER_NAME);
   const [displayCawangan, setDisplayCawangan] = useState(PLACEHOLDER_CAWANGAN);
 
@@ -36,19 +36,19 @@ export function HomeMembershipCard() {
     const { name, cawangan } = readCardFields();
     setDisplayName(name || PLACEHOLDER_NAME);
     if (cawangan && isValidCawangan(cawangan)) {
-      setDisplayCawangan(formatCawanganLabel(cawangan));
+      setDisplayCawangan(getCawanganDisplayLabel(cawangan, t));
     } else if (cawangan) {
       setDisplayCawangan(cawangan);
     } else {
       setDisplayCawangan(PLACEHOLDER_CAWANGAN);
     }
-  }, []);
+  }, [t, language]);
 
   return (
     <article className="home-membership-card" aria-label={t("membershipCardAria")}>
       <div className="home-membership-card-body">
         <header className="home-membership-card-top">
-          <Logo className="home-membership-card-logo" decorative width={96} height={26} />
+          <Logo className="home-membership-card-logo" decorative />
           <span className="home-membership-card-badge">{t("membershipCardBadge")}</span>
         </header>
         <div className="home-membership-card-main">

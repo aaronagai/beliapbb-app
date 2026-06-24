@@ -1,6 +1,10 @@
 import { useCallback, useState } from "react";
 import { useI18n, type MessageKey } from "./i18n";
-import { CAWANGAN_OPTIONS, formatCawanganLabel } from "./cawanganOptions";
+import {
+  CAWANGAN_OPTIONS,
+  DUN_CAWANGAN_OPTIONS,
+  getCawanganDisplayLabel,
+} from "./cawanganOptions";
 
 const BORANG_PDF = `${import.meta.env.BASE_URL}borang-permohonan-pbb.pdf`;
 const DRAFT_KEY = "beliapbb_application_draft";
@@ -191,7 +195,7 @@ export function ApplicationPage() {
               <option value="">{t("profileCawanganSelect")}</option>
               {CAWANGAN_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
-                  {formatCawanganLabel(opt)}
+                  {getCawanganDisplayLabel(opt, t)}
                 </option>
               ))}
             </select>
@@ -456,9 +460,9 @@ export function ApplicationPage() {
               onChange={(e) => patch({ kawasanNegeri: e.target.value })}
             >
               <option value="">{t("applicationOptDunSelect")}</option>
-              {CAWANGAN_OPTIONS.map((opt) => (
+              {DUN_CAWANGAN_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
-                  {formatCawanganLabel(opt)}
+                  {getCawanganDisplayLabel(opt, t)}
                 </option>
               ))}
             </select>

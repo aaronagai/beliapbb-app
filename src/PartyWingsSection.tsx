@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { ExternalLinkArrowIcon } from "./ExternalLinkArrowIcon";
 import { useI18n, type MessageKey } from "./i18n";
 import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
 
@@ -7,9 +8,9 @@ const KENALI_PARTI_LABELS = ["About", "Structure", "Constitution", "Apply", "His
 const KENALI_PARTI_UI_ORDER: Record<(typeof KENALI_PARTI_LABELS)[number], number> = {
   About: 1,
   Structure: 2,
-  Constitution: 3,
-  Apply: 4,
-  History: 5,
+  History: 3,
+  Constitution: 4,
+  Apply: 5,
 };
 
 const KENALI_LABEL_TO_KEY: Record<(typeof KENALI_PARTI_LABELS)[number], MessageKey> = {
@@ -36,6 +37,10 @@ const KENALI_PARTI_PHOTO_SRC: Record<(typeof KENALI_PARTI_LABELS)[number], strin
 const SAYAP_PARTI_LABELS = ["MKT", "Wanita", "Pemuda", "Belia"] as const;
 
 type SayapPartiLabel = (typeof SAYAP_PARTI_LABELS)[number];
+
+const SAYAP_LABEL_TO_KEY: Partial<Record<SayapPartiLabel, MessageKey>> = {
+  MKT: "sayapMkt",
+};
 
 const SAYAP_FEATURED: SayapPartiLabel = "MKT";
 
@@ -167,6 +172,10 @@ function SayapWingCard({
   label: SayapPartiLabel;
   variant: "featured" | "compact" | "feed";
 }) {
+  const { t } = useI18n();
+  const key = SAYAP_LABEL_TO_KEY[label];
+  const displayLabel = key ? t(key) : label;
+
   return (
     <button
       type="button"
@@ -181,7 +190,10 @@ function SayapWingCard({
           decoding="async"
         />
       </span>
-      <span className="sayap-wing-title">{label}</span>
+      <span className="sayap-wing-title">
+        {displayLabel}
+        <ExternalLinkArrowIcon className="sayap-wing-title-arrow" />
+      </span>
     </button>
   );
 }
