@@ -1,10 +1,11 @@
-import { Logo } from "./Logo";
 import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
+import { FooterSocialIcons } from "./FooterSocialIcons";
 import { useI18n, type Language } from "./i18n";
 
 const JIWABAKTI_HREF = "https://jiwabakti.com.my/";
 const KENALI_ABOUT_WIKI_MS =
   "https://ms.wikipedia.org/wiki/Parti_Pesaka_Bumiputera_Bersatu_Sarawak";
+const FOOTER_END_YEAR = Math.max(2026, new Date().getFullYear());
 
 export type FooterTab =
   | "home"
@@ -20,15 +21,36 @@ type SiteFooterProps = {
   onSelectTab?: (tab: FooterTab) => void;
 };
 
+function GlobeIcon() {
+  return (
+    <svg className="site-footer-bar-lang-icon" viewBox="0 0 24 24" aria-hidden>
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        d="M3 12h18M12 3c2.5 2.8 2.5 14.2 0 18M12 3c-2.5 2.8-2.5 14.2 0 18"
+      />
+    </svg>
+  );
+}
+
 export function SiteFooter({ onSelectTab }: SiteFooterProps) {
   const { language, setLanguage, t } = useI18n();
-  const year = new Date().getFullYear();
 
   const toggleLanguage = () => {
     setLanguage(language === "ms" ? "en" : "ms");
   };
 
-  const languageCode: Record<Language, string> = { ms: "BM", en: "EN" };
+  const languageDisplay: Record<Language, string> = {
+    en: t("footerLanguageNameEn"),
+    ms: t("footerLanguageNameMs"),
+  };
+
+  const copyrightText = t("footerCopyright").replace(
+    /\{\{endYear\}\}/g,
+    String(FOOTER_END_YEAR),
+  );
 
   const go = (tab: FooterTab) => {
     onSelectTab?.(tab);
@@ -136,29 +158,20 @@ export function SiteFooter({ onSelectTab }: SiteFooterProps) {
           </div>
         </nav>
 
-        <div className="site-footer-bottom">
-          <div className="site-footer-brand-mark">
-            <p className="site-footer-wing-label">{t("footerWingLabel")}</p>
-            <div className="site-footer-logo-row">
-              <Logo className="site-footer-logo" decorative width={28} height={28} />
-              <span className="site-footer-name" translate="no">
-                Belia PBB
-              </span>
-            </div>
-          </div>
-          <p className="site-footer-copy">
-            {t("footerCopyright").replace(/\{\{year\}\}/g, String(year))}
-          </p>
-          <div className="site-footer-brand-foot">
-            <button
-              type="button"
-              className="site-footer-lang-btn"
-              onClick={toggleLanguage}
-              aria-label={t("languageToggleAria")}
-            >
-              {languageCode[language]}
-            </button>
-          </div>
+        <div className="site-footer-bar">
+          <FooterSocialIcons t={t} />
+
+          <p className="site-footer-bar-legal">{copyrightText}</p>
+
+          <button
+            type="button"
+            className="site-footer-bar-lang"
+            onClick={toggleLanguage}
+            aria-label={t("languageToggleAria")}
+          >
+            <GlobeIcon />
+            <span>{languageDisplay[language]}</span>
+          </button>
         </div>
       </div>
     </footer>
