@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.7.1 — 2026-06-24
+
+### Added
+- Open Graph and Twitter Card meta tags in `index.html` for link previews
+- Branded share image assets `public/og-image.png` and `public/og-image.svg` (1200×630)
+
 ## 0.0.7.0 — 2026-06-24
 
 ### Added
