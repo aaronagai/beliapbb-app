@@ -74,7 +74,7 @@ export const messages = {
     welcomeEyebrow: "Selamat datang",
     welcomeTitle: "Belia PBB",
     welcomeDeck:
-      "Portal rasmi ahli muda Parti Bersatu Bumiputera Sabah — berita, sumber, dan permohonan keahlian dalam satu tempat.",
+      "Portal rasmi ahli muda Parti Bersatu Bumiputera Sarawak — berita, sumber, dan permohonan keahlian dalam satu tempat.",
     welcomeContinue: "Teruskan",
     welcomeCloseAria: "Tutup dialog selamat datang",
     welcomeEmailPlaceholder: "E-mel anda",
@@ -249,7 +249,7 @@ export const messages = {
     welcomeEyebrow: "Welcome",
     welcomeTitle: "Belia PBB",
     welcomeDeck:
-      "The official youth portal for Parti Bersatu Bumiputera Sabah — news, resources, and membership in one place.",
+      "The official youth portal for Parti Bersatu Bumiputera Sarawak — news, resources, and membership in one place.",
     welcomeContinue: "Continue",
     welcomeCloseAria: "Close welcome dialog",
     welcomeEmailPlaceholder: "Your email",

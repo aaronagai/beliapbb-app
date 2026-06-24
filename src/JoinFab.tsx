@@ -17,10 +17,18 @@ function JoinFabArrow() {
       aria-hidden="true"
     >
       <path
-        d="M6 4 C18 2, 34 8, 42 18 S48 32, 38 36 M38 36 L44 34 M38 36 L40 42"
+        d="M8 5 C 27 0, 48 8, 43 26 C 42 30, 41 32, 39 34"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M39 34 L32 31 M39 34 L44 28"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
