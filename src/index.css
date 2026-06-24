@@ -6,69 +6,115 @@
 
 :root {
   color-scheme: light;
-  --color-bg: #ececec;
+  --color-bg: #fff;
   --color-surface: #fff;
-  --color-surface-muted: #f5f5f5;
-  --color-surface-elevated: #f7f7f7;
+  --color-surface-muted: #fff;
+  --color-surface-elevated: #fff;
   --color-text: #1a1a1a;
   --color-text-secondary: #444;
   --color-text-muted: #777;
   --color-text-subtle: #555;
-  --color-border: rgb(0 0 0 / 0.08);
-  --color-border-strong: rgb(0 0 0 / 0.12);
-  --color-hover: rgb(0 0 0 / 0.05);
-  --color-hover-strong: rgb(0 0 0 / 0.08);
+  --color-border: rgb(0 0 0 / 0.1);
+  --color-border-strong: rgb(0 0 0 / 0.16);
+  --color-hover: rgb(0 0 0 / 0.04);
+  --color-hover-strong: rgb(0 0 0 / 0.06);
   --color-accent: #1e40af;
   --color-accent-hover: #1d4ed8;
   --color-accent-bg: rgb(30 64 175 / 0.08);
   --color-brand: #c41e3a;
   --color-input-bg: #fff;
-  --color-input-border: #ddd;
+  --color-input-border: rgb(0 0 0 / 0.14);
   --color-placeholder: #999;
-  --color-wing-circle: #e8e8e8;
-  --color-wing-photo: #ddd;
+  --color-wing-circle: #fff;
+  --color-wing-photo: #fff;
   --color-nav-idle: #555;
-  --color-header-shadow: 0 1px 3px rgb(0 0 0 / 0.04);
-  --color-header-frost: color-mix(in srgb, var(--color-surface) 72%, transparent);
-  --color-card-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  --color-header-shadow: none;
+  --color-header-frost: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  --color-card-shadow: none;
   --color-overlay: rgb(0 0 0 / 0.45);
-  --color-error-bg: #fff5f5;
-  --color-skeleton: #f0f0f0;
+  --color-error-bg: #fff;
+  --color-skeleton: #fff;
   --color-focus: #1e40af;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --color-navy-deep: #000;
+  --color-navy: #000;
+  --color-navy-accent: #000;
+  --color-charcoal: #000;
+  --color-footer-on-navy: #ffffff;
+  --color-footer-muted: rgb(255 255 255 / 0.5);
+  --join-fab-bg: #000;
+  --join-fab-fg: #fff;
+  --join-fab-border: rgb(0 0 0 / 0.18);
+  --join-fab-shadow: 0 4px 20px rgb(0 0 0 / 0.22), 0 1px 3px rgb(0 0 0 / 0.14);
+  --join-fab-annotation-fg: rgb(0 0 0 / 0.58);
+  --font-handwritten: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
+  --logo-letter-color: var(--color-text);
+  --tracking-caps: 0.15em;
+  --header-height: 3.125rem;
+  --header-height-lg: 5rem;
+  --header-offset: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+  --font-sans: "Geist", system-ui, -apple-system, sans-serif;
+  --layout-max-width: none;
+  --layout-padding-inline: max(1rem, env(safe-area-inset-left, 0px))
+    max(1rem, env(safe-area-inset-right, 0px));
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --layout-max-width: 72rem;
+    --layout-padding-inline: max(1.5rem, env(safe-area-inset-left, 0px))
+      max(1.5rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --layout-padding-inline: max(2rem, env(safe-area-inset-left, 0px))
+      max(2rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+@media (min-width: 67.5rem) {
+  :root {
+    --header-offset: calc(var(--header-height-lg) + env(safe-area-inset-top, 0px));
+  }
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-bg: #101014;
-  --color-surface: #1c1c22;
-  --color-surface-muted: #25252d;
-  --color-surface-elevated: #2a2a32;
-  --color-text: #e8e8ec;
-  --color-text-secondary: #b8b8c0;
-  --color-text-muted: #90909a;
-  --color-text-subtle: #a8a8b0;
-  --color-border: rgb(255 255 255 / 0.1);
-  --color-border-strong: rgb(255 255 255 / 0.16);
+  --color-bg: #000;
+  --color-surface: #000;
+  --color-surface-muted: #000;
+  --color-surface-elevated: #000;
+  --color-text: #fff;
+  --color-text-secondary: rgb(255 255 255 / 0.78);
+  --color-text-muted: rgb(255 255 255 / 0.55);
+  --color-text-subtle: rgb(255 255 255 / 0.65);
+  --color-border: rgb(255 255 255 / 0.14);
+  --color-border-strong: rgb(255 255 255 / 0.22);
   --color-hover: rgb(255 255 255 / 0.06);
   --color-hover-strong: rgb(255 255 255 / 0.1);
   --color-accent: #6b9fff;
   --color-accent-hover: #8bb4ff;
   --color-accent-bg: rgb(107 159 255 / 0.14);
   --color-brand: #e0455f;
-  --color-input-bg: #25252d;
-  --color-input-border: rgb(255 255 255 / 0.14);
-  --color-placeholder: #787880;
-  --color-wing-circle: #2e2e36;
-  --color-wing-photo: #3a3a42;
-  --color-nav-idle: #a8a8b0;
-  --color-header-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
-  --color-header-frost: color-mix(in srgb, var(--color-surface) 68%, transparent);
-  --color-card-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  --color-input-bg: #000;
+  --color-input-border: rgb(255 255 255 / 0.18);
+  --color-placeholder: rgb(255 255 255 / 0.45);
+  --color-wing-circle: #000;
+  --color-wing-photo: #000;
+  --color-nav-idle: rgb(255 255 255 / 0.65);
+  --color-header-shadow: none;
+  --color-header-frost: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  --color-card-shadow: none;
   --color-overlay: rgb(0 0 0 / 0.65);
-  --color-error-bg: rgb(224 69 95 / 0.12);
-  --color-skeleton: #2a2a32;
+  --color-error-bg: #000;
+  --color-skeleton: #000;
   --color-focus: #6b9fff;
+  --join-fab-bg: #fff;
+  --join-fab-fg: #000;
+  --join-fab-border: rgb(255 255 255 / 0.22);
+  --join-fab-shadow: 0 4px 20px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.25);
+  --join-fab-annotation-fg: rgb(255 255 255 / 0.72);
 }
 
 html {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
-import logoSvgUrl from "../logo.svg?url";
-import checkmarkUrl from "../checkmark.svg.png?url";
+import { Logo } from "./Logo";
+import checkmarkUrl from "../assets/checkmark.svg.png?url";
 import { formatCawanganLabel, isValidCawangan } from "./cawanganOptions";
 import { useI18n } from "./i18n";
 
@@ -48,14 +48,7 @@ export function HomeMembershipCard() {
     <article className="home-membership-card" aria-label={t("membershipCardAria")}>
       <div className="home-membership-card-body">
         <header className="home-membership-card-top">
-          <img
-            src={logoSvgUrl}
-            alt=""
-            width={96}
-            height={26}
-            className="home-membership-card-logo"
-            decoding="async"
-          />
+          <Logo className="home-membership-card-logo" decorative width={96} height={26} />
           <span className="home-membership-card-badge">{t("membershipCardBadge")}</span>
         </header>
         <div className="home-membership-card-main">

@@ -1,0 +1,16 @@
+/* Self-hosted Geist — latin subset, static weights, woff2 only, font-display: swap */
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200;
+  src: url("@fontsource/geist-sans/files/geist-sans-latin-200-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("@fontsource/geist-sans/files/geist-sans-latin-400-normal.woff2") format("woff2");
+}
