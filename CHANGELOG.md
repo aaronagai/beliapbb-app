@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.7.3 — 2026-08-24
+
+### Changed
+- Latest news feed no longer pins a specific Jiwa Bakti article; shows the six most recent items
+
 ## 0.0.7.2 — 2026-08-24
 
 ### Changed

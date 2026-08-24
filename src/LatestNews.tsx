@@ -3,7 +3,6 @@ import { useI18n } from "./i18n";
 import { fetchNewsFeed, type NewsCardModel } from "./jiwabakti";
 
 const JIWABAKTI_HREF = "https://jiwabakti.com.my/";
-const PINNED_SLUG = "gps-beri-peluang-pada-generasi-muda-demi-kesinambungan-parti";
 const CARD_COUNT = 6;
 
 function formatDate(iso: string, locale: string): string {
@@ -94,10 +93,7 @@ export function LatestNews() {
     let cancelled = false;
     (async () => {
       try {
-        const list = await fetchNewsFeed({
-          count: CARD_COUNT,
-          pinnedSlug: PINNED_SLUG,
-        });
+        const list = await fetchNewsFeed({ count: CARD_COUNT });
         if (!cancelled) setItems(list);
       } catch {
         if (!cancelled) setLoadFailed(true);
