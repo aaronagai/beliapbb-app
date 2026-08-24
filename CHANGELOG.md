@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.7.2 — 2026-08-24
+
+### Changed
+- OpenAI-style design tokens: subtler borders, `--color-bg-subtle`, refined light/dark palettes, header frost and shadow
+- Hamburger nav overlay typography, spacing, and secondary link hover underlines
+- Footer: subtle background, sentence-case column titles, external link arrows on wiki/PDF/Jiwa Bakti links, refined social and language bar
+- Join FAB, home greeting, focus agenda titles, and in-content link hover underlines
+- `ExternalLinkArrowIcon` stroke weight; body font smoothing and kerning
+
 ## 0.0.7.1 — 2026-06-24
 
 ### Added

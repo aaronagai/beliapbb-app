@@ -9,7 +9,7 @@ export function ExternalLinkArrowIcon({ className }: ExternalLinkArrowIconProps)
       <path
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M7 17 17 7M17 7h-7M17 7v7"

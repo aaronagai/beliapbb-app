@@ -1,4 +1,5 @@
 import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
+import { ExternalLinkArrowIcon } from "./ExternalLinkArrowIcon";
 import { FooterSocialIcons } from "./FooterSocialIcons";
 import { useI18n, type Language } from "./i18n";
 
@@ -71,12 +72,13 @@ export function SiteFooter({ onSelectTab }: SiteFooterProps) {
               </li>
               <li>
                 <a
-                  className="site-footer-link"
+                  className="site-footer-link site-footer-link--external"
                   href={KENALI_ABOUT_WIKI_MS}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {t("kenaliAbout")}
+                  <ExternalLinkArrowIcon className="site-footer-external-arrow" />
                 </a>
               </li>
               <li>
@@ -102,22 +104,24 @@ export function SiteFooter({ onSelectTab }: SiteFooterProps) {
             <ul className="site-footer-links">
               <li>
                 <a
-                  className="site-footer-link"
+                  className="site-footer-link site-footer-link--external"
                   href={CONSTITUTION_PDF_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {t("kenaliConstitution")}
+                  <ExternalLinkArrowIcon className="site-footer-external-arrow" />
                 </a>
               </li>
               <li>
                 <a
-                  className="site-footer-link"
+                  className="site-footer-link site-footer-link--external"
                   href={JIWABAKTI_HREF}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {t("jiwaBaktiLink")}
+                  <ExternalLinkArrowIcon className="site-footer-external-arrow" />
                 </a>
               </li>
               <li>
