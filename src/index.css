@@ -7,15 +7,16 @@
 :root {
   color-scheme: light;
   --color-bg: #fff;
+  --color-bg-subtle: #f7f7f7;
   --color-surface: #fff;
-  --color-surface-muted: #fff;
+  --color-surface-muted: #f7f7f7;
   --color-surface-elevated: #fff;
-  --color-text: #1a1a1a;
-  --color-text-secondary: #444;
-  --color-text-muted: #777;
-  --color-text-subtle: #555;
-  --color-border: rgb(0 0 0 / 0.1);
-  --color-border-strong: rgb(0 0 0 / 0.16);
+  --color-text: #0d0d0d;
+  --color-text-secondary: #424242;
+  --color-text-muted: #6e6e6e;
+  --color-text-subtle: #525252;
+  --color-border: rgb(0 0 0 / 0.08);
+  --color-border-strong: rgb(0 0 0 / 0.14);
   --color-hover: rgb(0 0 0 / 0.04);
   --color-hover-strong: rgb(0 0 0 / 0.06);
   --color-accent: #1e40af;
@@ -28,8 +29,8 @@
   --color-wing-circle: #fff;
   --color-wing-photo: #fff;
   --color-nav-idle: #555;
-  --color-header-shadow: none;
-  --color-header-frost: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  --color-header-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
+  --color-header-frost: rgb(255 255 255 / 0.82);
   --color-card-shadow: none;
   --color-overlay: rgb(0 0 0 / 0.45);
   --color-error-bg: #fff;
@@ -52,10 +53,11 @@
   --color-band-scrollbar: rgb(0 0 0 / 0.2);
   --color-footer-on-navy: var(--color-text);
   --color-footer-muted: var(--color-text-muted);
-  --color-nav-menu-bg: var(--color-bg);
+  --color-nav-menu-bg: var(--color-bg-subtle);
   --color-nav-menu-fg: var(--color-text);
   --color-nav-menu-muted: var(--color-text-muted);
-  --color-nav-menu-separator: var(--color-border);
+  --color-nav-menu-separator: rgb(0 0 0 / 0.06);
+  --link-underline-offset: 0.18em;
   --join-fab-bg: #000;
   --join-fab-fg: #fff;
   --join-fab-border: rgb(0 0 0 / 0.18);
@@ -63,7 +65,7 @@
   --join-fab-annotation-fg: rgb(0 0 0 / 0.58);
   --font-handwritten: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
   --logo-letter-color: var(--color-text);
-  --tracking-caps: 0.15em;
+  --tracking-caps: 0.08em;
   --header-height: 3.125rem;
   --header-height-lg: 5rem;
   --header-offset: calc(var(--header-height) + env(safe-area-inset-top, 0px));
@@ -96,16 +98,17 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-bg: #000;
-  --color-surface: #000;
-  --color-surface-muted: #000;
+  --color-bg: #0d0d0d;
+  --color-bg-subtle: #141414;
+  --color-surface: #0d0d0d;
+  --color-surface-muted: #141414;
   --color-surface-elevated: #171717;
   --color-text: #fff;
   --color-text-secondary: rgb(255 255 255 / 0.78);
-  --color-text-muted: rgb(255 255 255 / 0.55);
+  --color-text-muted: rgb(255 255 255 / 0.52);
   --color-text-subtle: rgb(255 255 255 / 0.65);
-  --color-border: rgb(255 255 255 / 0.14);
-  --color-border-strong: rgb(255 255 255 / 0.22);
+  --color-border: rgb(255 255 255 / 0.1);
+  --color-border-strong: rgb(255 255 255 / 0.18);
   --color-hover: rgb(255 255 255 / 0.06);
   --color-hover-strong: rgb(255 255 255 / 0.1);
   --color-accent: #6b9fff;
@@ -118,14 +121,16 @@
   --color-wing-circle: #000;
   --color-wing-photo: #000;
   --color-nav-idle: rgb(255 255 255 / 0.65);
-  --color-header-shadow: none;
-  --color-header-frost: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  --color-header-shadow: 0 1px 0 rgb(255 255 255 / 0.06);
+  --color-header-frost: rgb(13 13 13 / 0.82);
   --color-card-shadow: none;
   --color-overlay: rgb(0 0 0 / 0.65);
   --color-error-bg: #000;
   --color-skeleton: #000;
   --color-focus: #6b9fff;
-  --color-band-bg: #000;
+  --color-nav-menu-bg: var(--color-bg-subtle);
+  --color-nav-menu-separator: rgb(255 255 255 / 0.08);
+  --color-band-bg: #0d0d0d;
   --color-band-fg: #fff;
   --color-band-fg-muted: rgb(255 255 255 / 0.55);
   --color-band-border: rgb(255 255 255 / 0.12);
@@ -153,6 +158,8 @@ body {
   margin: 0;
   min-height: 100dvh;
   font-family: var(--font-sans);
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
   background: var(--color-bg);
   color: var(--color-text);
 }
