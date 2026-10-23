@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
 import { ExternalLinkArrowIcon } from "./ExternalLinkArrowIcon";
 import { useI18n, type MessageKey } from "./i18n";
@@ -12,6 +12,7 @@ import { PartyWingsSection } from "./PartyWingsSection";
 import { FocusAgendaSection } from "./FocusAgendaSection";
 import { AgendaPlaceholderPage } from "./AgendaPlaceholderPage";
 import { FtesPage } from "./FtesPage";
+import { FtesPromoCard } from "./FtesPromoCard";
 import { SiteFooter } from "./SiteFooter";
 import { Logo } from "./Logo";
 import { WelcomeModal, welcomeDismissedThisSession } from "./WelcomeModal";
@@ -33,11 +34,23 @@ type AppTab =
   | "employment"
   | "emergingTech";
 
-function stripFragmentFromLocation() {
-  if (typeof window === "undefined") return;
-  const { pathname, search, hash } = window.location;
-  if (!hash) return;
-  window.history.replaceState(null, "", `${pathname}${search}`);
+const TAB_HASH: Record<AppTab, string> = {
+  home: "",
+  members: "members",
+  resources: "resources",
+  apply: "apply",
+  profile: "profile",
+  ftes: "ftes",
+  education: "education",
+  employment: "employment",
+  emergingTech: "emerging-tech",
+};
+
+/** URL for a tab: home is the bare path, every other tab gets its own #hash. */
+function tabUrl(tab: AppTab): string {
+  const { pathname, search } = window.location;
+  const hash = TAB_HASH[tab];
+  return `${pathname}${search}${hash ? `#${hash}` : ""}`;
 }
 
 function initialTabFromHash(): AppTab {
@@ -155,6 +168,10 @@ function agendaTitleKey(tab: "education" | "employment" | "emergingTech"): Messa
 export function App() {
   const { t } = useI18n();
   const [tab, setTab] = useState<AppTab>(initialTabFromHash);
+  const tabRef = useRef(tab);
+  useEffect(() => {
+    tabRef.current = tab;
+  }, [tab]);
   const defaultGreetingName = "Aaron";
   const [greetingName, setGreetingName] = useState(defaultGreetingName);
   const [navMenuOpen, setNavMenuOpen] = useState(false);
@@ -163,8 +180,21 @@ export function App() {
     () => !welcomeDismissedThisSession()
   );
 
+  // Normalise the URL on load (e.g. #emergingtech → #emerging-tech, unknown → bare path).
   useLayoutEffect(() => {
-    stripFragmentFromLocation();
+    window.history.replaceState(window.history.state, "", tabUrl(initialTabFromHash()));
+  }, []);
+
+  // Back / forward and hand-edited hashes move between tabs.
+  useEffect(() => {
+    const onPop = () => {
+      const next = initialTabFromHash();
+      if (next !== tabRef.current) window.scrollTo({ top: 0 });
+      setTab(next);
+      setNavMenuOpen(false);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   useEffect(() => {
@@ -223,9 +253,11 @@ export function App() {
   }, [tab]);
 
   const selectTab = useCallback((next: AppTab) => {
+    if (next !== initialTabFromHash()) {
+      window.history.pushState(null, "", tabUrl(next));
+    }
     setTab(next);
     setNavMenuOpen(false);
-    stripFragmentFromLocation();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
@@ -386,6 +418,7 @@ export function App() {
                   {t("greetingHey").replace(/\{\{name\}\}/g, greetingName)}
                 </h2>
                 <HomeMembershipCard />
+                <FtesPromoCard onOpen={() => selectTab("ftes")} />
               </section>
               <PartyWingsSection onSelectApply={() => selectTab("apply")} />
               <LatestNews />
@@ -398,7 +431,10 @@ export function App() {
           ) : tab === "apply" ? (
             <ApplicationPage />
           ) : isAgendaTab(tab) ? (
-            <AgendaPlaceholderPage titleKey={agendaTitleKey(tab)} />
+            <AgendaPlaceholderPage
+              titleKey={agendaTitleKey(tab)}
+              onOpenFtes={tab === "education" ? () => selectTab("ftes") : undefined}
+            />
           ) : (
             <ProfilePage />
           )}

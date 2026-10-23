@@ -14,6 +14,7 @@ export type FooterTab =
   | "resources"
   | "apply"
   | "profile"
+  | "ftes"
   | "education"
   | "employment"
   | "emergingTech";
@@ -135,6 +136,11 @@ export function SiteFooter({ onSelectTab }: SiteFooterProps) {
           <div className="site-footer-col">
             <h3 className="site-footer-col-title">{t("footerColFocus")}</h3>
             <ul className="site-footer-links">
+              <li>
+                <button type="button" className="site-footer-link" onClick={() => go("ftes")}>
+                  {t("ftesNav")}
+                </button>
+              </li>
               <li>
                 <button type="button" className="site-footer-link" onClick={() => go("education")}>
                   {t("agendaEducation")}

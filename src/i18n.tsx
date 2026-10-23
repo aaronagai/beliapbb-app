@@ -199,6 +199,9 @@ export const messages = {
     agendaComingSoon: "Akan datang",
     agendaPlaceholderBody: "Kandungan akan dikemas kini tidak lama lagi.",
     ftesNav: "Tanya FTES",
+    ftesCrumbsAria: "Anda di sini",
+    ftesPromoBody: "Tanya apa sahaja tentang Skim Pendidikan Tinggi Percuma Sarawak. Jawapan daripada sumber rasmi.",
+    ftesPromoAsk: "Adakah saya layak untuk FTES?",
     ftesDocTitle: "Tanya FTES",
     ftesBanner: "Perkhidmatan Belia PBB, bukan laman rasmi Kerajaan Sarawak",
     ftesBannerDetail:
@@ -447,6 +450,9 @@ export const messages = {
     agendaComingSoon: "Coming soon",
     agendaPlaceholderBody: "Content coming soon.",
     ftesNav: "Ask FTES",
+    ftesCrumbsAria: "You are here",
+    ftesPromoBody: "Ask anything about Sarawak's Free Tertiary Education Scheme. Answers from official sources.",
+    ftesPromoAsk: "Am I eligible for FTES?",
     ftesDocTitle: "Ask FTES",
     ftesBanner: "A Belia PBB service, not an official Sarawak Government website",
     ftesBannerDetail:

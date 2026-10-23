@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.8.2 — 2026-10-24
+
+### Added
+- Every page now has its own URL (`#ftes`, `#education`, …): Back/Forward move between pages, refresh stays put, links are shareable
+- Ask FTES entry points: card on the home page and the Education page, and a footer link
+- Ask FTES top bar shows "Belia PBB / Tanya FTES": the logo goes to the app home, "Tanya FTES" returns to the FTES landing
+- Language switch in the Ask FTES footer
+
+### Fixed
+- Back from an FTES chat returns to the FTES landing instead of leaving the site; coming back restores the chat (kept for this tab only)
+- A fast first reply could be overwritten by the ask-bar transition, leaving a question with no answer
+- "Not connected yet" state no longer leaves the ask bar disabled
+
 ## 0.0.8.1 — 2026-10-24
 
 ### Changed

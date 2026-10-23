@@ -41,13 +41,43 @@ function prefersReducedMotion() {
   );
 }
 
-/** Runs a state change inside a view transition (so the ask bar morphs) when supported. */
-function withViewTransition(update: () => void) {
+const CHAT_STORE_KEY = "ftes_chat";
+
+function inChatHistoryEntry(): boolean {
+  return Boolean((window.history.state as { ftesChat?: boolean } | null)?.ftesChat);
+}
+
+/** The chat survives in-app navigation (Back returns to it) but only for this tab. */
+function loadStoredChat(): FtesMsg[] {
+  if (!inChatHistoryEntry()) return [];
+  try {
+    const raw = sessionStorage.getItem(CHAT_STORE_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? (parsed as FtesMsg[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function storeChat(messages: FtesMsg[]) {
+  try {
+    if (messages.length) sessionStorage.setItem(CHAT_STORE_KEY, JSON.stringify(messages));
+    else sessionStorage.removeItem(CHAT_STORE_KEY);
+  } catch {
+    /* storage unavailable: the chat just won't survive navigation */
+  }
+}
+
+/**
+ * Runs a state change inside a view transition (so the ask bar morphs) when supported.
+ * Resolves once the change is applied — the transition calls `update` a frame later.
+ */
+function withViewTransition(update: () => void): Promise<void> {
   if (prefersReducedMotion() || !("startViewTransition" in document)) {
     update();
-    return;
+    return Promise.resolve();
   }
-  document.startViewTransition(() => flushSync(update));
+  return document.startViewTransition(() => flushSync(update)).updateCallbackDone;
 }
 
 /* ── Icons ─────────────────────────────────────────────────────────── */
@@ -92,6 +122,28 @@ function PlayPauseIcon({ playing }: { playing: boolean }) {
         <path fill="currentColor" d="M8 5.2v13.6a.6.6 0 0 0 .9.5l10.4-6.8a.6.6 0 0 0 0-1L8.9 4.7a.6.6 0 0 0-.9.5z" />
       </svg>
     </span>
+  );
+}
+
+function GlobeIcon() {
+  return (
+    <svg className="ftes-icon ftes-icon--sm" viewBox="0 0 24 24" aria-hidden>
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        d="M3 12h18M12 3c2.5 2.8 2.5 14.2 0 18M12 3c-2.5 2.8-2.5 14.2 0 18"
+      />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg className="ftes-icon ftes-icon--sm" viewBox="0 0 24 24" aria-hidden>
+      <path fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" d="M12 5v14M5 12h14" />
+    </svg>
   );
 }
 
@@ -580,13 +632,16 @@ export function FtesPage({
   onOpenMenu: () => void;
   onNavigate: (target: FtesNavTarget) => void;
 }) {
-  const { t } = useI18n();
+  const { t, language, setLanguage } = useI18n();
   const endpoint = ftesChatEndpoint();
 
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<FtesMsg[]>([]);
+  const [messages, setMessages] = useState<FtesMsg[]>(loadStoredChat);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // A restored chat whose last question never got an answer offers a retry.
+  const [error, setError] = useState<string | null>(() =>
+    messages.at(-1)?.role === "user" ? t("ftesErrorGeneric") : null
+  );
   const [bannerOpen, setBannerOpen] = useState(false);
   const [exampleIndex, setExampleIndex] = useState(0);
   const [playing, setPlaying] = useState(() => !prefersReducedMotion());
@@ -642,6 +697,7 @@ export function FtesPage({
     async (history: FtesMsg[]) => {
       setError(null);
       if (!endpoint) {
+        setLoading(false);
         setError(t("ftesUnavailable"));
         return;
       }
@@ -694,9 +750,15 @@ export function FtesPage({
         setDraft("");
         setMessages(history);
       };
-      if (messages.length === 0) withViewTransition(enter);
-      else enter();
-      void send(history);
+      if (messages.length === 0) {
+        window.history.pushState({ ftesChat: true }, "", window.location.href);
+        setLoading(true); // blocks a second submit while the transition runs
+        // Send only after the question is on screen, or a fast reply could be overwritten.
+        void withViewTransition(enter).then(() => send(history));
+      } else {
+        enter();
+        void send(history);
+      }
       window.setTimeout(() => dockInputRef.current?.focus({ preventScroll: true }), 0);
     },
     [loading, messages, send]
@@ -707,10 +769,10 @@ export function FtesPage({
     void send(messages);
   }, [loading, messages, send]);
 
-  const newChat = useCallback(() => {
+  const resetToLanding = useCallback(() => {
     requestRef.current?.abort();
     requestRef.current = null;
-    withViewTransition(() => {
+    void withViewTransition(() => {
       setMessages([]);
       setLoading(false);
       setError(null);
@@ -719,6 +781,34 @@ export function FtesPage({
     });
     window.scrollTo({ top: 0 });
   }, []);
+
+  useEffect(() => {
+    storeChat(messages);
+  }, [messages]);
+
+  // Back from a chat returns to the landing view. A chat entry whose messages are
+  // gone (storage cleared) is just the landing page, so drop its marker.
+  useEffect(() => {
+    if (inChatHistoryEntry() && loadStoredChat().length === 0) {
+      window.history.replaceState(null, "", window.location.href);
+    }
+    const onPop = (event: PopStateEvent) => {
+      if (!(event.state as { ftesChat?: boolean } | null)?.ftesChat) resetToLanding();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [resetToLanding]);
+
+  /** "Tanya FTES" / New chat: leave the chat the same way Back does. */
+  const newChat = useCallback(() => {
+    if (inChatHistoryEntry()) window.history.back();
+    else resetToLanding();
+  }, [resetToLanding]);
+
+  const goLanding = useCallback(() => {
+    if (messages.length > 0) newChat();
+    else window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  }, [messages.length, newChat]);
 
   const focusAsk = useCallback(() => {
     const target = inChat || !heroAskVisible ? dockInputRef.current : heroInputRef.current;
@@ -756,15 +846,39 @@ export function FtesPage({
 
       <div className="ftes-hero">
         <header className="ftes-topbar">
-          <button type="button" className="ftes-brand" onClick={() => onNavigate("home")} translate="no">
-            <Logo className="ftes-brand-logo" decorative />
-            <span className="ftes-brand-text">Belia PBB</span>
-            <span className="visually-hidden">{t("ftesFooterHome")}</span>
-          </button>
+          <nav className="ftes-crumbs" aria-label={t("ftesCrumbsAria")}>
+            <button
+              type="button"
+              className="ftes-brand"
+              onClick={() => onNavigate("home")}
+              aria-label={t("ftesFooterHome")}
+              translate="no"
+            >
+              <Logo className="ftes-brand-logo" decorative />
+              <span className="ftes-brand-text">Belia PBB</span>
+            </button>
+            <span className="ftes-crumb-sep" aria-hidden>
+              /
+            </span>
+            <button
+              type="button"
+              className="ftes-crumb"
+              onClick={goLanding}
+              aria-current={inChat ? undefined : "page"}
+            >
+              {t("ftesNav")}
+            </button>
+          </nav>
           <div className="ftes-topbar-actions">
             {inChat ? (
-              <button type="button" className="ftes-btn ftes-btn--ghost" onClick={newChat}>
-                {t("ftesNewChat")}
+              <button
+                type="button"
+                className="ftes-btn ftes-btn--ghost ftes-btn--icon-sm"
+                onClick={newChat}
+                aria-label={t("ftesNewChat")}
+              >
+                <PlusIcon />
+                <span className="ftes-btn-label">{t("ftesNewChat")}</span>
               </button>
             ) : null}
             <button type="button" className="ftes-btn ftes-btn--primary" onClick={onOpenMenu}>
@@ -933,6 +1047,15 @@ export function FtesPage({
                 {t("ftesFooterAsk")}
               </button>
             </nav>
+            <button
+              type="button"
+              className="ftes-lang"
+              onClick={() => setLanguage(language === "ms" ? "en" : "ms")}
+              aria-label={t("languageToggleAria")}
+            >
+              <GlobeIcon />
+              <span>{language === "ms" ? t("footerLanguageNameMs") : t("footerLanguageNameEn")}</span>
+            </button>
             <p className="ftes-wordmark" aria-hidden translate="no">
               Belia PBB
             </p>
