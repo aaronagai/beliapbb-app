@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.8.0 — 2026-10-24
+
+### Added
+- Ask FTES (`#ftes`): America.gov-style AI chat page for the Sarawak Free Tertiary Education Scheme — hero ask bar with rotating example questions and photo carousel, scroll-reveal manifesto, feature rows, sticky ask dock, cited answers with source cards (BM/EN)
+- `/api/ftes-chat` RAG endpoint and `npm run ingest:ftes` script
+- FTES source texts in `server/data/ftes-sources/` (MEITD booklet and FAQ, Swinburne, Curtin and i-CATS FAQs, UKAS and news coverage)
+- Newsreader display font
+
 ## 0.0.7.3 — 2026-08-24
 
 ### Changed

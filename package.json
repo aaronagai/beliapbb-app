@@ -1,7 +1,7 @@
 {
   "name": "beliapbb-app",
   "private": true,
-  "version": "0.0.7.3",
+  "version": "0.0.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,9 +9,11 @@
     "dev:full": "concurrently -k \"npm run dev\" \"npm run dev:api\"",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "ingest:constitution": "node scripts/ingest-constitution.mjs"
+    "ingest:constitution": "node scripts/ingest-constitution.mjs",
+    "ingest:ftes": "node scripts/ingest-ftes.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/newsreader": "^5.3.0",
     "@fontsource/caveat": "^5.2.8",
     "@fontsource/geist-sans": "^5.2.5",
     "cors": "^2.8.5",

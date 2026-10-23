@@ -11,6 +11,7 @@ import { ResourcesPage } from "./ResourcesPage";
 import { PartyWingsSection } from "./PartyWingsSection";
 import { FocusAgendaSection } from "./FocusAgendaSection";
 import { AgendaPlaceholderPage } from "./AgendaPlaceholderPage";
+import { FtesPage } from "./FtesPage";
 import { SiteFooter } from "./SiteFooter";
 import { Logo } from "./Logo";
 import { WelcomeModal, welcomeDismissedThisSession } from "./WelcomeModal";
@@ -27,6 +28,7 @@ type AppTab =
   | "resources"
   | "apply"
   | "profile"
+  | "ftes"
   | "education"
   | "employment"
   | "emergingTech";
@@ -49,6 +51,8 @@ function initialTabFromHash(): AppTab {
       return "profile";
     case "apply":
       return "apply";
+    case "ftes":
+      return "ftes";
     case "education":
       return "education";
     case "employment":
@@ -87,6 +91,7 @@ function NavCloseIcon() {
 
 const NAV_PRIMARY: { tab: AppTab; labelKey: MessageKey }[] = [
   { tab: "home", labelKey: "navHome" },
+  { tab: "ftes", labelKey: "ftesNav" },
   { tab: "resources", labelKey: "navResources" },
   { tab: "education", labelKey: "agendaEducation" },
   { tab: "employment", labelKey: "agendaEmployment" },
@@ -193,6 +198,7 @@ export function App() {
       resources: `${t("navResources")} · ${brand}`,
       apply: `${t("applicationTitle")} · ${brand}`,
       profile: `${t("profileTitle")} · ${brand}`,
+      ftes: `${t("ftesDocTitle")} · ${brand}`,
       education: `${t("agendaEducationTitle")} · ${brand}`,
       employment: `${t("agendaEmploymentTitle")} · ${brand}`,
       emergingTech: `${t("agendaEmergingTechTitle")} · ${brand}`,
@@ -230,7 +236,7 @@ export function App() {
   const topperKey = pageTopperHeadingKey(tab);
   const immersiveHeader = Boolean(topperKey && !headerScrolled && !navMenuOpen);
   const headerSolid = tab === "home" || isAgendaTab(tab) || headerScrolled || navMenuOpen;
-  const showJoinFab = tab !== "apply" && !welcomeOpen && !navMenuOpen;
+  const showJoinFab = tab !== "apply" && tab !== "ftes" && !welcomeOpen && !navMenuOpen;
 
   const headerClass = [
     "app-header",
@@ -239,6 +245,92 @@ export function App() {
     headerSolid && !headerScrolled ? " app-header--solid" : "",
     navMenuOpen ? " app-header--menu-open" : "",
   ].join("");
+
+  const navOverlay = navMenuOpen ? (
+    <div
+      className="app-nav-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("navMain")}
+    >
+      <div className="app-nav-overlay-top">
+        <button
+          type="button"
+          className="app-nav-overlay-brand"
+          onClick={() => selectTab("home")}
+          translate="no"
+        >
+          <Logo className="site-brand-logo" alt={t("logoAlt")} />
+          <span className="app-nav-overlay-brand-text">{t("welcomeTitle")}</span>
+        </button>
+        <button
+          type="button"
+          className="app-nav-overlay-close"
+          onClick={closeNavMenu}
+          aria-label={t("navMenuClose")}
+        >
+          <NavCloseIcon />
+        </button>
+      </div>
+
+      <nav id="main-nav" className="app-nav-overlay-body" aria-label={t("navMain")}>
+        <ul className="app-nav-primary">
+          {NAV_PRIMARY.map(({ tab: navTab, labelKey }) => (
+            <li key={navTab}>
+              <button
+                type="button"
+                className={`app-nav-primary-item${tab === navTab ? " app-nav-primary-item--active" : ""}`}
+                aria-current={tab === navTab ? "page" : undefined}
+                onClick={() => selectTab(navTab)}
+              >
+                {t(labelKey)}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <div className="app-nav-separator" role="separator" />
+
+        <ul className="app-nav-secondary">
+          {NAV_SECONDARY_TABS.map(({ tab: navTab, labelKey }) => (
+            <li key={navTab}>
+              <button
+                type="button"
+                className={`app-nav-secondary-item${tab === navTab ? " app-nav-secondary-item--active" : ""}`}
+                aria-current={tab === navTab ? "page" : undefined}
+                onClick={() => selectTab(navTab)}
+              >
+                {t(labelKey)}
+              </button>
+            </li>
+          ))}
+          {NAV_SECONDARY_EXTERNAL.map(({ href, labelKey }) => (
+            <li key={href}>
+              <a
+                className="app-nav-secondary-item app-nav-secondary-item--external"
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeNavMenu}
+              >
+                {t(labelKey)}
+                <ExternalLinkArrowIcon className="app-nav-external-arrow" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  ) : null;
+
+  if (tab === "ftes") {
+    return (
+      <>
+        {navOverlay}
+        <FtesPage onOpenMenu={() => setNavMenuOpen(true)} onNavigate={selectTab} />
+      </>
+    );
+  }
 
   return (
     <div className="app-shell">
@@ -273,82 +365,7 @@ export function App() {
         </div>
       </header>
 
-      {navMenuOpen ? (
-        <div
-          className="app-nav-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("navMain")}
-        >
-          <div className="app-nav-overlay-top">
-            <button
-              type="button"
-              className="app-nav-overlay-brand"
-              onClick={() => selectTab("home")}
-              translate="no"
-            >
-              <Logo className="site-brand-logo" alt={t("logoAlt")} />
-              <span className="app-nav-overlay-brand-text">{t("welcomeTitle")}</span>
-            </button>
-            <button
-              type="button"
-              className="app-nav-overlay-close"
-              onClick={closeNavMenu}
-              aria-label={t("navMenuClose")}
-            >
-              <NavCloseIcon />
-            </button>
-          </div>
-
-          <nav id="main-nav" className="app-nav-overlay-body" aria-label={t("navMain")}>
-            <ul className="app-nav-primary">
-              {NAV_PRIMARY.map(({ tab: navTab, labelKey }) => (
-                <li key={navTab}>
-                  <button
-                    type="button"
-                    className={`app-nav-primary-item${tab === navTab ? " app-nav-primary-item--active" : ""}`}
-                    aria-current={tab === navTab ? "page" : undefined}
-                    onClick={() => selectTab(navTab)}
-                  >
-                    {t(labelKey)}
-                  </button>
-                </li>
-              ))}
-            </ul>
-
-            <div className="app-nav-separator" role="separator" />
-
-            <ul className="app-nav-secondary">
-              {NAV_SECONDARY_TABS.map(({ tab: navTab, labelKey }) => (
-                <li key={navTab}>
-                  <button
-                    type="button"
-                    className={`app-nav-secondary-item${tab === navTab ? " app-nav-secondary-item--active" : ""}`}
-                    aria-current={tab === navTab ? "page" : undefined}
-                    onClick={() => selectTab(navTab)}
-                  >
-                    {t(labelKey)}
-                  </button>
-                </li>
-              ))}
-              {NAV_SECONDARY_EXTERNAL.map(({ href, labelKey }) => (
-                <li key={href}>
-                  <a
-                    className="app-nav-secondary-item app-nav-secondary-item--external"
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={closeNavMenu}
-                  >
-                    {t(labelKey)}
-                    <ExternalLinkArrowIcon className="app-nav-external-arrow" />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      ) : null}
+      {navOverlay}
 
       <main className={`app-main${topperKey ? " app-main--with-topper" : ""}`}>
         {topperKey ? (

@@ -4,3 +4,4 @@ dist
 *.local
 .env
 server/data/constitution-rag.json
+server/data/ftes-rag.json
