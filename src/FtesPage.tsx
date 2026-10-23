@@ -17,7 +17,7 @@ import { Logo } from "./Logo";
 import focusEducation from "../assets/focus_education.jpg";
 import focusEmerging from "../assets/focus_emerging.jpg";
 import focusEmployment from "../assets/focus_employment.jpg";
-import "./fonts/newsreader.css";
+import "./fonts/inter.css";
 import "./FtesPage.css";
 
 type FtesSource = { n: number; title: string; url: string | null };
@@ -497,12 +497,12 @@ function Manifesto() {
 
 function VisualDocs() {
   const docs = [
-    { label: "Pekeliling", x: "8%", y: "10%", r: "-6deg" },
-    { label: "Kenyataan Media", x: "48%", y: "8%", r: "4deg" },
-    { label: "Soalan Lazim", x: "20%", y: "40%", r: "3deg" },
-    { label: "Garis Panduan", x: "50%", y: "40%", r: "-4deg" },
-    { label: "Borang", x: "6%", y: "70%", r: "5deg" },
-    { label: "Senarai Institusi", x: "44%", y: "74%", r: "-3deg" },
+    { label: "MEITD · FTES", x: "8%", y: "10%", r: "-6deg" },
+    { label: "MEITD · FAQ", x: "48%", y: "8%", r: "4deg" },
+    { label: "Swinburne", x: "20%", y: "40%", r: "3deg" },
+    { label: "Curtin", x: "50%", y: "40%", r: "-4deg" },
+    { label: "i-CATS", x: "6%", y: "70%", r: "5deg" },
+    { label: "UKAS", x: "44%", y: "74%", r: "-3deg" },
   ];
   return (
     <div className="ftes-visual ftes-visual--docs" aria-hidden>
@@ -887,6 +887,7 @@ export function FtesPage({
                 <p className="ftes-feature-body">{t("ftesFeature1Body")}</p>
                 <button type="button" className="ftes-feature-link" onClick={focusAsk}>
                   {t("ftesAskLink")}
+                  <ArrowRightIcon className="ftes-icon ftes-icon--sm" />
                 </button>
               </div>
             </section>
@@ -911,6 +912,7 @@ export function FtesPage({
                 <p className="ftes-feature-body">{t("ftesFeature4Body")}</p>
                 <button type="button" className="ftes-feature-link" onClick={focusAsk}>
                   {t("ftesAskLink")}
+                  <ArrowRightIcon className="ftes-icon ftes-icon--sm" />
                 </button>
               </div>
             </section>

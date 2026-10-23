@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.8.1 — 2026-10-24
+
+### Changed
+- Ask FTES: Inter display type and an X-blog-style monochrome palette (light by default, inverted in dark theme); photos are the only colour
+- Ask FTES polish: fading example placeholder, solid ask dock with scrim, balanced two-column feature rows, pill "Ask a question" buttons, document cards labelled with the real FTES sources
+
+### Removed
+- Newsreader font
+
 ## 0.0.8.0 — 2026-10-24
 
 ### Added

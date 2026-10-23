@@ -1,33 +1,44 @@
 /*
- * Ask FTES — immersive, always-dark page modelled on America.gov:
- * serif display type, a pill ask bar over a photo, a scroll-revealed manifesto,
- * image + copy feature rows, a sticky ask dock and a giant serif wordmark.
+ * Ask FTES — page modelled on America.gov's layout with an X-blog monochrome
+ * palette: Inter display type, a pill ask bar over a photo, a scroll-revealed
+ * manifesto, image + copy feature rows, a sticky ask dock and a giant wordmark.
+ * Follows the app theme (light by default, inverted under [data-theme="dark"]).
  */
 
 :root:has(.ftes) body {
-  background: #0b0d12;
+  background: #fff;
+}
+
+:root[data-theme="dark"]:has(.ftes) body {
+  background: #000;
 }
 
 .ftes {
-  /* Colour */
-  --ftes-bg: #0b0d12;
-  --ftes-surface: #111419;
-  --ftes-raised: #181b22;
-  --ftes-fg: #fff;
-  --ftes-fg-2: rgb(255 255 255 / 0.72);
-  --ftes-fg-3: rgb(255 255 255 / 0.52);
-  --ftes-line: rgb(255 255 255 / 0.14);
-  --ftes-line-soft: rgb(255 255 255 / 0.07);
-  --ftes-fill: rgb(255 255 255 / 0.06);
-  --ftes-fill-strong: rgb(255 255 255 / 0.12);
-  --ftes-blue: #0066c5;
-  --ftes-blue-hover: #0b75d9;
-  --ftes-navy: #1a40a1;
-  --ftes-focus: #6ea8ff;
+  /* Colour — monochrome; the photos carry the colour */
+  --ftes-bg-rgb: 255 255 255;
+  --ftes-fg-rgb: 15 20 25;
+  --ftes-bg: rgb(var(--ftes-bg-rgb));
+  --ftes-surface: #f2f2f2;
+  --ftes-raised: #e7e7e8;
+  --ftes-card: #fff;
+  --ftes-fg: rgb(var(--ftes-fg-rgb));
+  --ftes-fg-2: rgb(var(--ftes-fg-rgb) / 0.68);
+  --ftes-fg-3: rgb(var(--ftes-fg-rgb) / 0.48);
+  --ftes-line-strong: rgb(var(--ftes-fg-rgb) / 0.32);
+  --ftes-line: rgb(var(--ftes-fg-rgb) / 0.14);
+  --ftes-line-soft: rgb(var(--ftes-fg-rgb) / 0.08);
+  --ftes-fill: rgb(var(--ftes-fg-rgb) / 0.05);
+  --ftes-fill-strong: rgb(var(--ftes-fg-rgb) / 0.1);
+  --ftes-glass: rgb(var(--ftes-bg-rgb) / 0.92);
+  --ftes-accent: var(--ftes-fg);
+  --ftes-accent-hover: #272c30;
+  --ftes-on-accent: var(--ftes-bg);
+  --ftes-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.08);
+  --ftes-focus: var(--ftes-fg);
 
   /* Type */
-  --ftes-serif: "Newsreader", "Iowan Old Style", "Times New Roman", serif;
-  --ftes-sans: var(--font-sans);
+  --ftes-display: "Inter", system-ui, -apple-system, sans-serif;
+  --ftes-sans: "Inter", var(--font-sans);
 
   /* Motion (transitions.dev tokens) */
   --duration-quick: 150ms;
@@ -40,15 +51,35 @@
   --ftes-gutter: 1rem;
   --ftes-dock-h: 4.5rem;
 
-  --logo-letter-color: #fff;
+  --logo-letter-color: var(--ftes-fg);
 
   position: relative;
   min-height: 100dvh;
   background: var(--ftes-bg);
   color: var(--ftes-fg);
   font-family: var(--ftes-sans);
-  color-scheme: dark;
+  font-feature-settings: "cv11", "ss01";
+  color-scheme: light;
   overflow-x: clip;
+}
+
+[data-theme="dark"] .ftes {
+  --ftes-bg-rgb: 0 0 0;
+  --ftes-fg-rgb: 231 233 234;
+  --ftes-surface: #16181c;
+  --ftes-raised: #202327;
+  --ftes-card: #202327;
+  --ftes-fg-3: rgb(var(--ftes-fg-rgb) / 0.5);
+  --ftes-line: rgb(var(--ftes-fg-rgb) / 0.16);
+  --ftes-fill: rgb(var(--ftes-fg-rgb) / 0.07);
+  --ftes-fill-strong: rgb(var(--ftes-fg-rgb) / 0.13);
+  --ftes-glass: rgb(22 24 28 / 0.92);
+  --ftes-accent: #eff3f4;
+  --ftes-accent-hover: #d7dbdc;
+  --ftes-on-accent: #0f1419;
+  --ftes-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.5);
+
+  color-scheme: dark;
 }
 
 @media (min-width: 48rem) {
@@ -62,7 +93,7 @@
   outline-offset: 3px;
 }
 
-.ftes button {
+:where(.ftes) button {
   font: inherit;
   color: inherit;
   -webkit-tap-highlight-color: transparent;
@@ -168,10 +199,7 @@
   margin: 0 0.5rem;
   padding: 0 var(--ftes-gutter) 1.25rem;
   border-radius: 1.75rem;
-  background:
-    radial-gradient(120% 70% at 50% 0%, rgb(255 255 255 / 0.035), transparent 60%),
-    var(--ftes-surface);
-  box-shadow: inset 0 0 0 1px var(--ftes-line-soft);
+  background: var(--ftes-surface);
 }
 
 @media (min-width: 48rem) {
@@ -225,9 +253,10 @@
 }
 
 .ftes-brand-text {
-  font-family: var(--ftes-serif);
-  font-size: 1.5rem;
-  letter-spacing: -0.03em;
+  font-family: var(--ftes-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.035em;
   line-height: 1;
 }
 
@@ -259,8 +288,8 @@
 }
 
 .ftes-btn--primary {
-  background: var(--ftes-blue);
-  color: #fff;
+  background: var(--ftes-accent);
+  color: var(--ftes-on-accent);
 }
 
 .ftes-btn--ghost {
@@ -269,7 +298,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .ftes-btn--primary:hover {
-    background: var(--ftes-blue-hover);
+    background: var(--ftes-accent-hover);
   }
 
   .ftes-btn--ghost:hover {
@@ -285,10 +314,10 @@
 
 .ftes-hero-title {
   margin: 0;
-  font-family: var(--ftes-serif);
-  font-weight: 400;
-  font-size: clamp(3rem, 1.6rem + 6.4vw, 6.25rem);
-  line-height: 0.98;
+  font-family: var(--ftes-display);
+  font-weight: 600;
+  font-size: clamp(3rem, 1.6rem + 6vw, 6rem);
+  line-height: 1;
   letter-spacing: -0.055em;
   text-wrap: balance;
 }
@@ -346,9 +375,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(to bottom, rgb(11 13 18 / 0.55), transparent 28%),
-    linear-gradient(to top, rgb(11 13 18 / 0.5), transparent 30%);
+  background: linear-gradient(to top, rgb(0 0 0 / 0.45), transparent 30%);
   pointer-events: none;
 }
 
@@ -388,7 +415,8 @@
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: rgb(11 13 18 / 0.45);
+  background: rgb(0 0 0 / 0.4);
+  color: #fff;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   cursor: pointer;
@@ -403,7 +431,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .ftes-round-btn:hover {
-    background: rgb(11 13 18 / 0.7);
+    background: rgb(0 0 0 / 0.65);
   }
 }
 
@@ -418,7 +446,6 @@
   border: 0;
   border-radius: 999px;
   background: var(--ftes-bg);
-  box-shadow: inset 0 0 0 1px var(--ftes-line-soft);
   font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -436,15 +463,15 @@
 .ftes-pill-tag {
   padding: 0.25rem 0.625rem;
   border-radius: 999px;
-  background: #fff;
-  color: #0b0d12;
+  background: var(--ftes-accent);
+  color: var(--ftes-on-accent);
   font-size: 0.75rem;
   font-weight: 500;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .ftes-pill:hover {
-    background: #000;
+    background: var(--ftes-raised);
   }
 
   .ftes-pill:hover .ftes-icon {
@@ -460,10 +487,10 @@
   align-items: center;
   gap: 0.5rem;
   border-radius: 2.5rem;
-  background: rgb(11 13 18 / 0.88);
+  background: var(--ftes-glass);
   box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.42),
-    0 10px 40px rgb(1 14 36 / 0.35);
+    inset 0 0 0 1px var(--ftes-line),
+    var(--ftes-shadow);
   backdrop-filter: blur(20px) saturate(1.2);
   -webkit-backdrop-filter: blur(20px) saturate(1.2);
   transition: box-shadow var(--duration-quick) var(--ease-smooth-out);
@@ -471,8 +498,8 @@
 
 .ftes-ask:focus-within {
   box-shadow:
-    inset 0 0 0 1.5px rgb(255 255 255 / 0.75),
-    0 10px 40px rgb(1 14 36 / 0.35);
+    inset 0 0 0 1.5px var(--ftes-line-strong),
+    var(--ftes-shadow);
 }
 
 .ftes-ask:has(:focus-visible) {
@@ -558,8 +585,8 @@
   font-size: clamp(1.0625rem, 0.9rem + 0.7vw, 1.3125rem);
   color: var(--ftes-fg-2);
   animation: ftes-text-in var(--duration-slow) var(--ease-smooth-out) both;
-  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
-  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 5rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 5rem), transparent);
   text-overflow: clip;
 }
 
@@ -578,8 +605,8 @@
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: var(--ftes-blue);
-  color: #fff;
+  background: var(--ftes-accent);
+  color: var(--ftes-on-accent);
   cursor: pointer;
   transition:
     background-color var(--duration-quick) var(--ease-smooth-out),
@@ -598,13 +625,13 @@
 
 .ftes-ask-send:disabled {
   background: var(--ftes-fill);
-  color: rgb(255 255 255 / 0.3);
+  color: var(--ftes-fg-3);
   cursor: default;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .ftes-ask-send:not(:disabled):hover {
-    background: var(--ftes-blue-hover);
+    background: var(--ftes-accent-hover);
   }
 }
 
@@ -654,12 +681,12 @@
     visibility 0s var(--duration-fast);
 }
 
-.ftes--chat .ftes-dock::before {
+.ftes-dock::before {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -2.5rem -50vw 0;
-  background: linear-gradient(to top, var(--ftes-bg) 55%, transparent);
+  inset: -3rem -50vw 0;
+  background: linear-gradient(to top, var(--ftes-bg) 45%, rgb(var(--ftes-bg-rgb) / 0));
   pointer-events: none;
 }
 
@@ -682,9 +709,10 @@
 .ftes-manifesto-text {
   max-width: 64rem;
   margin: 0 auto;
-  font-family: var(--ftes-serif);
-  font-size: clamp(2.5rem, 1.2rem + 5.4vw, 6rem);
-  line-height: 1.02;
+  font-family: var(--ftes-display);
+  font-weight: 600;
+  font-size: clamp(2.25rem, 1.1rem + 4.8vw, 5.25rem);
+  line-height: 1.04;
   letter-spacing: -0.05em;
   text-align: center;
   text-wrap: balance;
@@ -703,17 +731,17 @@
 
 .ftes-mbadge,
 .ftes-mstack {
-  vertical-align: -0.12em;
+  vertical-align: -0.08em;
 }
 
 .ftes-mbadge--arrow {
   display: inline-grid;
   place-items: center;
-  width: 0.92em;
-  height: 0.92em;
+  width: 0.86em;
+  height: 0.86em;
   border-radius: 999px;
-  background: var(--ftes-navy);
-  color: #fff;
+  background: var(--ftes-accent);
+  color: var(--ftes-on-accent);
 }
 
 .ftes-mbadge-icon {
@@ -732,17 +760,15 @@
   width: 1em;
   height: 1em;
   border-radius: 999px;
-  background: radial-gradient(circle at 35% 30%, #fff, #dfe5ef);
+  background: var(--ftes-surface);
   box-shadow:
-    inset 0 0 0 0.04em #c9a227,
-    inset 0 0 0 0.08em #fff,
-    inset 0 0 0 0.1em #1a40a1,
-    0 0.06em 0.18em rgb(0 0 0 / 0.45);
-  color: var(--ftes-navy);
+    inset 0 0 0 0.03em var(--ftes-line),
+    0 0 0 0.05em var(--ftes-bg);
+  color: var(--ftes-fg);
 }
 
 .ftes-mseal + .ftes-mseal {
-  margin-inline-start: -0.42em;
+  margin-inline-start: -0.26em;
 }
 
 .ftes-mseal-icon {
@@ -755,7 +781,7 @@
 .ftes-features {
   display: grid;
   gap: clamp(4.5rem, 12vw, 9rem);
-  width: min(100%, 60rem);
+  width: min(100%, 66rem);
   margin: 0 auto;
   padding: 0 var(--ftes-gutter);
 }
@@ -768,20 +794,20 @@
 
 @media (min-width: 48rem) {
   .ftes-feature {
-    grid-template-columns: minmax(0, 28rem) minmax(0, 1fr);
-    gap: clamp(3rem, 8vw, 8rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(3rem, 7vw, 6.5rem);
   }
 }
 
 .ftes-feature-copy {
-  max-width: 19rem;
+  max-width: 25rem;
 }
 
 .ftes-feature-title {
   margin: 0;
-  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.5rem);
+  font-size: clamp(2rem, 1.5rem + 1.6vw, 2.75rem);
   font-weight: 500;
-  line-height: 1.05;
+  line-height: 1.06;
   letter-spacing: -0.045em;
   text-wrap: balance;
 }
@@ -789,29 +815,45 @@
 .ftes-feature-body {
   margin: 1.25rem 0 0;
   font-size: 1.125rem;
-  line-height: 1.5;
+  line-height: 1.55;
+  text-wrap: pretty;
   color: var(--ftes-fg-2);
 }
 
 .ftes-feature-link {
   display: inline-flex;
   align-items: center;
+  gap: 0.5rem;
   min-height: 2.75rem;
-  margin-top: 0.75rem;
-  padding: 0;
+  margin-top: 1.25rem;
+  padding: 0 1.125rem 0 1.25rem;
   border: 0;
-  background: none;
+  border-radius: 999px;
+  background: var(--ftes-accent);
+  color: var(--ftes-on-accent);
+  font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 0.25em;
-  transition: text-decoration-color var(--duration-quick) var(--ease-smooth-out);
+  transition:
+    background-color var(--duration-quick) var(--ease-smooth-out),
+    transform var(--duration-quick) var(--ease-smooth-out);
+}
+
+.ftes-feature-link .ftes-icon {
+  transition: transform var(--duration-quick) var(--ease-smooth-out);
+}
+
+.ftes-feature-link:active {
+  transform: scale(0.97);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .ftes-feature-link:hover {
-    text-decoration-color: currentColor;
+    background: var(--ftes-accent-hover);
+  }
+
+  .ftes-feature-link:hover .ftes-icon {
+    transform: translateX(2px);
   }
 }
 
@@ -832,9 +874,7 @@
 
 /* 1 · Documents drifting together */
 .ftes-visual--docs {
-  background:
-    radial-gradient(80% 80% at 50% 50%, rgb(26 64 161 / 0.35), transparent 70%),
-    #07080c;
+  background: var(--ftes-surface);
 }
 
 .ftes-doc {
@@ -846,15 +886,13 @@
   width: 46%;
   padding: 0.875rem 1rem 1rem;
   border-radius: 0.875rem;
-  background: #f4f5f7;
-  color: #0b0d12;
-  box-shadow: 0 1rem 2rem rgb(0 0 0 / 0.45);
+  background: var(--ftes-card);
+  color: var(--ftes-fg);
+  box-shadow:
+    inset 0 0 0 1px var(--ftes-line-soft),
+    var(--ftes-shadow);
   transform: rotate(var(--r));
   animation: ftes-drift 9s ease-in-out var(--d) infinite alternate;
-}
-
-.ftes-doc:nth-child(even) {
-  background: #e7ecf6;
 }
 
 .ftes-doc-label {
@@ -866,7 +904,7 @@
 .ftes-doc-line {
   height: 0.3125rem;
   border-radius: 999px;
-  background: rgb(11 13 18 / 0.14);
+  background: var(--ftes-fill-strong);
 }
 
 .ftes-doc-line--short {
@@ -877,18 +915,14 @@
 .ftes-visual--privacy {
   display: grid;
   place-items: center;
+  /* Concentric rings, like X's line-art illustrations */
   background:
-    radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 72% 12%, #fff 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 38% 34%, rgb(255 255 255 / 0.8) 50%, transparent 51%),
-    radial-gradient(1px 1px at 86% 40%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 20% 62%, rgb(255 255 255 / 0.7) 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 58% 76%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 90% 84%, rgb(255 255 255 / 0.7) 50%, transparent 51%),
-    radial-gradient(1px 1px at 8% 88%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 46% 8%, rgb(255 255 255 / 0.6) 50%, transparent 51%),
-    radial-gradient(1px 1px at 64% 52%, rgb(255 255 255 / 0.6) 50%, transparent 51%),
-    linear-gradient(to bottom, #050712 0%, #0d1736 60%, #1a2f6e 100%);
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      transparent 0 2.9rem,
+      var(--ftes-line) 2.9rem calc(2.9rem + 1px)
+    ),
+    var(--ftes-surface);
 }
 
 .ftes-lock {
@@ -897,11 +931,11 @@
   width: 29%;
   aspect-ratio: 1;
   border-radius: 999px;
-  background: #e8e9ec;
-  color: #0b0d12;
+  background: var(--ftes-accent);
+  color: var(--ftes-on-accent);
   box-shadow:
-    0 0 0 0.75rem rgb(232 233 236 / 0.06),
-    0 1.5rem 3rem rgb(0 0 0 / 0.5);
+    0 0 0 0.75rem var(--ftes-surface),
+    var(--ftes-shadow);
 }
 
 .ftes-lock-icon {
@@ -913,9 +947,7 @@
 .ftes-visual--sources {
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(70% 60% at 30% 20%, rgb(0 102 197 / 0.28), transparent 70%),
-    var(--ftes-surface);
+  background: var(--ftes-surface);
 }
 
 .ftes-mock {
@@ -924,10 +956,10 @@
   width: 74%;
   padding: 1.5rem;
   border-radius: 1.5rem;
-  background: var(--ftes-bg);
+  background: var(--ftes-card);
   box-shadow:
-    inset 0 0 0 1px var(--ftes-line),
-    0 1.5rem 3rem rgb(0 0 0 / 0.4);
+    inset 0 0 0 1px var(--ftes-line-soft),
+    var(--ftes-shadow);
 }
 
 .ftes-mock-bubble {
@@ -943,7 +975,7 @@
   position: relative;
   height: 0.5rem;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.22);
+  background: var(--ftes-fill-strong);
 }
 
 .ftes-mock-line--short {
@@ -959,7 +991,8 @@
   width: 1.125rem;
   height: 1.125rem;
   border-radius: 999px;
-  background: var(--ftes-blue);
+  background: var(--ftes-accent);
+  color: var(--ftes-on-accent);
   font-size: 0.625rem;
   font-weight: 500;
   transform: translateY(-50%);
@@ -1012,21 +1045,16 @@
   display: flex;
   align-items: flex-end;
   gap: 6%;
-  width: 78%;
-  padding: 10% 8%;
-  border-radius: 1.75rem;
-  background: rgb(0 0 0 / 0.25);
-  box-shadow: inset 0 0 0 1px var(--ftes-line-soft);
+  width: 72%;
 }
 
 .ftes-device {
   display: block;
   border-radius: 0.625rem;
-  background: linear-gradient(160deg, #20242d, #12151b);
+  background: var(--ftes-raised);
   box-shadow:
-    inset 0 0 0 2px rgb(255 255 255 / 0.18),
-    inset 0 0 0 6px #0b0d12,
-    inset 0 0 0 7px rgb(255 255 255 / 0.06);
+    inset 0 0 0 1.5px var(--ftes-fg),
+    inset 0 0 0 5px var(--ftes-card);
 }
 
 .ftes-device--phone {
@@ -1055,7 +1083,7 @@
   bottom: -0.5rem;
   height: 0.5rem;
   border-radius: 0 0 0.5rem 0.5rem;
-  background: #2a2e37;
+  background: var(--ftes-fg);
 }
 
 /* ── Footer ──────────────────────────────────────────────────────── */
@@ -1076,9 +1104,10 @@
   padding: 0.125rem 0.25rem;
   border: 0;
   background: none;
-  font-family: var(--ftes-serif);
-  font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4.5rem);
-  line-height: 1.06;
+  font-family: var(--ftes-display);
+  font-weight: 600;
+  font-size: clamp(2rem, 1.3rem + 3vw, 3.75rem);
+  line-height: 1.12;
   letter-spacing: -0.045em;
   cursor: pointer;
   transition: opacity var(--duration-quick) var(--ease-smooth-out);
@@ -1097,13 +1126,14 @@
 .ftes-wordmark {
   margin: clamp(4rem, 10vw, 7rem) 0 0;
   padding-bottom: calc(var(--ftes-dock-h) + 1.5rem);
-  font-family: var(--ftes-serif);
-  padding-top: 0.12em;
-  font-size: clamp(5rem, 1rem + 19vw, 21rem);
+  font-family: var(--ftes-display);
+  font-weight: 600;
+  padding-top: 0.08em;
+  font-size: clamp(4.5rem, 1rem + 17vw, 19rem);
   line-height: 0.9;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.07em;
   white-space: nowrap;
-  background: linear-gradient(to bottom, #fff 20%, rgb(255 255 255 / 0.25) 85%);
+  background: linear-gradient(to bottom, var(--ftes-fg) 20%, rgb(var(--ftes-fg-rgb) / 0.2) 92%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1150,9 +1180,10 @@
   border-radius: 0;
   background: none;
   box-shadow: none;
-  font-family: var(--ftes-serif);
-  font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
-  line-height: 1.05;
+  font-family: var(--ftes-display);
+  font-weight: 600;
+  font-size: clamp(1.875rem, 1.3rem + 2.4vw, 3rem);
+  line-height: 1.08;
   letter-spacing: -0.045em;
   text-wrap: balance;
 }
@@ -1164,7 +1195,7 @@
 .ftes-answer {
   font-size: 1.0625rem;
   line-height: 1.65;
-  color: rgb(255 255 255 / 0.9);
+  color: var(--ftes-fg);
   overflow-wrap: anywhere;
 }
 
@@ -1197,8 +1228,7 @@
 }
 
 .ftes-answer strong {
-  font-weight: 500;
-  color: #fff;
+  font-weight: 600;
 }
 
 .ftes-answer h3 {
@@ -1206,7 +1236,6 @@
   font-size: 1.25rem;
   font-weight: 500;
   letter-spacing: -0.03em;
-  color: #fff;
 }
 
 .ftes-cite {
@@ -1218,7 +1247,7 @@
   padding: 0 0.3rem;
   border-radius: 999px;
   background: var(--ftes-fill-strong);
-  color: #fff;
+  color: var(--ftes-fg);
   font-size: 0.6875rem;
   font-weight: 500;
   line-height: 1;
@@ -1229,7 +1258,8 @@
 
 @media (hover: hover) and (pointer: fine) {
   a.ftes-cite:hover {
-    background: var(--ftes-blue);
+    background: var(--ftes-accent);
+    color: var(--ftes-on-accent);
   }
 }
 
@@ -1361,18 +1391,18 @@ a.ftes-source:active {
   width: 0.625rem;
   height: 0.625rem;
   border-radius: 999px;
-  background: var(--ftes-blue);
+  background: var(--ftes-fg);
   animation: ftes-pulse 1.2s ease-in-out infinite;
 }
 
 .ftes-shimmer {
   background: linear-gradient(
     90deg,
-    rgb(255 255 255 / 0.45) 0%,
-    rgb(255 255 255 / 0.45) 40%,
-    #fff 50%,
-    rgb(255 255 255 / 0.45) 60%,
-    rgb(255 255 255 / 0.45) 100%
+    rgb(var(--ftes-fg-rgb) / 0.4) 0%,
+    rgb(var(--ftes-fg-rgb) / 0.4) 40%,
+    var(--ftes-fg) 50%,
+    rgb(var(--ftes-fg-rgb) / 0.4) 60%,
+    rgb(var(--ftes-fg-rgb) / 0.4) 100%
   );
   background-size: 250% 100%;
   -webkit-background-clip: text;
