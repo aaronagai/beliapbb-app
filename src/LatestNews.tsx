@@ -3,7 +3,6 @@ import { useI18n } from "./i18n";
 import { fetchNewsFeed, type NewsCardModel } from "./jiwabakti";
 
 const JIWABAKTI_HREF = "https://jiwabakti.com.my/";
-const CARD_COUNT = 6;
 
 function formatDate(iso: string, locale: string): string {
   try {
@@ -63,10 +62,10 @@ function NewsRow({
   );
 }
 
-function NewsListSkeleton() {
+function NewsListSkeleton({ count }: { count: number }) {
   return (
     <>
-      {Array.from({ length: CARD_COUNT }, (_, i) => (
+      {Array.from({ length: count }, (_, i) => (
         <li key={i} className="news-list-item" aria-hidden>
           <div className="news-row news-row--skeleton">
             <div className="news-row-thumb news-row-thumb--placeholder" />
@@ -81,7 +80,20 @@ function NewsListSkeleton() {
   );
 }
 
-export function LatestNews() {
+/**
+ * Jiwa Bakti news. On home it shows a few rows with an in-app "see all" (onSeeAll);
+ * on the Berita tab it shows the full list and links out to the source.
+ */
+export function LatestNews({
+  count = 6,
+  onSeeAll,
+  showHeading = true,
+}: {
+  count?: number;
+  onSeeAll?: () => void;
+  /** Off when the page title already says "Berita terkini" */
+  showHeading?: boolean;
+}) {
   const { t, language } = useI18n();
   const [items, setItems] = useState<NewsCardModel[] | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -93,7 +105,7 @@ export function LatestNews() {
     let cancelled = false;
     (async () => {
       try {
-        const list = await fetchNewsFeed({ count: CARD_COUNT });
+        const list = await fetchNewsFeed({ count });
         if (!cancelled) setItems(list);
       } catch {
         if (!cancelled) setLoadFailed(true);
@@ -102,23 +114,29 @@ export function LatestNews() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [count]);
 
   return (
     <div className="news-recent" role="region" aria-labelledby="news-recent-heading">
       <div className="news-recent-inner">
         <div className="news-recent-header">
-          <h3 className="news-recent-heading" id="news-recent-heading">
+          <h3 className={showHeading ? "news-recent-heading" : "visually-hidden"} id="news-recent-heading">
             {t("latestNews")}
           </h3>
-          <a
-            className="news-recent-view-all"
-            href={JIWABAKTI_HREF}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {t("newsViewAll")}
-          </a>
+          {onSeeAll ? (
+            <button type="button" className="news-recent-view-all" onClick={onSeeAll}>
+              {t("newsViewAll")}
+            </button>
+          ) : (
+            <a
+              className="news-recent-view-all"
+              href={JIWABAKTI_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("newsMoreOnSource")}
+            </a>
+          )}
         </div>
 
         {loadFailed ? (
@@ -128,7 +146,7 @@ export function LatestNews() {
         ) : (
           <ul className="news-list">
             {!items ? (
-              <NewsListSkeleton />
+              <NewsListSkeleton count={count} />
             ) : (
               items.map((item) => (
                 <NewsRow

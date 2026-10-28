@@ -1,0 +1,637 @@
+/* App shell (app.beliapbb.com): header, bottom tab bar, page scaffolding.
+   Same language as the landing: neutrals, Geist 400/500, transitions.dev timing. */
+
+.app2 {
+  --app-bg: var(--color-bg);
+  --app-surface: var(--color-bg-subtle);
+  --app-text: var(--color-text);
+  --app-muted: var(--color-text-muted);
+  --app-line: var(--color-border);
+  --app-tabbar-h: 64px;
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Older page internals use the accent tokens; keep them neutral like the landing. */
+  --color-accent: var(--color-text);
+  --color-accent-hover: var(--color-text);
+  --color-accent-bg: var(--color-hover-strong);
+  --color-focus: var(--color-text);
+
+  min-height: 100dvh;
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+/* ── Header ── */
+
+.app2-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-top: env(safe-area-inset-top);
+  background: var(--app-bg);
+  transition: box-shadow var(--duration-fast) var(--ease-smooth-out);
+}
+
+.app2-header.is-scrolled {
+  background: var(--color-header-frost);
+  -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  backdrop-filter: saturate(1.6) blur(14px);
+  box-shadow: 0 1px 0 var(--app-line);
+}
+
+.app2-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1200px;
+  height: 56px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.app2-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.app2-brand-logo {
+  display: inline-flex;
+  width: 26px;
+  height: 30px;
+}
+
+.app2-brand-logo svg {
+  width: 100%;
+  height: 100%;
+}
+
+.app2-site-link {
+  font-size: 14px;
+  color: var(--app-muted);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app2-site-link:hover { color: var(--app-text); }
+}
+
+/* ── Main column ── */
+
+.app2-main {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 8px 20px calc(var(--app-tabbar-h) + 40px + env(safe-area-inset-bottom));
+}
+
+.app2.is-full .app2-main {
+  padding-bottom: 0;
+}
+
+.app-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.app-page-title {
+  margin: 8px 0 0;
+  font-size: clamp(1.75rem, 1.5rem + 1vw, 2.1rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.app-page-sub {
+  margin: -12px 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--app-muted);
+}
+
+.app-section-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--app-muted);
+}
+
+.app-stack {
+  display: grid;
+  gap: 12px;
+}
+
+/* News was a full-bleed band on the old home; inside the app column it sits flush. */
+.app2 .news-recent {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  background: none;
+}
+
+.app2 .news-recent-inner {
+  padding: 8px 0 0;
+}
+
+.app2 button.news-recent-view-all {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.app2 .profile-save-btn {
+  border-radius: 999px;
+  background: var(--app-text);
+  color: var(--app-bg);
+  font-weight: 500;
+}
+
+/* Legacy page sections carry their own outer padding; the shell owns spacing now. */
+.app2 .section {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ── Home ── */
+
+.app-greeting {
+  margin: 12px 0 0;
+  font-size: 1.6rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.app-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.app-quick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.app-quick-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: var(--app-surface);
+  transition: transform var(--duration-quick) var(--ease-smooth-out);
+}
+
+.app-quick-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.app-quick-label {
+  font-size: 13px;
+  text-align: center;
+}
+
+.app-quick:active .app-quick-icon {
+  transform: scale(0.94);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app-quick:hover .app-quick-icon { background: var(--color-hover-strong); }
+}
+
+/* Sample membership card */
+
+.home-membership-card--sample {
+  margin: 0;
+}
+
+.home-membership-card--sample .home-membership-card-badge {
+  color: var(--app-muted);
+  background: var(--app-surface);
+}
+
+.home-membership-card .is-empty {
+  color: var(--app-muted);
+}
+
+.home-membership-card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 12px 1.1rem;
+  border-top: 1px solid var(--app-line);
+  background: var(--app-surface);
+}
+
+.home-membership-card-foot p {
+  flex: 1 1 220px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--app-muted);
+}
+
+.home-membership-card-edit {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--app-text);
+  color: var(--app-bg);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ── Link lists (documents, sites) ── */
+
+.app-links ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--app-line);
+}
+
+.app-links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--app-line);
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-links-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-links-title {
+  font-size: 16px;
+}
+
+.app-links-hint {
+  font-size: 13px;
+  color: var(--app-muted);
+}
+
+.app-links-arrow {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--app-muted);
+}
+
+.app-legal {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--app-muted);
+  text-align: center;
+}
+
+/* ── Full-screen chat (Perlembagaan) ── */
+
+.app-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin-left: -8px;
+  padding: 0 12px 0 4px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--app-muted);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.app-back svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app-back:hover { color: var(--app-text); background: var(--app-surface); }
+}
+
+.app-chat {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 56px - env(safe-area-inset-top));
+}
+
+.app-chat-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding-bottom: 16px;
+}
+
+.app-chat-head .app-page-sub {
+  margin: -8px 0 0;
+  font-size: 14px;
+}
+
+.app-chat-messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0 24px;
+}
+
+.app-chat-note {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--app-surface);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--app-muted);
+}
+
+.app-chat-bubble {
+  max-width: 88%;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  animation: app-bubble-in var(--duration-fast) var(--ease-smooth-out) both;
+}
+
+.app-chat-bubble--user {
+  align-self: flex-end;
+  background: var(--app-text);
+  color: var(--app-bg);
+  border-bottom-right-radius: 6px;
+}
+
+.app-chat-bubble--assistant {
+  align-self: flex-start;
+  background: var(--app-surface);
+  border-bottom-left-radius: 6px;
+}
+
+@keyframes app-bubble-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+.app-chat-error {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-brand);
+}
+
+.app-chat-form {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 8px;
+  margin: 0 -20px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  background: var(--app-bg);
+  box-shadow: 0 -1px 0 var(--app-line);
+}
+
+.app-chat-form input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--app-surface);
+  color: var(--app-text);
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+
+.app-chat-form input:focus-visible {
+  box-shadow: 0 0 0 2px var(--app-text);
+}
+
+.app-chat-form button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--app-text);
+  color: var(--app-bg);
+  cursor: pointer;
+  transition: opacity var(--duration-quick) ease;
+}
+
+.app-chat-form button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.app-chat-form button svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── Tab bar ── */
+
+.app-tabbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--color-header-frost);
+  -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  backdrop-filter: saturate(1.6) blur(14px);
+  box-shadow: 0 -1px 0 var(--app-line);
+}
+
+.app-tabbar-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--count), 1fr);
+  max-width: 640px;
+  height: var(--app-tabbar-h);
+  margin: 0 auto;
+  padding: 0 8px;
+}
+
+/* One shared pill that slides to the active tab */
+.app-tabbar-indicator {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: calc((100% - 16px) / var(--count));
+  height: 32px;
+  transform: translateX(calc(var(--active) * 100%));
+  transition: transform var(--duration-fast) var(--ease-smooth-out);
+  pointer-events: none;
+}
+
+.app-tabbar-indicator::before {
+  content: "";
+  position: absolute;
+  inset: 0 calc(50% - 30px);
+  border-radius: 999px;
+  background: var(--color-hover-strong);
+}
+
+.app-tabbar-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 12px 0 0;
+  border: 0;
+  background: none;
+  color: var(--app-muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--duration-quick) ease;
+}
+
+.app-tabbar-item.is-active {
+  color: var(--app-text);
+}
+
+.app-tabbar-icon {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.app-tabbar-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity var(--duration-quick) ease, transform var(--duration-fast) var(--ease-smooth-out);
+}
+
+.app-tabbar-svg--filled {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.app-tabbar-item.is-active .app-tabbar-svg--outline {
+  opacity: 0;
+}
+
+.app-tabbar-item.is-active .app-tabbar-svg--filled {
+  opacity: 1;
+  transform: none;
+}
+
+.app-tabbar-item:active .app-tabbar-icon {
+  transform: scale(0.92);
+}
+
+/* Laptop: the bar becomes a centred pill in the header row */
+@media (min-width: 900px) {
+  .app2 {
+    --app-tabbar-h: 0px;
+  }
+
+  .app-tabbar {
+    top: calc(8px + env(safe-area-inset-top));
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    padding: 0;
+    border-radius: 999px;
+    transform: translateX(-50%);
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .app-tabbar-track {
+    grid-template-columns: repeat(var(--count), 104px);
+    height: 40px;
+    padding: 0;
+  }
+
+  .app-tabbar-indicator {
+    top: 0;
+    left: 0;
+    width: 104px;
+    height: 40px;
+  }
+
+  .app-tabbar-indicator::before {
+    inset: 0;
+  }
+
+  .app-tabbar-item {
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    padding: 0;
+    font-size: 14px;
+  }
+
+  .app-tabbar-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .app2.is-full .app-tabbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-tabbar-indicator,
+  .app-tabbar-svg,
+  .app-quick-icon {
+    transition: none;
+  }
+
+  .app-chat-bubble { animation: none; }
+}

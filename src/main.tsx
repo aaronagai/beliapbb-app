@@ -7,6 +7,7 @@ import { Landing } from "./landing/Landing";
 import { Leadership } from "./landing/Leadership";
 import { I18nProvider } from "./i18n";
 import { ThemeProvider } from "./theme";
+import { APP_URL } from "./links";
 
 const base = import.meta.env.BASE_URL;
 const route = window.location.pathname.startsWith(base)
@@ -19,11 +20,17 @@ const isLeadership = route === "kepimpinan" || route.startsWith("kepimpinan/");
 // Only the app's tab hashes move; the landing's own anchors (#ciri, #soalan) stay.
 const APP_TAB_HASHES = new Set([
   "home",
+  "tanya",
+  "ftes",
+  "perlembagaan",
+  "berita",
+  "sertai",
+  "saya",
+  // Pre-2026 app tabs, still in shared links; the app maps them to their new homes.
   "members",
   "resources",
   "apply",
   "profile",
-  "ftes",
   "education",
   "employment",
   "emerging-tech",
@@ -32,7 +39,7 @@ const APP_TAB_HASHES = new Set([
 const legacyAppHash = APP_TAB_HASHES.has(window.location.hash.slice(1).toLowerCase());
 
 if (!isApp && !isLeadership && legacyAppHash) {
-  window.location.replace(`${base}app/${window.location.hash}`);
+  window.location.replace(`${APP_URL}${window.location.hash}`);
 } else {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>

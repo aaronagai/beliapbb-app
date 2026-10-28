@@ -1,7 +1,7 @@
 {
   "name": "beliapbb-app",
   "private": true,
-  "version": "0.0.9.2",
+  "version": "0.0.10.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -20,8 +20,7 @@
     "express": "^4.21.2",
     "openai": "^4.83.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-qr-code": "^2.0.21"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.2",

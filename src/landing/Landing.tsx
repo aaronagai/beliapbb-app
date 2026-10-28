@@ -2,13 +2,14 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useI18n, type MessageKey } from "../i18n";
 import { Logo } from "../Logo";
 import { CONSTITUTION_PDF_URL } from "../constitutionPdf";
+import { APP_URL, LEADERSHIP_URL, appLink } from "../links";
 import { AppIcon, APP_ICON_KINDS, type AppIconKind } from "./AppIcons";
 import "./Landing.css";
 
 const BASE = import.meta.env.BASE_URL;
-const APP_HREF = `${BASE}app/`;
-const appTab = (hash: string) => `${APP_HREF}#${hash}`;
-export const LEADERSHIP_HREF = `${BASE}kepimpinan/`;
+const APP_HREF = APP_URL;
+const appTab = appLink;
+export const LEADERSHIP_HREF = LEADERSHIP_URL;
 const CONTACT_EMAIL = "hello@beliapbb.com";
 
 /* ── Headline icons (Mobbin hero): the lines blur in, a gap opens in each line and an
@@ -134,7 +135,7 @@ function Explore() {
             <h3 className="lp-card-title">{t("ftesNav")}</h3>
             <p className="lp-card-body">{t("landingFtesBody")}</p>
           </a>
-          <a className="lp-card" href={APP_HREF}>
+          <a className="lp-card" href={appTab("perlembagaan")}>
             <div className="lp-card-stage">
               <div className="lp-ask">
                 <span className="lp-ask-text">{exampleQuestion}</span>
@@ -146,7 +147,7 @@ function Explore() {
             <h3 className="lp-card-title">{t("landingConstTitle")}</h3>
             <p className="lp-card-body">{t("landingConstBody")}</p>
           </a>
-          <a className="lp-card" href={APP_HREF}>
+          <a className="lp-card" href={appTab("berita")}>
             <div className="lp-card-stage">
               <div className="lp-news">
                 {[0, 1].map((i) => (
@@ -329,7 +330,7 @@ function Cta() {
           <h2 className="lp-cta-title">{t("landingCtaTitle")}</h2>
           <p className="lp-cta-body">{t("landingCtaBody")}</p>
           <div className="lp-ctas">
-            <a className="lp-btn lp-btn--light" href={appTab("apply")}>{t("landingJoin")}</a>
+            <a className="lp-btn lp-btn--light" href={appTab("sertai")}>{t("landingJoin")}</a>
             <a className="lp-btn lp-btn--ghost-light" href={APP_HREF}>{t("landingOpenApp")}</a>
           </div>
         </div>
@@ -357,9 +358,9 @@ export function Footer() {
               <li><a href={APP_HREF}>{t("navHome")}</a></li>
               <li><a href={appTab("ftes")}>{t("ftesNav")}</a></li>
               <li><a href={LEADERSHIP_HREF}>{t("leadershipNav")}</a></li>
-              <li><a href={appTab("resources")}>{t("navResources")}</a></li>
+              <li><a href={appTab("sertai")}>{t("navResources")}</a></li>
               <li><a href={CONSTITUTION_PDF_URL} target="_blank" rel="noopener noreferrer">{t("kenaliConstitution")}</a></li>
-              <li><a href={appTab("apply")}>{t("kenaliApply")}</a></li>
+              <li><a href={appTab("sertai")}>{t("kenaliApply")}</a></li>
             </ul>
           </nav>
           <div>
@@ -433,7 +434,7 @@ export function Landing() {
             <HeroTitle />
             <p className="lp-sub">{t("landingSub")}</p>
             <div className="lp-ctas">
-              <a className="lp-btn lp-btn--dark" href={appTab("apply")}>{t("landingJoin")}</a>
+              <a className="lp-btn lp-btn--dark" href={appTab("sertai")}>{t("landingJoin")}</a>
               <a className="lp-btn lp-btn--soft" href={APP_HREF}>
                 {t("landingOpenApp")}
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6-6m6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>

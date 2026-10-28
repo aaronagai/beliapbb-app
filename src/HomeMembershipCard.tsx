@@ -1,17 +1,9 @@
 import { useEffect, useState } from "react";
-import QRCode from "react-qr-code";
 import { Logo } from "./Logo";
-import checkmarkUrl from "../assets/checkmark.svg.png?url";
 import { getCawanganDisplayLabel, isValidCawangan } from "./cawanganOptions";
 import { useI18n } from "./i18n";
 
-/** Static payload — visual only; not wired to validation or deep links. */
-const MEMBERSHIP_QR_PLACEHOLDER = "https://beliapbb.app/kad-ahli/preview";
-
 const PROFILE_STORAGE_KEY = "beliapbb_profile";
-
-const PLACEHOLDER_NAME = "Aaron Nagai";
-const PLACEHOLDER_CAWANGAN = "N23 Bukit Semuja";
 
 function readCardFields(): { name: string; cawangan: string } {
   try {
@@ -27,57 +19,54 @@ function readCardFields(): { name: string; cawangan: string } {
   }
 }
 
-export function HomeMembershipCard() {
+/**
+ * A clearly labelled sample of the future digital membership card, filled from the visitor's
+ * own saved profile. No QR code or verified tick until cards are issued from a member database.
+ */
+export function HomeMembershipCard({ onEditProfile }: { onEditProfile: () => void }) {
   const { t, language } = useI18n();
-  const [displayName, setDisplayName] = useState(PLACEHOLDER_NAME);
-  const [displayCawangan, setDisplayCawangan] = useState(PLACEHOLDER_CAWANGAN);
+  const [name, setName] = useState("");
+  const [cawangan, setCawangan] = useState("");
 
   useEffect(() => {
-    const { name, cawangan } = readCardFields();
-    setDisplayName(name || PLACEHOLDER_NAME);
-    if (cawangan && isValidCawangan(cawangan)) {
-      setDisplayCawangan(getCawanganDisplayLabel(cawangan, t));
-    } else if (cawangan) {
-      setDisplayCawangan(cawangan);
-    } else {
-      setDisplayCawangan(PLACEHOLDER_CAWANGAN);
-    }
+    const fields = readCardFields();
+    setName(fields.name);
+    setCawangan(
+      fields.cawangan && isValidCawangan(fields.cawangan)
+        ? getCawanganDisplayLabel(fields.cawangan, t)
+        : fields.cawangan,
+    );
   }, [t, language]);
 
+  const complete = Boolean(name && cawangan);
+
   return (
-    <article className="home-membership-card" aria-label={t("membershipCardAria")}>
+    <article className="home-membership-card home-membership-card--sample" aria-label={t("membershipCardAria")}>
       <div className="home-membership-card-body">
         <header className="home-membership-card-top">
           <Logo className="home-membership-card-logo" decorative />
-          <span className="home-membership-card-badge">{t("membershipCardBadge")}</span>
+          <span className="home-membership-card-badge">{t("membershipSampleBadge")}</span>
         </header>
         <div className="home-membership-card-main">
           <div className="home-membership-card-text">
             <p className="home-membership-card-kicker">{t("membershipCardTitle")}</p>
-            <p className="home-membership-card-name">
-              <span>{displayName}</span>
-              <img
-                src={checkmarkUrl}
-                alt=""
-                className="home-membership-card-check"
-                width={16}
-                height={16}
-                decoding="async"
-              />
+            <p className={`home-membership-card-name${name ? "" : " is-empty"}`}>
+              <span>{name || t("membershipSampleName")}</span>
             </p>
-            <p className="home-membership-card-dun">{displayCawangan}</p>
-          </div>
-          <div className="home-membership-card-qr" aria-hidden>
-            <QRCode
-              value={MEMBERSHIP_QR_PLACEHOLDER}
-              size={80}
-              level="M"
-              fgColor="#141414"
-              bgColor="#ffffff"
-            />
+            <p className={`home-membership-card-dun${cawangan ? "" : " is-empty"}`}>
+              {cawangan || t("membershipSampleCawangan")}
+            </p>
           </div>
         </div>
       </div>
+      <footer className="home-membership-card-foot">
+        <p>{t("membershipSampleHint")}</p>
+        {complete ? null : (
+          <button type="button" className="home-membership-card-edit" onClick={onEditProfile}>
+            {t("membershipSampleEdit")}
+          </button>
+        )}
+      </footer>
     </article>
   );
 }

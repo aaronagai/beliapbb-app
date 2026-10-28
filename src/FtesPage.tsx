@@ -22,7 +22,7 @@ import "./FtesPage.css";
 
 type FtesSource = { n: number; title: string; url: string | null };
 type FtesMsg = { role: "user" | "assistant"; content: string; sources?: FtesSource[] };
-type FtesNavTarget = "home" | "education" | "apply";
+export type FtesNavTarget = "home" | "tanya" | "sertai";
 
 const EXAMPLES: { questionKey: MessageKey; photo: string; altKey: MessageKey }[] = [
   { questionKey: "ftesExample1", photo: focusEducation, altKey: "ftesPhotoGraduates" },
@@ -625,13 +625,7 @@ function VisualDevices() {
 
 /* ── Page ──────────────────────────────────────────────────────────── */
 
-export function FtesPage({
-  onOpenMenu,
-  onNavigate,
-}: {
-  onOpenMenu: () => void;
-  onNavigate: (target: FtesNavTarget) => void;
-}) {
+export function FtesPage({ onNavigate }: { onNavigate: (target: FtesNavTarget) => void }) {
   const { t, language, setLanguage } = useI18n();
   const endpoint = ftesChatEndpoint();
 
@@ -881,8 +875,8 @@ export function FtesPage({
                 <span className="ftes-btn-label">{t("ftesNewChat")}</span>
               </button>
             ) : null}
-            <button type="button" className="ftes-btn ftes-btn--primary" onClick={onOpenMenu}>
-              {t("ftesMenu")}
+            <button type="button" className="ftes-btn ftes-btn--primary" onClick={() => onNavigate("tanya")}>
+              {t("appBack")}
             </button>
           </div>
         </header>
@@ -1037,10 +1031,10 @@ export function FtesPage({
               <button type="button" onClick={() => onNavigate("home")}>
                 {t("ftesFooterHome")}
               </button>
-              <button type="button" onClick={() => onNavigate("education")}>
-                {t("ftesFooterEducation")}
+              <button type="button" onClick={() => onNavigate("tanya")}>
+                {t("tanyaTitle")}
               </button>
-              <button type="button" onClick={() => onNavigate("apply")}>
+              <button type="button" onClick={() => onNavigate("sertai")}>
                 {t("ftesFooterJoin")}
               </button>
               <button type="button" onClick={focusAsk}>

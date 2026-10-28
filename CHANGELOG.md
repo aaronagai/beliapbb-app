@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.10.0 — 2026-10-28
+
+### Changed
+- App restructured around a 5-tab bar: Utama, Tanya, Berita, Sertai, Saya (bottom bar on phones, header pill on laptops)
+- Tanya hub for both AI assistants; the constitution chat (Perlembagaan AI) is now reachable as its own screen
+- Membership card on Utama is a clearly labelled sample built from the visitor's own profile (no QR code or verified tick)
+- App styling matches the landing page: neutral colours, Geist 400/500
+- All cross-links between site and app come from one place (`src/links.ts`), ready for app.beliapbb.com
+- Old app links (#apply, #profile, #resources, #education, …) land on their new tabs; #members goes to /kepimpinan
+
+### Removed
+- Ahli list (now /kepimpinan), Kenali Parti, Sayap Parti, the empty focus pages, the welcome pop-up, the floating Join button and the old footer
+- Unused images, styles, translation strings and the QR code library
+
 ## 0.0.9.2 — 2026-10-28
 
 ### Added

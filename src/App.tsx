@@ -1,448 +1,229 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
-import { ExternalLinkArrowIcon } from "./ExternalLinkArrowIcon";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useI18n, type MessageKey } from "./i18n";
 import { HomeMembershipCard } from "./HomeMembershipCard";
 import { LatestNews } from "./LatestNews";
-import { ApplicationPage } from "./ApplicationPage";
-import { MembersPage } from "./MembersPage";
-import { ProfilePage } from "./ProfilePage";
-import { ResourcesPage } from "./ResourcesPage";
-import { PartyWingsSection } from "./PartyWingsSection";
-import { FocusAgendaSection } from "./FocusAgendaSection";
-import { AgendaPlaceholderPage } from "./AgendaPlaceholderPage";
-import { FtesPage } from "./FtesPage";
-import { FtesPromoCard } from "./FtesPromoCard";
-import { SiteFooter } from "./SiteFooter";
+import { FtesPage, type FtesNavTarget } from "./FtesPage";
 import { Logo } from "./Logo";
-import { WelcomeModal, welcomeDismissedThisSession } from "./WelcomeModal";
-import { JoinFab } from "./JoinFab";
+import { LEADERSHIP_URL, SITE_URL } from "./links";
+import { TabBar, type TabBarTab } from "./app/TabBar";
+import { TanyaPage } from "./app/TanyaPage";
+import { PerlembagaanPage } from "./app/PerlembagaanPage";
+import { SertaiPage } from "./app/SertaiPage";
+import { SayaPage } from "./app/SayaPage";
 import "./App.css";
+import "./app/AppShell.css";
 
-const JIWABAKTI_HREF = "https://jiwabakti.com.my/";
-const KENALI_ABOUT_WIKI_MS =
-  "https://ms.wikipedia.org/wiki/Parti_Pesaka_Bumiputera_Bersatu_Sarawak";
-
-type AppTab =
-  | "home"
-  | "members"
-  | "resources"
-  | "apply"
-  | "profile"
-  | "ftes"
-  | "education"
-  | "employment"
-  | "emergingTech";
+/** Tabs in the bar, plus the two assistants that open full screen from Tanya. */
+type AppTab = TabBarTab | "ftes" | "perlembagaan";
 
 const TAB_HASH: Record<AppTab, string> = {
   home: "",
-  members: "members",
-  resources: "resources",
-  apply: "apply",
-  profile: "profile",
+  tanya: "tanya",
   ftes: "ftes",
-  education: "education",
-  employment: "employment",
-  emergingTech: "emerging-tech",
+  perlembagaan: "perlembagaan",
+  berita: "berita",
+  sertai: "sertai",
+  saya: "saya",
 };
 
-/** URL for a tab: home is the bare path, every other tab gets its own #hash. */
+/** Hashes from the pre-2026 app, still in shared links. */
+const LEGACY_HASH: Record<string, AppTab> = {
+  apply: "sertai",
+  resources: "sertai",
+  profile: "saya",
+  education: "home",
+  employment: "home",
+  emergingtech: "home",
+  "emerging-tech": "home",
+};
+
+/** The member list moved to the public site. */
+const MOVED_TO_SITE: Record<string, string> = {
+  members: LEADERSHIP_URL,
+};
+
+const FULL_SCREEN: ReadonlySet<AppTab> = new Set(["ftes", "perlembagaan"]);
+
 function tabUrl(tab: AppTab): string {
   const { pathname, search } = window.location;
   const hash = TAB_HASH[tab];
   return `${pathname}${search}${hash ? `#${hash}` : ""}`;
 }
 
-function initialTabFromHash(): AppTab {
-  if (typeof window === "undefined") return "home";
-  switch (window.location.hash.slice(1).toLowerCase()) {
-    case "members":
-      return "members";
-    case "resources":
-      return "resources";
-    case "profile":
-      return "profile";
-    case "apply":
-      return "apply";
-    case "ftes":
-      return "ftes";
-    case "education":
-      return "education";
-    case "employment":
-      return "employment";
-    case "emergingtech":
-    case "emerging-tech":
-      return "emergingTech";
-    case "home":
-      return "home";
-    default:
-      return "home";
+function tabFromHash(): AppTab {
+  const hash = window.location.hash.slice(1).toLowerCase();
+  const direct = (Object.keys(TAB_HASH) as AppTab[]).find((tab) => TAB_HASH[tab] === hash);
+  return direct ?? LEGACY_HASH[hash] ?? "home";
+}
+
+/** Which bar item lights up: the assistants belong to Tanya. */
+function barTab(tab: AppTab): TabBarTab {
+  return FULL_SCREEN.has(tab) ? "tanya" : (tab as TabBarTab);
+}
+
+const DOC_TITLE: Record<AppTab, MessageKey | null> = {
+  home: null,
+  tanya: "tanyaTitle",
+  ftes: "ftesDocTitle",
+  perlembagaan: "perlembagaanNav",
+  berita: "latestNews",
+  sertai: "applicationTitle",
+  saya: "profileTitle",
+};
+
+function readGreetingName(): string {
+  try {
+    const raw = localStorage.getItem("beliapbb_profile");
+    const name = raw ? (JSON.parse(raw) as { name?: unknown }).name : "";
+    return typeof name === "string" ? name.trim().split(/\s+/)[0] ?? "" : "";
+  } catch {
+    return "";
   }
 }
 
-function NavMenuIcon() {
-  return (
-    <svg className="nav-menu-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M4 7h16a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2zm0 6h16a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2zm0 6h16a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2z"
-      />
-    </svg>
+function QuickAction({ label, onClick, href, icon }: { label: string; onClick?: () => void; href?: string; icon: ReactNode }) {
+  const body = (
+    <>
+      <span className="app-quick-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">{icon}</svg>
+      </span>
+      <span className="app-quick-label">{label}</span>
+    </>
+  );
+  return href ? (
+    <a className="app-quick" href={href}>
+      {body}
+    </a>
+  ) : (
+    <button type="button" className="app-quick" onClick={onClick}>
+      {body}
+    </button>
   );
 }
 
-function NavCloseIcon() {
+const STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+
+function HomePage({ go }: { go: (tab: AppTab) => void }) {
+  const { t } = useI18n();
+  const [name, setName] = useState(readGreetingName);
+  useEffect(() => setName(readGreetingName()), []);
+
   return (
-    <svg className="nav-menu-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-      />
-    </svg>
+    <div className="app-page app-home">
+      <h1 className="app-greeting">{name ? t("greetingHey").replace(/\{\{name\}\}/g, name) : t("appWelcome")}</h1>
+      <HomeMembershipCard onEditProfile={() => go("saya")} />
+      <nav className="app-quick-grid" aria-label={t("homeQuickAria")}>
+        <QuickAction
+          label={t("homeQuickFtes")}
+          onClick={() => go("ftes")}
+          icon={<path {...STROKE} d="M4 9.5 12 5l8 4.5-8 4.5Zm3 2v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4" />}
+        />
+        <QuickAction
+          label={t("homeQuickConstitution")}
+          onClick={() => go("perlembagaan")}
+          icon={<path {...STROKE} d="M6 4.5h9.5a2 2 0 0 1 2 2v13H8a2 2 0 0 1-2-2Zm0 13a2 2 0 0 1 2-2h9.5M9.5 8.5h5" />}
+        />
+        <QuickAction
+          label={t("homeQuickJoin")}
+          onClick={() => go("sertai")}
+          icon={<path {...STROKE} d="M10 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-6.5 8c.6-3.4 3.2-5.5 6.5-5.5 1.3 0 2.5.3 3.5.9M18 13.5v6M15 16.5h6" />}
+        />
+        <QuickAction
+          label={t("homeQuickLeaders")}
+          href={LEADERSHIP_URL}
+          icon={<path {...STROKE} d="M8.5 10.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3 19c.5-3 2.7-5 5.5-5s5 2 5.5 5m.5-4.6c.5-.2 1-.4 1.5-.4 2.3 0 4 1.6 4.5 4" />}
+        />
+      </nav>
+      <LatestNews count={3} onSeeAll={() => go("berita")} />
+    </div>
   );
-}
-
-const NAV_PRIMARY: { tab: AppTab; labelKey: MessageKey }[] = [
-  { tab: "home", labelKey: "navHome" },
-  { tab: "ftes", labelKey: "ftesNav" },
-  { tab: "resources", labelKey: "navResources" },
-  { tab: "education", labelKey: "agendaEducation" },
-  { tab: "employment", labelKey: "agendaEmployment" },
-  { tab: "emergingTech", labelKey: "agendaEmergingTech" },
-  { tab: "members", labelKey: "navMembers" },
-  { tab: "apply", labelKey: "kenaliApply" },
-];
-
-const NAV_SECONDARY_TABS: { tab: AppTab; labelKey: MessageKey }[] = [
-  { tab: "profile", labelKey: "navProfile" },
-];
-
-const NAV_SECONDARY_EXTERNAL: { href: string; labelKey: MessageKey }[] = [
-  { href: KENALI_ABOUT_WIKI_MS, labelKey: "kenaliAbout" },
-  { href: CONSTITUTION_PDF_URL, labelKey: "kenaliConstitution" },
-  { href: JIWABAKTI_HREF, labelKey: "jiwaBaktiLink" },
-];
-
-function isAgendaTab(tab: AppTab): tab is "education" | "employment" | "emergingTech" {
-  return tab === "education" || tab === "employment" || tab === "emergingTech";
-}
-
-function pageHeadingKey(tab: AppTab): MessageKey | null {
-  switch (tab) {
-    case "members":
-      return "membersTitle";
-    case "resources":
-      return "navResources";
-    case "apply":
-      return "applicationTitle";
-    case "profile":
-      return "profileTitle";
-    case "education":
-      return "agendaEducationTitle";
-    case "employment":
-      return "agendaEmploymentTitle";
-    case "emergingTech":
-      return "agendaEmergingTechTitle";
-    default:
-      return null;
-  }
-}
-
-/** Navy page-topper is for members/resources/apply/profile only — agenda uses in-page heading on grey bg. */
-function pageTopperHeadingKey(tab: AppTab): MessageKey | null {
-  if (isAgendaTab(tab)) return null;
-  return pageHeadingKey(tab);
-}
-
-function agendaTitleKey(tab: "education" | "employment" | "emergingTech"): MessageKey {
-  switch (tab) {
-    case "education":
-      return "agendaEducationTitle";
-    case "employment":
-      return "agendaEmploymentTitle";
-    case "emergingTech":
-      return "agendaEmergingTechTitle";
-  }
 }
 
 export function App() {
   const { t } = useI18n();
-  const [tab, setTab] = useState<AppTab>(initialTabFromHash);
+  const [tab, setTab] = useState<AppTab>(tabFromHash);
   const tabRef = useRef(tab);
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
-  const defaultGreetingName = "Aaron";
-  const [greetingName, setGreetingName] = useState(defaultGreetingName);
-  const [navMenuOpen, setNavMenuOpen] = useState(false);
-  const [headerScrolled, setHeaderScrolled] = useState(false);
-  const [welcomeOpen, setWelcomeOpen] = useState(
-    () => !welcomeDismissedThisSession()
-  );
+  const [scrolled, setScrolled] = useState(false);
 
-  // Normalise the URL on load (e.g. #emergingtech → #emerging-tech, unknown → bare path).
+  // Old links: #members leaves for the site; legacy and unknown hashes are rewritten in place.
   useLayoutEffect(() => {
-    window.history.replaceState(window.history.state, "", tabUrl(initialTabFromHash()));
+    const moved = MOVED_TO_SITE[window.location.hash.slice(1).toLowerCase()];
+    if (moved) {
+      window.location.replace(moved);
+      return;
+    }
+    window.history.replaceState(window.history.state, "", tabUrl(tabFromHash()));
   }, []);
 
-  // Back / forward and hand-edited hashes move between tabs.
   useEffect(() => {
     const onPop = () => {
-      const next = initialTabFromHash();
+      const next = tabFromHash();
       if (next !== tabRef.current) window.scrollTo({ top: 0 });
       setTab(next);
-      setNavMenuOpen(false);
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   useEffect(() => {
-    const onScroll = () => {
-      setHeaderScrolled(window.scrollY > 4);
-    };
+    const onScroll = () => setScrolled(window.scrollY > 4);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    if (!navMenuOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setNavMenuOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [navMenuOpen]);
-
-  useEffect(() => {
-    const brand = "Belia PBB";
-    const byTab: Record<AppTab, string> = {
-      home: brand,
-      members: `${t("membersTitle")} · ${brand}`,
-      resources: `${t("navResources")} · ${brand}`,
-      apply: `${t("applicationTitle")} · ${brand}`,
-      profile: `${t("profileTitle")} · ${brand}`,
-      ftes: `${t("ftesDocTitle")} · ${brand}`,
-      education: `${t("agendaEducationTitle")} · ${brand}`,
-      employment: `${t("agendaEmploymentTitle")} · ${brand}`,
-      emergingTech: `${t("agendaEmergingTechTitle")} · ${brand}`,
-    };
-    document.title = byTab[tab];
+    const key = DOC_TITLE[tab];
+    document.title = key ? `${t(key)} · Belia PBB` : "Belia PBB";
   }, [tab, t]);
 
-  useEffect(() => {
-    if (tab !== "home") return;
-    try {
-      const raw = localStorage.getItem("beliapbb_profile");
-      if (!raw) {
-        setGreetingName(defaultGreetingName);
-        return;
-      }
-      const p = JSON.parse(raw) as { name?: string };
-      const n = typeof p.name === "string" ? p.name.trim() : "";
-      setGreetingName(n || defaultGreetingName);
-    } catch {
-      setGreetingName(defaultGreetingName);
-    }
-  }, [tab]);
-
-  const selectTab = useCallback((next: AppTab) => {
-    if (next !== initialTabFromHash()) {
-      window.history.pushState(null, "", tabUrl(next));
-    }
+  const go = useCallback((next: AppTab) => {
+    if (next !== tabFromHash()) window.history.pushState(null, "", tabUrl(next));
     setTab(next);
-    setNavMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0 });
   }, []);
 
-  const closeNavMenu = useCallback(() => {
-    setNavMenuOpen(false);
-  }, []);
+  const onFtesNavigate = useCallback((target: FtesNavTarget) => go(target), [go]);
 
-  const topperKey = pageTopperHeadingKey(tab);
-  const immersiveHeader = Boolean(topperKey && !headerScrolled && !navMenuOpen);
-  const headerSolid = tab === "home" || isAgendaTab(tab) || headerScrolled || navMenuOpen;
-  const showJoinFab = tab !== "apply" && tab !== "ftes" && !welcomeOpen && !navMenuOpen;
-
-  const headerClass = [
-    "app-header",
-    immersiveHeader ? " app-header--immersive" : "",
-    headerSolid && headerScrolled ? " app-header--frosted" : "",
-    headerSolid && !headerScrolled ? " app-header--solid" : "",
-    navMenuOpen ? " app-header--menu-open" : "",
-  ].join("");
-
-  const navOverlay = navMenuOpen ? (
-    <div
-      className="app-nav-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("navMain")}
-    >
-      <div className="app-nav-overlay-top">
-        <button
-          type="button"
-          className="app-nav-overlay-brand"
-          onClick={() => selectTab("home")}
-          translate="no"
-        >
-          <Logo className="site-brand-logo" alt={t("logoAlt")} />
-          <span className="app-nav-overlay-brand-text">{t("welcomeTitle")}</span>
-        </button>
-        <button
-          type="button"
-          className="app-nav-overlay-close"
-          onClick={closeNavMenu}
-          aria-label={t("navMenuClose")}
-        >
-          <NavCloseIcon />
-        </button>
-      </div>
-
-      <nav id="main-nav" className="app-nav-overlay-body" aria-label={t("navMain")}>
-        <ul className="app-nav-primary">
-          {NAV_PRIMARY.map(({ tab: navTab, labelKey }) => (
-            <li key={navTab}>
-              <button
-                type="button"
-                className={`app-nav-primary-item${tab === navTab ? " app-nav-primary-item--active" : ""}`}
-                aria-current={tab === navTab ? "page" : undefined}
-                onClick={() => selectTab(navTab)}
-              >
-                {t(labelKey)}
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <div className="app-nav-separator" role="separator" />
-
-        <ul className="app-nav-secondary">
-          {NAV_SECONDARY_TABS.map(({ tab: navTab, labelKey }) => (
-            <li key={navTab}>
-              <button
-                type="button"
-                className={`app-nav-secondary-item${tab === navTab ? " app-nav-secondary-item--active" : ""}`}
-                aria-current={tab === navTab ? "page" : undefined}
-                onClick={() => selectTab(navTab)}
-              >
-                {t(labelKey)}
-              </button>
-            </li>
-          ))}
-          {NAV_SECONDARY_EXTERNAL.map(({ href, labelKey }) => (
-            <li key={href}>
-              <a
-                className="app-nav-secondary-item app-nav-secondary-item--external"
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={closeNavMenu}
-              >
-                {t(labelKey)}
-                <ExternalLinkArrowIcon className="app-nav-external-arrow" />
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </div>
-  ) : null;
-
-  if (tab === "ftes") {
-    return (
-      <>
-        {navOverlay}
-        <FtesPage onOpenMenu={() => setNavMenuOpen(true)} onNavigate={selectTab} />
-      </>
-    );
-  }
+  if (tab === "ftes") return <FtesPage onNavigate={onFtesNavigate} />;
 
   return (
-    <div className="app-shell">
-      <WelcomeModal open={welcomeOpen} onClose={() => setWelcomeOpen(false)} />
-
-      <header className={headerClass}>
-        <div className="app-header-inner">
-          <button
-            type="button"
-            className="site-brand-row site-brand-row--button"
-            onClick={() => selectTab("home")}
-            translate="no"
-          >
-            <Logo className="site-brand-logo" alt={t("logoAlt")} />
-            <span className="site-brand">Belia PBB</span>
+    <div className={`app-shell app2${FULL_SCREEN.has(tab) ? " is-full" : ""}`}>
+      <header className={`app2-header${scrolled ? " is-scrolled" : ""}`}>
+        <div className="app2-header-inner">
+          <button type="button" className="app2-brand" onClick={() => go("home")} translate="no">
+            <Logo className="app2-brand-logo" alt={t("logoAlt")} />
+            <span>Belia PBB</span>
           </button>
-
-          <div className="header-actions">
-            <button
-              type="button"
-              className="app-nav-toggle"
-              aria-expanded={navMenuOpen}
-              aria-controls="main-nav"
-              onClick={() => setNavMenuOpen((open) => !open)}
-            >
-              <NavMenuIcon />
-              <span className="visually-hidden">
-                {navMenuOpen ? t("navMenuClose") : t("navMenuOpen")}
-              </span>
-            </button>
-          </div>
+          <a className="app2-site-link" href={SITE_URL}>
+            {t("appSiteLink")}
+          </a>
         </div>
       </header>
 
-      {navOverlay}
-
-      <main className={`app-main${topperKey ? " app-main--with-topper" : ""}`}>
-        {topperKey ? (
-          <div className="page-topper">
-            <div className="page-topper-inner">
-              <h1 className="page-heading page-heading--topper" translate="no">
-                {t(topperKey)}
-              </h1>
-            </div>
+      <main className="app2-main">
+        {tab === "home" ? (
+          <HomePage go={go} />
+        ) : tab === "tanya" ? (
+          <TanyaPage onOpenFtes={() => go("ftes")} onOpenPerlembagaan={() => go("perlembagaan")} />
+        ) : tab === "perlembagaan" ? (
+          <PerlembagaanPage onBack={() => go("tanya")} />
+        ) : tab === "berita" ? (
+          <div className="app-page">
+            <h1 className="app-page-title">{t("latestNews")}</h1>
+            <LatestNews count={20} showHeading={false} />
           </div>
-        ) : null}
-
-        <div className="page-inner">
-          {tab === "home" ? (
-            <>
-              <section className="section section--news">
-                <h2 className="greeting">
-                  {t("greetingHey").replace(/\{\{name\}\}/g, greetingName)}
-                </h2>
-                <HomeMembershipCard />
-                <FtesPromoCard onOpen={() => selectTab("ftes")} />
-              </section>
-              <PartyWingsSection onSelectApply={() => selectTab("apply")} />
-              <LatestNews />
-              <FocusAgendaSection onSelectAgenda={selectTab} />
-            </>
-          ) : tab === "members" ? (
-            <MembersPage />
-          ) : tab === "resources" ? (
-            <ResourcesPage />
-          ) : tab === "apply" ? (
-            <ApplicationPage />
-          ) : isAgendaTab(tab) ? (
-            <AgendaPlaceholderPage
-              titleKey={agendaTitleKey(tab)}
-              onOpenFtes={tab === "education" ? () => selectTab("ftes") : undefined}
-            />
-          ) : (
-            <ProfilePage />
-          )}
-        </div>
+        ) : tab === "sertai" ? (
+          <SertaiPage />
+        ) : (
+          <SayaPage />
+        )}
       </main>
 
-      <SiteFooter onSelectTab={selectTab} />
-      <JoinFab visible={showJoinFab} onJoin={() => selectTab("apply")} />
+      {FULL_SCREEN.has(tab) ? null : <TabBar active={barTab(tab)} onSelect={go} />}
     </div>
   );
 }
