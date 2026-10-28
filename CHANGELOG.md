@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.9.1 — 2026-10-28
+
+### Changed
+- Landing hero follows Mobbin: the headline lines blur in, gaps open and app icons resolve into the words, then one icon at a time cross-fades to another
+- New app-icon set (squircle icons with one glyph each) replaces the stickers across the landing page
+- Calmer palette and type: neutrals only with colour kept to the icons, black buttons, and weights capped at 500 (no more faux-bold headings)
+
+### Removed
+- Floating sticker burst, sticker characters and mascot
+
 ## 0.0.9.0 — 2026-10-28
 
 ### Added

@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useI18n, type MessageKey } from "../i18n";
 import { Logo } from "../Logo";
 import { CONSTITUTION_PDF_URL } from "../constitutionPdf";
-import { Sticker, type StickerKind } from "./Stickers";
+import { AppIcon, APP_ICON_KINDS, type AppIconKind } from "./AppIcons";
 import "./Landing.css";
 
 const BASE = import.meta.env.BASE_URL;
@@ -10,169 +10,99 @@ const APP_HREF = `${BASE}app/`;
 const appTab = (hash: string) => `${APP_HREF}#${hash}`;
 const CONTACT_EMAIL = "hello@beliapbb.com";
 
-function prefersReducedMotion() {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
+/* ── Headline icons (Mobbin hero): the lines blur in, a gap opens in each line and an
+   app icon resolves into it; then one slot at a time (bottom line first) cross-fades
+   to an icon that isn't on screen. ── */
 
-/* ── Headline tiles (Mobbin-style): an app-icon squircle in the sentence that swaps sticker ── */
+const SWAP_INTERVAL_MS = 1500;
 
-type TileItem = { kind: StickerKind; bg: string };
-
-const TILE_SETS: TileItem[][] = [
-  [
-    { kind: "hornbill", bg: "#fff1d6" },
-    { kind: "hibiscus", bg: "#ffe3ea" },
-    { kind: "pin", bg: "#e4f0ff" },
-    { kind: "heart", bg: "#fff0f1" },
-  ],
-  [
-    { kind: "megaphone", bg: "#fff0e2" },
-    { kind: "chat", bg: "#e4f2ff" },
-    { kind: "mascot", bg: "#e6eeff" },
-    { kind: "check", bg: "#e3f8ea" },
-  ],
-  [
-    { kind: "cap", bg: "#e9eaff" },
-    { kind: "rocket", bg: "#ffe8ea" },
-    { kind: "bulb", bg: "#fff6d6" },
-    { kind: "star", bg: "#fff4dc" },
-  ],
-];
-
-const TILE_INTERVAL_MS = 2600;
-
-function CycleTile({ set, offset, tilt }: { set: TileItem[]; offset: number; tilt: number }) {
-  const [index, setIndex] = useState(0);
-  const [prev, setPrev] = useState<number | null>(null);
+function useIconSwap(initial: AppIconKind[], startDelay: number) {
+  const [kinds, setKinds] = useState(initial);
 
   useEffect(() => {
+    let slot = initial.length;
     let interval: number | undefined;
     const start = window.setTimeout(() => {
       interval = window.setInterval(() => {
         if (document.hidden) return;
-        setIndex((i) => {
-          setPrev(i);
-          return (i + 1) % set.length;
+        slot = (slot - 1 + initial.length) % initial.length;
+        const target = slot;
+        setKinds((current) => {
+          const unused = APP_ICON_KINDS.filter((k) => !current.includes(k));
+          const next = [...current];
+          next[target] = unused[Math.floor(Math.random() * unused.length)];
+          return next;
         });
-      }, TILE_INTERVAL_MS);
-    }, offset);
+      }, SWAP_INTERVAL_MS);
+    }, startDelay);
     return () => {
       window.clearTimeout(start);
       window.clearInterval(interval);
     };
-  }, [set.length, offset]);
+  }, [initial.length, startDelay]);
 
-  const current = set[index];
+  return kinds;
+}
+
+/** One icon position: keeps the outgoing icon mounted while it cross-fades out. */
+function IconSlot({ kind, firstClass }: { kind: AppIconKind; firstClass?: string }) {
+  const [current, setCurrent] = useState(kind);
+  const [prev, setPrev] = useState<AppIconKind | null>(null);
+  const [swaps, setSwaps] = useState(0);
+
+  if (kind !== current) {
+    setPrev(current);
+    setCurrent(kind);
+    setSwaps(swaps + 1);
+  }
+
   return (
-    <span className="lp-tile" style={{ "--tilt": `${tilt}deg`, background: current.bg } as CSSProperties} aria-hidden="true">
-      {prev !== null && (
-        <span key={`out-${prev}-${index}`} className="lp-tile-art is-out">
-          <Sticker kind={set[prev].kind} />
-        </span>
-      )}
-      <span key={`in-${index}`} className={`lp-tile-art${prev !== null ? " is-in" : ""}`}>
-        <Sticker kind={current.kind} />
-      </span>
-    </span>
+    <>
+      {prev && <AppIcon key={`out-${swaps}`} kind={prev} className="is-out" />}
+      <AppIcon key={`in-${swaps}`} kind={current} className={swaps > 0 ? "is-in" : firstClass} />
+    </>
   );
 }
 
-/* ── Sticker burst around the hero (Family-style).
-   Laptop: x/y = centre in % of the hero, s = px; middle rows stay at the edges so the
-   headline is never covered. Phone (m = [x%, y%, px]): a cluster above the headline
-   around the mascot, like Family's welcome screen. No m = laptop only; mOnly = phone
-   only; xl = hidden on narrow laptops where the headline is relatively wider. ── */
+const HERO_ICONS: AppIconKind[] = ["hornbill", "chat", "cap"];
+// First swap once the intro has settled (lines ~0.9s, icons ~1.6s).
+const HERO_SWAP_DELAY_MS = 2400;
 
-type Placed = {
-  kind: StickerKind;
-  x: number;
-  y: number;
-  s: number;
-  r: number;
-  d: number;
-  m?: [number, number, number];
-  mOnly?: boolean;
-  xl?: boolean;
-  color?: string;
-};
-
-const BURST: Placed[] = [
-  { kind: "hornbill", x: 8, y: 22, s: 124, r: -8, d: 22, m: [13, 22, 76] },
-  { kind: "heart", x: 22, y: 9, s: 64, r: -14, d: -14, m: [35, 9, 42] },
-  { kind: "star", x: 13, y: 47, s: 54, r: 12, d: 16, xl: true, m: [9, 52, 38] },
-  { kind: "blob", x: 7, y: 70, s: 112, r: -6, d: -20, m: [17, 82, 66] },
-  { kind: "book", x: 21, y: 89, s: 76, r: -12, d: 12 },
-  { kind: "pin", x: 32, y: 93, s: 46, r: 8, d: -10, xl: true },
-  { kind: "sparkle", x: 31, y: 15, s: 28, r: 0, d: 26, color: "#4da3ff", m: [30, 36, 20] },
-  { kind: "check", x: 40, y: 5, s: 40, r: -10, d: 10 },
-  { kind: "chat", x: 63, y: 6, s: 54, r: 6, d: -12, m: [65, 8, 44] },
-  { kind: "sparkle", x: 70, y: 18, s: 24, r: 0, d: -24, color: "#ffc83d", m: [71, 35, 18] },
-  { kind: "hibiscus", x: 80, y: 11, s: 98, r: 10, d: 18, m: [87, 20, 68] },
-  { kind: "cap", x: 93, y: 32, s: 92, r: 12, d: -18 },
-  { kind: "megaphone", x: 88, y: 52, s: 76, r: -16, d: 20, xl: true, m: [91, 54, 48] },
-  { kind: "tri", x: 93, y: 72, s: 108, r: 6, d: -16, m: [84, 83, 64] },
-  { kind: "bulb", x: 79, y: 89, s: 64, r: 14, d: 14 },
-  { kind: "rocket", x: 67, y: 94, s: 54, r: 35, d: -22, xl: true },
-  { kind: "mascot", x: 50, y: 50, s: 0, r: -4, d: 0, mOnly: true, m: [50, 54, 120] },
-];
-
-function StickerBurst() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    const hero = el?.parentElement;
-    if (!el || !hero || prefersReducedMotion()) return;
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-    let frame = 0;
-    const onMove = (e: PointerEvent) => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const rect = hero.getBoundingClientRect();
-        el.style.setProperty("--px", ((e.clientX - rect.left) / rect.width - 0.5).toFixed(3));
-        el.style.setProperty("--py", ((e.clientY - rect.top) / rect.height - 0.5).toFixed(3));
-      });
-    };
-    const onLeave = () => {
-      el.style.setProperty("--px", "0");
-      el.style.setProperty("--py", "0");
-    };
-    hero.addEventListener("pointermove", onMove);
-    hero.addEventListener("pointerleave", onLeave);
-    return () => {
-      cancelAnimationFrame(frame);
-      hero.removeEventListener("pointermove", onMove);
-      hero.removeEventListener("pointerleave", onLeave);
-    };
-  }, []);
+/** "Minat {0} dengan\npembangunan {1} belia\ndi {2} Sarawak?" → lines with icon slots. */
+function HeroTitle() {
+  const { t } = useI18n();
+  const kinds = useIconSwap(HERO_ICONS, HERO_SWAP_DELAY_MS);
+  const title = t("landingTitle");
+  const plain = title.replace(/\s*\{\d\}/g, "").replace(/\s*\n\s*/g, " ");
 
   return (
-    <div className="lp-burst" ref={ref} aria-hidden="true">
-      {BURST.map((p, i) => (
-        <span
-          key={i}
-          className={`lp-sticker${p.m ? "" : " no-m"}${p.mOnly ? " m-only" : ""}${p.xl ? " xl" : ""}`}
-          style={
-            {
-              "--x": p.x,
-              "--y": p.y,
-              "--s": p.s,
-              "--mx": p.m?.[0] ?? p.x,
-              "--my": p.m?.[1] ?? p.y,
-              "--ms": p.m?.[2] ?? p.s,
-              "--r": `${p.r}deg`,
-              "--d": p.d,
-              "--i": i,
-            } as CSSProperties
-          }
-        >
-          <span className="lp-sticker-pop">
-            <span className="lp-sticker-par">
-              <span className="lp-sticker-float">
-                <Sticker kind={p.kind} color={p.color} />
-              </span>
-            </span>
+    <h1 className="lp-h1" aria-label={plain}>
+      <span aria-hidden="true">
+        {title.split("\n").map((line, l) => (
+          <span className="lp-line" key={l} style={{ "--l": l } as CSSProperties}>
+            {line.split(/\s*\{(\d)\}/).map((part, i) =>
+              i % 2 === 0 ? (
+                part
+              ) : (
+                <span className="lp-hicon" key={i}>
+                  <IconSlot kind={kinds[Number(part)]} firstClass="is-first" />
+                </span>
+              ),
+            )}
           </span>
+        ))}
+      </span>
+    </h1>
+  );
+}
+
+function CtaIcons() {
+  const kinds = useIconSwap(["news", "people", "rocket"], 600);
+  return (
+    <div className="lp-cta-icons" aria-hidden="true">
+      {kinds.map((k, i) => (
+        <span className="lp-cta-icon" key={i}>
+          <IconSlot kind={k} />
         </span>
       ))}
     </div>
@@ -199,7 +129,6 @@ function Explore() {
                   <span className="lp-dots"><i /><i /><i /></span>
                 </p>
               </div>
-              <Sticker kind="cap" className="lp-card-sticker" />
             </div>
             <h3 className="lp-card-title">{t("ftesNav")}</h3>
             <p className="lp-card-body">{t("landingFtesBody")}</p>
@@ -212,7 +141,6 @@ function Explore() {
                   <svg viewBox="0 0 24 24"><path d="M12 19V5m0 0-6 6m6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </span>
               </div>
-              <Sticker kind="book" className="lp-card-sticker" />
             </div>
             <h3 className="lp-card-title">{t("landingConstTitle")}</h3>
             <p className="lp-card-body">{t("landingConstBody")}</p>
@@ -220,9 +148,9 @@ function Explore() {
           <a className="lp-card" href={APP_HREF}>
             <div className="lp-card-stage">
               <div className="lp-news">
-                {["#ffd9a8", "#cfe3ff"].map((c) => (
-                  <div className="lp-news-row" key={c}>
-                    <span className="lp-news-thumb" style={{ background: c }} />
+                {[0, 1].map((i) => (
+                  <div className="lp-news-row" key={i}>
+                    <span className="lp-news-thumb" />
                     <span className="lp-news-lines">
                       <i />
                       <i />
@@ -231,7 +159,6 @@ function Explore() {
                   </div>
                 ))}
               </div>
-              <Sticker kind="megaphone" className="lp-card-sticker" />
             </div>
             <h3 className="lp-card-title">{t("latestNews")}</h3>
             <p className="lp-card-body">{t("landingNewsBody")}</p>
@@ -242,13 +169,13 @@ function Explore() {
   );
 }
 
-const SIX: { kind: StickerKind; accent: string; title: MessageKey; body: MessageKey }[] = [
-  { kind: "cap", accent: "#3b5bdb", title: "agendaEducation", body: "landingSixEducationBody" },
-  { kind: "bulb", accent: "#e8590c", title: "agendaEmployment", body: "landingSixEmploymentBody" },
-  { kind: "rocket", accent: "#d6336c", title: "agendaEmergingTech", body: "landingSixTechBody" },
-  { kind: "check", accent: "#2b8a3e", title: "landingSixJoinTitle", body: "landingSixJoinBody" },
-  { kind: "book", accent: "#7048e8", title: "landingSixDocsTitle", body: "landingSixDocsBody" },
-  { kind: "chat", accent: "#1c7ed6", title: "landingSixLangTitle", body: "landingSixLangBody" },
+const SIX: { kind: AppIconKind; title: MessageKey; body: MessageKey }[] = [
+  { kind: "cap", title: "agendaEducation", body: "landingSixEducationBody" },
+  { kind: "briefcase", title: "agendaEmployment", body: "landingSixEmploymentBody" },
+  { kind: "rocket", title: "agendaEmergingTech", body: "landingSixTechBody" },
+  { kind: "card", title: "landingSixJoinTitle", body: "landingSixJoinBody" },
+  { kind: "book", title: "landingSixDocsTitle", body: "landingSixDocsBody" },
+  { kind: "lang", title: "landingSixLangTitle", body: "landingSixLangBody" },
 ];
 
 function Six() {
@@ -260,8 +187,8 @@ function Six() {
         <ul className="lp-six">
           {SIX.map((f) => (
             <li key={f.title}>
-              <Sticker kind={f.kind} className="lp-six-sticker" />
-              <h3 style={{ color: f.accent }}>{t(f.title)}</h3>
+              <AppIcon kind={f.kind} className="lp-six-icon" />
+              <h3>{t(f.title)}</h3>
               <p>{t(f.body)}</p>
             </li>
           ))}
@@ -322,11 +249,7 @@ function Cta() {
     <section className="lp-section lp-section--tight">
       <div className="lp-wrap">
         <div className="lp-cta">
-          <Sticker kind="mascot" className="lp-cta-mascot" />
-          <Sticker kind="heart" className="lp-cta-s lp-cta-s--1" />
-          <Sticker kind="star" className="lp-cta-s lp-cta-s--2" />
-          <Sticker kind="hibiscus" className="lp-cta-s lp-cta-s--3" />
-          <Sticker kind="sparkle" color="#fff" className="lp-cta-s lp-cta-s--4" />
+          <CtaIcons />
           <h2 className="lp-cta-title">{t("landingCtaTitle")}</h2>
           <p className="lp-cta-body">{t("landingCtaBody")}</p>
           <div className="lp-ctas">
@@ -419,21 +342,12 @@ export function Landing() {
 
       <main>
         <section className="lp-hero">
-          <StickerBurst />
           <div className="lp-hero-inner">
             <p className="lp-kicker">{t("landingKicker")}</p>
-            <h1 className="lp-h1" aria-label={t("landingTitleFull")}>
-              <span aria-hidden="true">
-                {t("landingTitleA")} <CycleTile set={TILE_SETS[0]} offset={0} tilt={-6} /> {t("landingTitleB")}{" "}
-                <br className="lp-br" />
-                {t("landingTitleC")} <CycleTile set={TILE_SETS[1]} offset={860} tilt={5} /> {t("landingTitleD")}{" "}
-                <br className="lp-br" />
-                {t("landingTitleE")} <CycleTile set={TILE_SETS[2]} offset={1720} tilt={-4} /> {t("landingTitleF")}
-              </span>
-            </h1>
+            <HeroTitle />
             <p className="lp-sub">{t("landingSub")}</p>
             <div className="lp-ctas">
-              <a className="lp-btn lp-btn--primary" href={appTab("apply")}>{t("landingJoin")}</a>
+              <a className="lp-btn lp-btn--dark" href={appTab("apply")}>{t("landingJoin")}</a>
               <a className="lp-btn lp-btn--soft" href={APP_HREF}>
                 {t("landingOpenApp")}
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6-6m6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
