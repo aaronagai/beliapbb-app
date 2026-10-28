@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.10.1 — 2026-10-28
+
+### Added
+- Membership applications (Sertai tab) are sent to a private Google Sheet through an Apps Script web app (`scripts/apps-script/permohonan.gs`): each application gets a reference number (BPBB-YYYY-NNNNN) and a "Baharu" status for the secretariat, and hello@beliapbb.com gets a short alert (name and cawangan only)
+- The form checks required fields and the 12-digit IC number before sending, shows "Menghantar…", then the reference number; if sending fails, the details stay saved on the device
+
+### Security
+- The receiving script validates every field, stores all answers as plain text (no formulas, IC and phone numbers keep their leading zeros), caps submissions at 30 a minute and drops bot submissions caught by a hidden field
+
 ## 0.0.10.0 — 2026-10-28
 
 ### Changed

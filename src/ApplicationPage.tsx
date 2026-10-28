@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { applicationEndpoint, submitApplication } from "./applicationApi";
 import { useI18n, type MessageKey } from "./i18n";
 import {
   CAWANGAN_OPTIONS,
@@ -148,10 +149,29 @@ function readDraft(): Draft {
   }
 }
 
+/** Fields the receiving script requires, with the label shown when one is missing. */
+const REQUIRED: [keyof Draft, MessageKey][] = [
+  ["cawangan", "applicationLblCawangan"],
+  ["nama", "applicationLblNamaIc"],
+  ["noKadPengenalan", "applicationLblIcNo"],
+  ["telBimbit", "applicationLblTelBimbit"],
+  ["kategoriAhli", "applicationLblKategoriAhli"],
+];
+
+type SendState =
+  | { kind: "idle" }
+  | { kind: "sending" }
+  | { kind: "sent"; ref: string }
+  | { kind: "error"; message: string };
+
 export function ApplicationPage() {
   const { t } = useI18n();
+  const endpoint = applicationEndpoint();
   const [d, setD] = useState<Draft>(() => readDraft());
   const [saved, setSaved] = useState(false);
+  const [send, setSend] = useState<SendState>({ kind: "idle" });
+  /* Spam trap: hidden from people, filled in by bots */
+  const [website, setWebsite] = useState("");
 
   const bangsaLabel = useCallback((v: BangsaVal) => t(BANGSA_MSG[v]), [t]);
 
@@ -160,22 +180,75 @@ export function ApplicationPage() {
     setSaved(false);
   }, []);
 
-  const submit = useCallback(() => {
-    if (!d.pengakuan) return;
+  const saveLocally = useCallback(() => {
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
-      setSaved(true);
+      return true;
     } catch {
-      /* ignore */
+      return false;
     }
+  }, [d]);
+
+  const sendOnline = useCallback(async (url: string) => {
+    const missing = REQUIRED.filter(([key]) => !String(d[key]).trim()).map(([, label]) => t(label));
+    if (missing.length) {
+      setSend({ kind: "error", message: t("applicationErrorMissing").replace("{{fields}}", missing.join(", ")) });
+      return;
+    }
+    if (d.noKadPengenalan.replace(/\D/g, "").length !== 12) {
+      setSend({ kind: "error", message: t("applicationErrorIc") });
+      return;
+    }
+    setSend({ kind: "sending" });
+    const result = await submitApplication(url, { ...d, website });
+    if (result.ok) {
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        /* private mode */
+      }
+      setD(emptyDraft);
+      setSend({ kind: "sent", ref: result.ref });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    saveLocally();
+    setSend({
+      kind: "error",
+      message: result.error === "ic" ? t("applicationErrorIc") : t("applicationErrorGeneric"),
+    });
+  }, [d, website, saveLocally, t]);
+
+  const submit = useCallback(() => {
+    if (!d.pengakuan) return;
+    if (endpoint) {
+      void sendOnline(endpoint);
+      return;
+    }
+    setSaved(saveLocally());
   }, [d]);
 
   const pekerjaanNeedsDetail = d.pekerjaan === "kerajaan" || d.pekerjaan === "swasta" || d.pekerjaan === "sendiri" || d.pekerjaan === "lain";
 
+  if (send.kind === "sent") {
+    return (
+      <section className="section section--apply" aria-label={t("applicationTitle")}>
+        <div className="application-sent profile-card" role="status">
+          <h2>{t("applicationSentTitle")}</h2>
+          <p className="application-sent-ref">{send.ref}</p>
+          <p>{t("applicationSentBody")}</p>
+          <button type="button" className="profile-save-btn" onClick={() => setSend({ kind: "idle" })}>
+            {t("applicationSentAnother")}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="section section--apply" aria-label={t("applicationTitle")}>
       <div className="application-intro profile-card">
-        <p className="application-intro-text">{t("applicationSubtitle")}</p>
+        <p className="application-intro-text">{t(endpoint ? "applicationSubtitleOnline" : "applicationSubtitle")}</p>
         <a className="application-pdf-link" href={BORANG_PDF} target="_blank" rel="noopener noreferrer">
           {t("applicationDownloadBlank")}
         </a>
@@ -561,10 +634,27 @@ export function ApplicationPage() {
 
         <p className="application-office-note">{t("applicationOfficeNote")}</p>
 
+        <label className="application-hp" aria-hidden="true">
+          Website
+          <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+        </label>
+
         <div className="application-actions">
-          <button type="button" className="profile-save-btn" disabled={!d.pengakuan} onClick={submit}>
-            {t("applicationSubmitBtn")}
+          <button
+            type="button"
+            className="profile-save-btn"
+            disabled={!d.pengakuan || send.kind === "sending"}
+            onClick={submit}
+          >
+            {endpoint
+              ? t(send.kind === "sending" ? "applicationSending" : "applicationSendBtn")
+              : t("applicationSubmitBtn")}
           </button>
+          {send.kind === "error" ? (
+            <p className="application-error-msg" role="alert">
+              {send.message}
+            </p>
+          ) : null}
           {saved ? (
             <p className="application-saved-msg" role="status">
               {t("applicationSubmitDone")}

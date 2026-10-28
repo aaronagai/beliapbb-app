@@ -6,4 +6,6 @@ interface ImportMetaEnv {
   readonly VITE_SITE_URL?: string;
   /** App origin, e.g. https://app.beliapbb.com — defaults to `${base}app/` */
   readonly VITE_APP_URL?: string;
+  /** Apps Script web app URL that stores membership applications */
+  readonly VITE_APPLICATION_ENDPOINT?: string;
 }

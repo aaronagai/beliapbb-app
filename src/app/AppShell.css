@@ -635,3 +635,54 @@
 
   .app-chat-bubble { animation: none; }
 }
+
+/* ── Application form states ── */
+
+.application-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.application-error-msg {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-brand);
+}
+
+.application-sent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.application-sent h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.application-sent p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--app-muted);
+}
+
+.application-sent .application-sent-ref {
+  margin: 8px 0;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--app-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.application-sent .profile-save-btn {
+  margin-top: 12px;
+}

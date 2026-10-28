@@ -72,6 +72,17 @@ export const messages = {
     applicationSubtitle:
       "Isi borang ini mengikut keterangan dalam Borang Permohonan Keahlian PBB (huruf besar jika diperlukan). Data disimpan pada peranti anda sehingga dihantar ke cawangan.",
     applicationDownloadBlank: "Muat Turun Borang PDF Rasmi",
+    applicationSubtitleOnline:
+      "Isi borang ini mengikut keterangan dalam Borang Permohonan Keahlian PBB (huruf besar jika diperlukan). Permohonan dihantar terus dan secara sulit kepada urus setia Belia PBB.",
+    applicationSendBtn: "Hantar Permohonan",
+    applicationSending: "Menghantar…",
+    applicationSentTitle: "Permohonan diterima",
+    applicationSentBody: "Simpan nombor rujukan ini. Urus setia Belia PBB akan menyemak permohonan anda.",
+    applicationSentAnother: "Isi permohonan lain",
+    applicationErrorMissing: "Sila lengkapkan: {{fields}}.",
+    applicationErrorIc: "No. kad pengenalan mesti 12 digit.",
+    applicationErrorGeneric:
+      "Permohonan tidak dapat dihantar. Butiran anda disimpan pada peranti ini; cuba lagi sebentar lagi atau muat turun borang PDF.",
     applicationSectionIdentity: "Butiran Peribadi",
     applicationSectionAddress: "Alamat & Pekerjaan",
     applicationSectionContact: "Hubungan",
@@ -381,6 +392,17 @@ export const messages = {
     applicationSubtitle:
       "Complete this form based on the official Borang Permohonan Keahlian PBB (use capitals where the form requires). Data is stored on this device until you hand it in at a branch.",
     applicationDownloadBlank: "Download Official PDF Form",
+    applicationSubtitleOnline:
+      "Complete this form based on the official Borang Permohonan Keahlian PBB (use capitals where the form requires). Your application goes directly and confidentially to the Belia PBB secretariat.",
+    applicationSendBtn: "Send Application",
+    applicationSending: "Sending…",
+    applicationSentTitle: "Application received",
+    applicationSentBody: "Keep this reference number. The Belia PBB secretariat will review your application.",
+    applicationSentAnother: "Fill in another application",
+    applicationErrorMissing: "Please complete: {{fields}}.",
+    applicationErrorIc: "IC number must be 12 digits.",
+    applicationErrorGeneric:
+      "Your application couldn't be sent. Your details are saved on this device; try again shortly or download the PDF form.",
     applicationSectionIdentity: "Personal Details",
     applicationSectionAddress: "Address & Employment",
     applicationSectionContact: "Contact",
