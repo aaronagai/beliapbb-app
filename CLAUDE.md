@@ -43,12 +43,12 @@ Always run `npm run build` (which runs `tsc --noEmit` + `vite build`) before shi
 ## Deploy configuration
 
 - Platform: GitHub Pages (GitHub Actions)
-- Live site: https://aaronagai.github.io/beliapbb-app/
+- Live site: https://beliapbb.com/ (custom domain via `public/CNAME`; DNS at Namecheap)
 - Repo: https://github.com/aaronagai/beliapbb-app
 - Deploy workflow: auto-deploy on push to `main` (`.github/workflows/deploy-pages.yml`)
-- Build: `npm run build` with `BASE_PATH=/beliapbb-app/`
+- Build: `npm run build` with `BASE_PATH=/`
 - Backend env: `VITE_CONSTITUTION_CHAT_API` (GitHub repo Variable) — URL of the deployed constitution RAG API, no trailing slash
-- Post-deploy check: `curl -sfL https://aaronagai.github.io/beliapbb-app/` returns 200
+- Post-deploy check: `curl -sfL https://beliapbb.com/` returns 200
 
 ## Local development
 

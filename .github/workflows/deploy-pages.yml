@@ -34,7 +34,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          BASE_PATH: /beliapbb-app/
+          BASE_PATH: /
           # Optional: GitHub repo Variable — URL of deployed constitution RAG API (no trailing slash)
           VITE_CONSTITUTION_CHAT_API: ${{ vars.VITE_CONSTITUTION_CHAT_API }}
 

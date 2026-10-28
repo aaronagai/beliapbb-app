@@ -2,8 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 /**
- * GitHub project Pages is served from https://<user>.github.io/<repo>/.
- * CI sets BASE_PATH=/beliapbb-app/ so asset URLs resolve. Local dev uses "/".
+ * Served from the custom domain https://beliapbb.com/ (root path).
+ * BASE_PATH can override the base if the site is ever served from a subpath.
  */
 function baseFromEnv(): string {
   const raw = process.env.BASE_PATH?.trim();
