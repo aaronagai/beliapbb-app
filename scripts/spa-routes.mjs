@@ -1,9 +1,0 @@
-// GitHub Pages serves files, not routes: give /app/ and /kepimpinan/ their own copy of the SPA shell,
-// and use the same shell as the 404 page so unknown paths still boot the app.
-import { copyFileSync, mkdirSync } from "node:fs";
-
-mkdirSync("dist/app", { recursive: true });
-copyFileSync("dist/index.html", "dist/app/index.html");
-mkdirSync("dist/kepimpinan", { recursive: true });
-copyFileSync("dist/index.html", "dist/kepimpinan/index.html");
-copyFileSync("dist/index.html", "dist/404.html");

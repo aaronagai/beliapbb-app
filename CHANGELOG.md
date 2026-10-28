@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.10.2 — 2026-10-28
+
+### Added
+- Separate builds for the two domains: `npm run build:site` (beliapbb.com, with `/app/*` redirecting to app.beliapbb.com) and `npm run build:app` (app.beliapbb.com, app at the root with its own install manifest), ready for Cloudflare Pages
+- Each split build ships only its own code; the combined build used on GitHub Pages now loads the site and app halves on demand
+
 ## 0.0.10.1 — 2026-10-28
 
 ### Added

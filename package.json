@@ -1,16 +1,18 @@
 {
   "name": "beliapbb-app",
   "private": true,
-  "version": "0.0.10.1",
+  "version": "0.0.10.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:api": "node server/server.mjs",
     "dev:full": "concurrently -k \"npm run dev\" \"npm run dev:api\"",
-    "build": "tsc --noEmit && vite build && node scripts/spa-routes.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/postbuild.mjs combined dist",
     "preview": "vite preview",
     "ingest:constitution": "node scripts/ingest-constitution.mjs",
-    "ingest:ftes": "node scripts/ingest-ftes.mjs"
+    "ingest:ftes": "node scripts/ingest-ftes.mjs",
+    "build:site": "tsc --noEmit && VITE_BUILD_TARGET=site vite build --outDir dist-site && node scripts/postbuild.mjs site dist-site",
+    "build:app": "tsc --noEmit && VITE_BUILD_TARGET=app vite build --outDir dist-app && node scripts/postbuild.mjs app dist-app"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

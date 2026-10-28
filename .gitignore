@@ -5,3 +5,6 @@ dist
 .env
 server/data/constitution-rag.json
 server/data/ftes-rag.json
+dist-site
+dist-app
+.wrangler
