@@ -8,6 +8,7 @@ import "./Landing.css";
 const BASE = import.meta.env.BASE_URL;
 const APP_HREF = `${BASE}app/`;
 const appTab = (hash: string) => `${APP_HREF}#${hash}`;
+export const LEADERSHIP_HREF = `${BASE}kepimpinan/`;
 const CONTACT_EMAIL = "hello@beliapbb.com";
 
 /* ── Headline icons (Mobbin hero): the lines blur in, a gap opens in each line and an
@@ -198,6 +199,81 @@ function Six() {
   );
 }
 
+/* About (Frontify label + statement, Raw Materials numbered points). The statement's
+   words darken as it scrolls into view where scroll-driven animations are supported. */
+const ABOUT_POINTS: [MessageKey, MessageKey][] = [
+  ["landingAbout1Title", "landingAbout1Body"],
+  ["landingAbout2Title", "landingAbout2Body"],
+  ["landingAbout3Title", "landingAbout3Body"],
+];
+
+function About() {
+  const { t } = useI18n();
+  return (
+    <section className="lp-section" id="tentang" aria-labelledby="lp-about-label">
+      <div className="lp-wrap lp-about">
+        <p className="lp-about-label" id="lp-about-label">{t("landingAboutLabel")}</p>
+        <div>
+          <p className="lp-about-statement">
+            {t("landingAboutStatement")
+              .split(" ")
+              .map((word, i) => (
+                <span key={i} style={{ "--w": i } as CSSProperties}>
+                  {word}{" "}
+                </span>
+              ))}
+          </p>
+          <ol className="lp-about-points">
+            {ABOUT_POINTS.map(([title, body], i) => (
+              <li key={title}>
+                <span className="lp-about-num">{String(i + 1).padStart(2, "0")}</span>
+                <h3>{t(title)}</h3>
+                <p>{t(body)}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* Party structure: alternating text + illustration rows (illustrations to come). */
+const STRUCTURE: { kicker: MessageKey; sub: MessageKey; title: MessageKey; body: MessageKey; link?: boolean }[] = [
+  { kicker: "landingStructKicker", sub: "landingStructMktSub", title: "sayapMkt", body: "landingStructMktBody" },
+  { kicker: "landingStructWingKicker", sub: "landingStructWpSub", title: "landingStructWpTitle", body: "landingStructWpBody" },
+  { kicker: "landingStructWingKicker", sub: "landingStructBeliaSub", title: "landingStructBeliaTitle", body: "landingStructBeliaBody", link: true },
+];
+
+function Structure() {
+  const { t } = useI18n();
+  return (
+    <section className="lp-section" aria-label={t("landingStructAria")}>
+      <div className="lp-wrap lp-struct">
+        {STRUCTURE.map((row, i) => (
+          <div className={`lp-struct-row${i % 2 ? " is-flipped" : ""}`} key={row.title}>
+            <div className="lp-struct-text">
+              <p className="lp-struct-kicker">
+                <span>{t(row.kicker)}</span>
+                <i aria-hidden="true" />
+                <span>{t(row.sub)}</span>
+              </p>
+              <h2 className="lp-struct-title">{t(row.title)}</h2>
+              <p className="lp-struct-body">{t(row.body)}</p>
+              {row.link && (
+                <a className="lp-btn lp-btn--outline" href={LEADERSHIP_HREF}>
+                  {t("landingStructBeliaCta")}
+                </a>
+              )}
+            </div>
+            <div className="lp-struct-visual" aria-hidden="true" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 const FAQ: [MessageKey, MessageKey][] = [
   ["landingFaq1Q", "landingFaq1A"],
   ["landingFaq2Q", "landingFaq2A"],
@@ -262,7 +338,7 @@ function Cta() {
   );
 }
 
-function Footer() {
+export function Footer() {
   const { t, language, setLanguage } = useI18n();
   return (
     <footer className="lp-footer">
@@ -280,6 +356,7 @@ function Footer() {
             <ul>
               <li><a href={APP_HREF}>{t("navHome")}</a></li>
               <li><a href={appTab("ftes")}>{t("ftesNav")}</a></li>
+              <li><a href={LEADERSHIP_HREF}>{t("leadershipNav")}</a></li>
               <li><a href={appTab("resources")}>{t("navResources")}</a></li>
               <li><a href={CONSTITUTION_PDF_URL} target="_blank" rel="noopener noreferrer">{t("kenaliConstitution")}</a></li>
               <li><a href={appTab("apply")}>{t("kenaliApply")}</a></li>
@@ -308,13 +385,9 @@ function Footer() {
   );
 }
 
-export function Landing() {
+export function SiteNav() {
   const { t } = useI18n();
   const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    document.title = t("landingDocTitle");
-  }, [t]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -324,21 +397,34 @@ export function Landing() {
   }, []);
 
   return (
+    <header className={`lp-nav${scrolled ? " is-scrolled" : ""}`}>
+      <div className="lp-wrap lp-nav-inner">
+        <a className="lp-brand" href={BASE}>
+          <Logo className="lp-brand-logo" decorative />
+          <span>Belia PBB</span>
+        </a>
+        <nav className="lp-nav-links" aria-label={t("landingNavAria")}>
+          <a href={`${BASE}#ciri`}>{t("landingNavFeatures")}</a>
+          <a href={LEADERSHIP_HREF}>{t("leadershipNav")}</a>
+          <a href={`${BASE}#soalan`}>{t("landingNavFaq")}</a>
+          <a href={appTab("ftes")}>{t("ftesNav")}</a>
+        </nav>
+        <a className="lp-btn lp-btn--dark lp-btn--sm" href={APP_HREF}>{t("landingOpenApp")}</a>
+      </div>
+    </header>
+  );
+}
+
+export function Landing() {
+  const { t } = useI18n();
+
+  useEffect(() => {
+    document.title = t("landingDocTitle");
+  }, [t]);
+
+  return (
     <div className="lp">
-      <header className={`lp-nav${scrolled ? " is-scrolled" : ""}`}>
-        <div className="lp-wrap lp-nav-inner">
-          <a className="lp-brand" href={BASE}>
-            <Logo className="lp-brand-logo" decorative />
-            <span>Belia PBB</span>
-          </a>
-          <nav className="lp-nav-links" aria-label={t("landingNavAria")}>
-            <a href="#ciri">{t("landingNavFeatures")}</a>
-            <a href="#soalan">{t("landingNavFaq")}</a>
-            <a href={appTab("ftes")}>{t("ftesNav")}</a>
-          </nav>
-          <a className="lp-btn lp-btn--dark lp-btn--sm" href={APP_HREF}>{t("landingOpenApp")}</a>
-        </div>
-      </header>
+      <SiteNav />
 
       <main>
         <section className="lp-hero">
@@ -364,8 +450,10 @@ export function Landing() {
           </div>
         </section>
 
+        <About />
         <Explore />
         <Six />
+        <Structure />
         <Faq />
         <Cta />
       </main>

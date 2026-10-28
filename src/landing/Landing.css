@@ -147,6 +147,15 @@
   transition: background-color var(--duration-quick) ease, transform var(--duration-quick) var(--ease-smooth-out);
 }
 
+button.lp-btn {
+  border: 0;
+  color: var(--lp-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
 .lp-btn svg {
   width: 18px;
   height: 18px;
@@ -580,6 +589,190 @@
   color: var(--lp-muted);
 }
 
+/* About (label + statement + numbered points) */
+
+.lp-about {
+  display: grid;
+  align-items: start;
+  gap: 20px;
+}
+
+@media (min-width: 900px) {
+  .lp-about {
+    grid-template-columns: 1fr 3fr;
+    gap: 48px;
+  }
+}
+
+.lp-about-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding-top: 0.6em;
+  font-size: 13px;
+  color: var(--lp-muted);
+}
+
+.lp-about-label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lp-text);
+}
+
+.lp-about-statement {
+  margin: 0;
+  max-width: 24em;
+  font-size: clamp(1.6rem, 1.1rem + 2vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.22;
+  letter-spacing: -0.025em;
+  text-wrap: pretty;
+}
+
+/* Words go from muted to full ink as the statement crosses the viewport */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lp-about-statement span {
+      animation: lp-word-ink linear both;
+      animation-timeline: view();
+      animation-range: cover calc(12% + var(--w) * 1.1%) cover calc(22% + var(--w) * 1.1%);
+    }
+  }
+}
+
+@keyframes lp-word-ink {
+  from { color: color-mix(in srgb, var(--lp-text) 22%, var(--lp-bg)); }
+  to { color: var(--lp-text); }
+}
+
+.lp-about-points {
+  display: grid;
+  margin: clamp(36px, 5vw, 56px) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp-about-points li {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 4px 12px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--lp-line);
+}
+
+.lp-about-num {
+  grid-row: span 2;
+  padding-top: 2px;
+  font-size: 13px;
+  color: var(--lp-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-about-points h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.lp-about-points p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--lp-muted);
+}
+
+@media (min-width: 768px) {
+  .lp-about-points li {
+    grid-template-columns: 56px minmax(0, 1fr) minmax(0, 2fr);
+    align-items: baseline;
+  }
+
+  .lp-about-num { grid-row: auto; }
+}
+
+/* Party structure (alternating text + illustration rows) */
+
+.lp-struct {
+  display: grid;
+  gap: clamp(64px, 10vw, 128px);
+}
+
+.lp-struct-row {
+  display: grid;
+  gap: 28px;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .lp-struct-row {
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(48px, 7vw, 96px);
+  }
+
+  .lp-struct-row.is-flipped .lp-struct-visual { order: -1; }
+}
+
+.lp-struct-text {
+  max-width: 440px;
+}
+
+.lp-struct-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--lp-muted);
+}
+
+.lp-struct-kicker i {
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.lp-struct-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.4rem);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.lp-struct-body {
+  margin: 16px 0 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--lp-muted);
+  text-wrap: pretty;
+}
+
+.lp-struct-text .lp-btn {
+  margin-top: 26px;
+}
+
+.lp-btn--outline {
+  min-height: 42px;
+  padding: 0 18px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lp-text) 22%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-btn--outline:hover { background: var(--lp-surface); }
+}
+
+.lp-struct-visual {
+  aspect-ratio: 5 / 4;
+  border-radius: 16px;
+  background: var(--lp-surface);
+}
+
 /* FAQ (accordion: 0fr ↔ 1fr grid track) */
 
 .lp-faq-layout {
@@ -713,6 +906,255 @@
   font-size: 17px;
   line-height: 1.5;
   color: rgb(255 255 255 / 0.66);
+}
+
+/* ── Leadership page ── */
+
+.lp-page-head {
+  padding: clamp(48px, 8vw, 104px) 0 0;
+  text-align: center;
+}
+
+.lp-page-head .lp-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lp-section--first {
+  padding-top: clamp(48px, 7vw, 88px);
+}
+
+.lp-lead-pending {
+  margin: 20px 0 0;
+  padding: 20px 24px;
+  border-radius: 20px;
+  background: var(--lp-surface);
+  color: var(--lp-muted);
+  font-size: 15px;
+}
+
+/* Majlis Tertinggi (Height team grid) */
+
+.lp-council {
+  display: grid;
+  gap: 20px 32px;
+  margin: clamp(24px, 3vw, 36px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .lp-council { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .lp-council { grid-template-columns: repeat(3, 1fr); }
+}
+
+.lp-council li {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  min-width: 0;
+}
+
+.lp-council-photo {
+  flex: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--lp-surface);
+}
+
+.lp-council-photo--empty {
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--lp-surface) 55%, var(--lp-text));
+}
+
+@media (min-width: 640px) {
+  .lp-council-photo { width: 72px; height: 72px; border-radius: 16px; }
+  .lp-council-photo--empty { font-size: 20px; }
+}
+
+/* Phone: Ahli Exco show the first 6 + "show all"; laptop always shows the full grid */
+.lp-more { display: none; }
+
+@media (max-width: 639px) {
+  .lp-council.is-collapsed li:nth-child(n + 7) { display: none; }
+  .lp-more { display: flex; width: 100%; margin-top: 24px; }
+}
+
+.lp-h3 {
+  margin: clamp(40px, 5vw, 56px) 0 0;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.lp-council-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lp-council-name {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.lp-council-role {
+  font-size: 15px;
+  color: var(--lp-muted);
+}
+
+.lp-council-socials {
+  display: flex;
+  gap: 2px;
+  margin: 4px 0 0 -6px;
+}
+
+.lp-council-socials a {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--lp-muted);
+  transition: color var(--duration-quick) ease, background-color var(--duration-quick) ease;
+}
+
+.lp-council-socials svg {
+  width: 15px;
+  height: 15px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-council-socials a:hover {
+    color: var(--lp-text);
+    background: var(--lp-surface);
+  }
+}
+
+@media (pointer: coarse) {
+  .lp-council-socials { gap: 6px; }
+  .lp-council-socials a { width: 36px; height: 36px; }
+  .lp-council-socials svg { width: 17px; height: 17px; }
+}
+
+/* Ketua Belia Cawangan (clean list) */
+
+.lp-branch-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 32px;
+}
+
+.lp-branch-sub {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--lp-muted);
+}
+
+.lp-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--lp-surface);
+  color: var(--lp-muted);
+}
+
+@media (min-width: 768px) {
+  .lp-search { max-width: 340px; }
+}
+
+.lp-search svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.lp-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--lp-text);
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+
+.lp-search input::placeholder { color: var(--lp-muted); }
+
+.lp-search:focus-within {
+  box-shadow: 0 0 0 2px var(--lp-text);
+}
+
+.lp-branch-count {
+  margin: 28px 0 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--lp-line);
+  font-size: 13px;
+  color: var(--lp-muted);
+}
+
+.lp-branches {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-branches li {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 2px 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--lp-line);
+  font-size: 16px;
+}
+
+.lp-branch-code {
+  grid-row: span 2;
+  color: var(--lp-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-branch-area {
+  font-size: 14px;
+  color: var(--lp-muted);
+}
+
+.lp-branch-name {
+  font-weight: 500;
+}
+
+.lp-branch-name.is-pending {
+  font-weight: 400;
+  color: var(--lp-muted);
+}
+
+@media (min-width: 768px) {
+  .lp-branches li {
+    grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1.4fr);
+    align-items: baseline;
+  }
+
+  .lp-branch-code { grid-row: auto; }
+  .lp-branch-area { font-size: 16px; color: var(--lp-text); }
 }
 
 /* ── Footer ── */

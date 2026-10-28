@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.9.2 — 2026-10-28
+
+### Added
+- Kepimpinan page (beliapbb.com/kepimpinan): Majlis Tertinggi grid (photo or initials, position, cawangan, social and WhatsApp links) and a searchable list of Ketua Belia Cawangan for all 82 DUN
+- Kepimpinan reads two Google Sheets live, so the committee can edit names, photos and links without a deploy; falls back to the bundled list if the sheets can't be reached
+- Landing: "Tentang Belia PBB" section with a scroll-linked statement and three numbered points
+- Landing: party structure section (Majlis Kerja Tertinggi, Wanita dan Pemuda, Belia PBB) with illustration placeholders
+- "Kepimpinan" link in the landing nav and footer
+
+### Changed
+- Ketua Belia Cawangan list updated from the 2025/27 spreadsheet; all 82 DUN now have a leader
+
 ## 0.0.9.1 — 2026-10-28
 
 ### Changed
