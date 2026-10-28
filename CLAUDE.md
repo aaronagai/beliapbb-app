@@ -30,25 +30,28 @@ Key routing rules:
 ## Ship policy
 
 **`/ship` = ship live to the GitHub repo.** Finish with changes on **`origin/main`**.
-GitHub Pages deploys from `main` automatically via `.github/workflows/deploy-pages.yml`.
+Cloudflare Pages builds and deploys both sites from `main` automatically (see Deploy configuration).
 
 | Situation | What to do |
 |-----------|------------|
 | On `main` with changes | `git commit` → `git push origin main` |
 | On a feature branch | commit → push branch → merge to `main` same session (`gh pr merge --squash --delete-branch`) |
-| After push | `git log -1 origin/main`; watch the Pages deploy via `gh run watch` |
+| After push | `git log -1 origin/main`; check the deploys in Cloudflare (Workers & Pages → beliapbb-site / beliapbb-app → Deployments), then run the post-deploy check |
 
-Always run `npm run build` (which runs `tsc --noEmit` + `vite build`) before shipping to catch type/build errors — the Pages workflow will fail the same way if the build is broken.
+Always run `npm run build:site` and `npm run build:app` (each runs `tsc --noEmit` + `vite build`) before shipping to catch type/build errors — Cloudflare's builds will fail the same way if the build is broken.
 
 ## Deploy configuration
 
-- Platform: GitHub Pages (GitHub Actions)
-- Live site: https://beliapbb.com/ (custom domain via `public/CNAME`; DNS at Namecheap)
+- Platform: Cloudflare Pages, two projects built from this repo on every push to `main`:
+  - `beliapbb-site` → https://beliapbb.com/ (+ www): `npm run build:site` → `dist-site` (landing, /kepimpinan; `/app/*` redirects to the app)
+  - `beliapbb-app` → https://app.beliapbb.com/: `npm run build:app` → `dist-app` (the app at the root)
+  - Both use env `NODE_VERSION=22`; `scripts/postbuild.mjs` shapes each output (redirects, manifest, canonical URLs)
+- DNS: Cloudflare (nameservers moved from Namecheap; the domain is still registered at Namecheap). Email to hello@beliapbb.com uses Cloudflare Email Routing.
 - Repo: https://github.com/aaronagai/beliapbb-app
-- Deploy workflow: auto-deploy on push to `main` (`.github/workflows/deploy-pages.yml`)
-- Build: `npm run build` with `BASE_PATH=/`
-- Backend env: `VITE_CONSTITUTION_CHAT_API` (GitHub repo Variable) — URL of the deployed constitution RAG API, no trailing slash
-- Post-deploy check: `curl -sfL https://beliapbb.com/` returns 200
+- `npm run build` (no target) is the combined build used by `npm run dev`: site at `/`, app at `/app/`
+- Backend env: `VITE_CONSTITUTION_CHAT_API` (Cloudflare Pages env var on beliapbb-app) — URL of the deployed constitution RAG API, no trailing slash
+- Membership applications: Apps Script web app → private sheet "Permohonan Ahli Belia PBB (SULIT)" (`scripts/apps-script/permohonan.gs`)
+- Post-deploy check: `curl -sf https://beliapbb.com/ https://app.beliapbb.com/` returns 200; `https://beliapbb.com/app/` returns 301 to the app
 
 ## Local development
 

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.11.0 — 2026-10-28
+
+### Changed
+- Moved hosting from GitHub Pages to Cloudflare Pages: beliapbb.com and www serve the site (landing, /kepimpinan), app.beliapbb.com serves the app
+- Old links keep working: beliapbb.com/app/… and beliapbb.com/#ftes-style links forward to the same place on app.beliapbb.com
+- DNS moved to Cloudflare; hello@beliapbb.com forwarding moves to Cloudflare Email Routing
+
+### Removed
+- GitHub Pages deploy workflow and CNAME file
+
 ## 0.0.10.2 — 2026-10-28
 
 ### Added
