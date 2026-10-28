@@ -2,7 +2,7 @@
   "name": "Belia PBB",
   "short_name": "Belia PBB",
   "description": "Portal ahli Parti Pesaka Bumiputera Bersatu Sarawak",
-  "start_url": "./",
+  "start_url": "./app/",
   "display": "browser",
   "background_color": "#ececec",
   "theme_color": "#ffffff",

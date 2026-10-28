@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.9.0 — 2026-10-28
+
+### Added
+- New landing page at beliapbb.com: "Minat dengan pembangunan belia di Sarawak?" headline with app-icon tiles that cycle through stickers, an illustrated sticker burst (hornbill, hibiscus, mascot and friends), app preview, feature cards, FAQ and a join call-to-action, in BM and English
+- Site is served from the custom domain beliapbb.com
+
+### Changed
+- The app now lives at `/app/`; the home-screen app opens there
+- Old links such as `beliapbb.com/#ftes` forward to the same page in the app
+
 ## 0.0.8.2 — 2026-10-24
 
 ### Added
