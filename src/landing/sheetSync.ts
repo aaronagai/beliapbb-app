@@ -3,12 +3,14 @@ import { getAhliRows } from "../ahliData";
 import { MAJLIS_TERTINGGI, whatsappHref, type CouncilMember, type CouncilSocials } from "./leadershipData";
 
 /**
- * The leadership page reads two Google Sheets live, so the committee can edit names,
- * photos and links without a deploy. Both sheets must be shared "Anyone with the link:
- * Viewer". If a sheet can't be read, the page keeps the data bundled with the site.
+ * The leadership page reads the "Kepimpinan Belia PBB Sarawak" Google Sheet live, so the
+ * committee can edit names, photos and links without a deploy. The sheet must be shared
+ * "Anyone with the link: Viewer", and the tab names below must stay as they are. If a tab
+ * can't be read, the page keeps the data bundled with the site.
  */
-const COUNCIL_SHEET_ID = "1eTQY5Ox2PLBNrPS4pQlz3K2xyeXaRV2tOXmN-kP5SiI";
-const BRANCH_SHEET_ID = "1k0mZtno99UqbxNSMY3YJIsT0s-p-503qB07jARhngvE";
+const SHEET_ID = "1eTQY5Ox2PLBNrPS4pQlz3K2xyeXaRV2tOXmN-kP5SiI";
+const COUNCIL_TAB = "Majlis Tertinggi";
+const BRANCH_TAB = "Ketua Belia Cawangan";
 const CACHE_KEY = "belia-leadership-v1";
 
 export type Branch = { cawangan: string; name: string };
@@ -21,8 +23,8 @@ const BUNDLED: LeadershipData = {
     .map((r) => ({ cawangan: r.cawangan, name: r.name })),
 };
 
-function sheetCsvUrl(id: string) {
-  return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
+function tabCsvUrl(tab: string) {
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(tab)}`;
 }
 
 /** RFC 4180 CSV → rows of cells (handles quotes, escaped quotes and newlines in cells). */
@@ -140,9 +142,9 @@ function toBranches(rows: string[][]): Branch[] {
     .filter((b) => /^N\.\s?\d+/i.test(b.cawangan));
 }
 
-async function fetchRows(id: string) {
-  const res = await fetch(sheetCsvUrl(id), { cache: "no-store" });
-  if (!res.ok) throw new Error(`Sheet ${id}: ${res.status}`);
+async function fetchRows(tab: string) {
+  const res = await fetch(tabCsvUrl(tab), { cache: "no-store" });
+  if (!res.ok) throw new Error(`Sheet tab ${tab}: ${res.status}`);
   return parseCsv(await res.text());
 }
 
@@ -169,7 +171,7 @@ export function useLeadershipData(): LeadershipData {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.allSettled([fetchRows(COUNCIL_SHEET_ID), fetchRows(BRANCH_SHEET_ID)]).then(([council, branches]) => {
+    Promise.allSettled([fetchRows(COUNCIL_TAB), fetchRows(BRANCH_TAB)]).then(([council, branches]) => {
       if (cancelled) return;
       const liveCouncil = council.status === "fulfilled" ? toCouncil(council.value) : [];
       const liveBranches = branches.status === "fulfilled" ? toBranches(branches.value) : [];

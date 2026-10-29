@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.11.1 — 2026-10-29
+
+### Changed
+- Kepimpinan reads one Google Sheet ("Kepimpinan Belia PBB Sarawak") with two tabs, Majlis Tertinggi and Ketua Belia Cawangan, instead of two separate sheets
+
 ## 0.0.11.0 — 2026-10-28
 
 ### Changed
