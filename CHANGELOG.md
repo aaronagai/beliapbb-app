@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.11.2 — 2026-10-29
+
+### Fixed
+- Kepimpinan cards: name and position are centred beside the photo, spacing is even, and the social icons line up with the text edge on phones as well as laptops
+
 ## 0.0.11.1 — 2026-10-29
 
 ### Changed
