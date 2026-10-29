@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.11.3 — 2026-10-29
+
+### Changed
+- Link previews: a simple share image with the PBB logo and "BeliaPBB.com"
+- The favicon is now the PBB logo (it was a 7 MB traced photo), with matching icons for iPhone home screens and app installs
+
 ## 0.0.11.2 — 2026-10-29
 
 ### Fixed
