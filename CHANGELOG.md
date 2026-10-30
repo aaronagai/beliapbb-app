@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.12.2 — 2026-10-30
+
+### Changed
+- Tanya FTES knows the full official list of 64 approved programmes by university (from MEITD's FTES booklet), that Medicine and Law are not yet offered, and the latest intake figures from the October 2026 DUN sitting
+
 ## 0.0.12.1 — 2026-10-30
 
 ### Added

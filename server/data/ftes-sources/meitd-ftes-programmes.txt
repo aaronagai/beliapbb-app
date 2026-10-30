@@ -1,0 +1,79 @@
+Title: List of approved degree programmes under FTES (Senarai program ijazah yang diluluskan di bawah FTES)
+Publisher: Ministry of Education, Innovation and Talent Development Sarawak (MEITD) — FTES booklet linked by QR code from the official FTES FAQ
+Date: June 2026; checked against the MEITD FAQ page updated 29 October 2026
+
+FTES covers 64 approved undergraduate (Bachelor's / Ijazah Sarjana Muda) programmes at the four Sarawak-owned institutions of higher learning (SIHL): Swinburne Sarawak 22, Curtin Malaysia 20, UTS 16, i-CATS 6. Programmes not on this list are not covered by FTES.
+Fields: STEM (science, technology, engineering and mathematics), accounting, finance and psychology. Medicine and Law are in scope but are only to be offered under FTES once available at an SIHL; as of this list no Medicine or Law programme is offered. Perubatan dan Undang-undang akan ditawarkan apabila tersedia di SIHL.
+Each programme below is listed with its university. Program yang disenaraikan di bawah ditawarkan percuma (yuran pengajian) di bawah FTES.
+
+Approved FTES programmes at Swinburne University of Technology Sarawak Campus (Kuching) (22 programmes):
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Engineering (Honours) (Chemical)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Engineering (Honours) (Civil)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Engineering (Honours) (Electrical and Electronic)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Engineering (Honours) (Mechanical)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Engineering (Honours) (Robotics and Mechatronics)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Engineering (Honours) (Software)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Computer Science
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Information and Communication Technology
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Quantity Surveying (Honours)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Science (Biotechnology)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Science (Environmental Science)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Cyber Security
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Data Science
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Design
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Design (Multimedia Design)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Business (Accounting and Finance)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Business (Accounting)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Business (Finance)
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Business, majors in Finance and Marketing
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Business, majors in Finance and Management
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Business, majors in Finance and Human Resource Management
+- Swinburne University of Technology Sarawak Campus (Kuching): Bachelor of Business, majors in Finance and International Business
+
+Approved FTES programmes at Curtin University Malaysia (Miri) (20 programmes):
+- Curtin University Malaysia (Miri): Bachelor of Technology (Computer Systems and Networking)
+- Curtin University Malaysia (Miri): Bachelor of Computing (Software Engineering)
+- Curtin University Malaysia (Miri): Bachelor of Computing (Cyber Security)
+- Curtin University Malaysia (Miri): Bachelor of Engineering (Energy Engineering) (Honours)
+- Curtin University Malaysia (Miri): Bachelor of Engineering (Chemical Engineering) (Honours)
+- Curtin University Malaysia (Miri): Bachelor of Engineering (Mechatronic Engineering) (Honours)
+- Curtin University Malaysia (Miri): Bachelor of Engineering (Civil and Construction Engineering) (Honours)
+- Curtin University Malaysia (Miri): Bachelor of Engineering (Mechanical Engineering) (Honours)
+- Curtin University Malaysia (Miri): Bachelor of Engineering (Electrical and Electronic Engineering) (Honours)
+- Curtin University Malaysia (Miri): Bachelor of Engineering (Environmental Engineering) (Honours)
+- Curtin University Malaysia (Miri): Bachelor of Applied Geology
+- Curtin University Malaysia (Miri): Bachelor of Applied Science (Construction Management) (Honours)
+- Curtin University Malaysia (Miri): Bachelor of Science (Psychological Science)
+- Curtin University Malaysia (Miri): Bachelor of Science (Health, Safety and Environment)
+- Curtin University Malaysia (Miri): Bachelor of Commerce (Accounting)
+- Curtin University Malaysia (Miri): Bachelor of Commerce (Finance)
+- Curtin University Malaysia (Miri): Bachelor of Commerce (Accounting and Finance)
+- Curtin University Malaysia (Miri): Bachelor of Commerce (Finance and Management)
+- Curtin University Malaysia (Miri): Bachelor of Commerce (Finance and Marketing)
+- Curtin University Malaysia (Miri): Bachelor of Commerce (Accounting and Audit Analytic)
+
+Approved FTES programmes at University of Technology Sarawak, UTS (Sibu) (16 programmes):
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Civil Engineering (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Mechanical Engineering (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Electrical Engineering (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Quantity Surveying (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Science in Architecture (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Computer Science (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Mobile Game Development (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Marine Engineering
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Food Technology (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Science in Occupational Safety and Health (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Arts (Honours) in Creative Digital Media
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Arts in Industrial Design (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Technology Management (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Arts (Honours) in Interior Design
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Accountancy (Honours)
+- University of Technology Sarawak, UTS (Sibu): Bachelor of Science (Honours) in Property and Construction Management
+
+Approved FTES programmes at i-CATS University College (Kuching) (6 programmes):
+- i-CATS University College (Kuching): Bachelor of Science (Honours) in Agrotechnology
+- i-CATS University College (Kuching): Bachelor of Software Engineering (Honours)
+- i-CATS University College (Kuching): Bachelor of Engineering (Honours) in Electrical and Electronic
+- i-CATS University College (Kuching): Bachelor of Aerospace Engineering
+- i-CATS University College (Kuching): Bachelor of Psychology (subject to approval)
+- i-CATS University College (Kuching): Bachelor of Accounting / Finance (Honours) (subject to approval)
