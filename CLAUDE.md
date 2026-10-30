@@ -49,7 +49,8 @@ Always run `npm run build:site` and `npm run build:app` (each runs `tsc --noEmit
 - DNS: Cloudflare (nameservers moved from Namecheap; the domain is still registered at Namecheap). Email to hello@beliapbb.com uses Cloudflare Email Routing.
 - Repo: https://github.com/aaronagai/beliapbb-app
 - `npm run build` (no target) is the combined build used by `npm run dev`: site at `/`, app at `/app/`
-- Backend env: `VITE_CONSTITUTION_CHAT_API` (Cloudflare Pages env var on beliapbb-app) — URL of the deployed constitution RAG API, no trailing slash
+- AI chats (Tanya FTES, Perlembagaan AI): Cloudflare Pages Functions in `functions/api/*-chat.ts` on beliapbb-app, using the Workers AI binding `AI` (Settings → Bindings). Answers: SEA-LION v4 27B (Gemma 4 fallback); search: bge-m3 embeddings, computed on first use and cached. Passages live in `functions/_data/*.json`: after changing `public/perlembagaan.pdf` or `server/data/ftes-sources/`, run `npm run chat:chunks` and commit. Free allowance is 10,000 neurons/day (roughly 100 questions).
+- `VITE_CONSTITUTION_CHAT_API` (optional) points the chats at another host instead of the app's own `/api/`
 - Membership applications: Apps Script web app → private sheet "Permohonan Ahli Belia PBB (SULIT)" (`scripts/apps-script/permohonan.gs`)
 - Post-deploy check: `curl -sf https://beliapbb.com/ https://app.beliapbb.com/` returns 200; `https://beliapbb.com/app/` returns 301 to the app
 
