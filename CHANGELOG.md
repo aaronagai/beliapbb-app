@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.11.4 — 2026-10-30
+
+### Added
+- Kepimpinan: photos for Herdtzson Welbvertz Anak Awi and Hendy Martin Unddy Anak Alfred Ullok
+
 ## 0.0.11.3 — 2026-10-29
 
 ### Changed
