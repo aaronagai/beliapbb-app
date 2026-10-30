@@ -2,10 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
-## 0.0.12.0 — 2026-10-30
+## 0.0.12.1 — 2026-10-30
 
 ### Added
 - Tanya FTES and Perlembagaan AI work on app.beliapbb.com: Cloudflare Pages Functions answer with Workers AI (SEA-LION, tuned for Malay), searching the constitution and the FTES documents with multilingual embeddings. No OpenAI key needed.
+- The chats reply in the language of the question (Malay or English), even though most sources are in Malay
 
 ## 0.0.11.4 — 2026-10-30
 

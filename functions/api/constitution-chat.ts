@@ -16,7 +16,6 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: E
 Rules:
 - Answer ONLY using the excerpts below. If they do not contain the answer, say so clearly — do not guess or invent rules.
 - Prefer close paraphrase; cite excerpt numbers like [1], [2] when relevant.
-- Reply in the language of the user's question (Bahasa Melayu or English).
 - Be concise unless asked for detail.
 - Informational only; not legal advice.
 

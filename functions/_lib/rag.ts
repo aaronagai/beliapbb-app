@@ -137,13 +137,30 @@ function replyText(out: unknown): string {
   return typeof content === "string" ? content : "";
 }
 
+/** Common function words; the sources are mostly Malay, so models drift into it unless told. */
+const MALAY_WORDS =
+  /\b(apa|apakah|bagaimana|berapa|siapa|bila|bilakah|mana|kenapa|mengapa|boleh|saya|untuk|yang|dan|tidak|ada|adalah|layak|perlu|ahli|ini|itu|dengan|kepada|daripada|dalam|maksud|bagi|jika|kalau|ke|di|saja|sahaja)\b/gi;
+const ENGLISH_WORDS =
+  /\b(the|is|are|what|who|how|can|do|does|i|to|for|of|in|if|my|you|when|which|why|be|need|much|am)\b/gi;
+
+function replyLanguage(question: string): string {
+  const malay = question.match(MALAY_WORDS)?.length ?? 0;
+  const english = question.match(ENGLISH_WORDS)?.length ?? 0;
+  return malay > english ? "Bahasa Melayu" : "English";
+}
+
 export async function answer(
   env: Env,
   system: string,
   chat: ParsedChat,
   temperature: number,
 ): Promise<string> {
-  const messages = [{ role: "system", content: system }, ...chat.prior, { role: "user", content: chat.question }];
+  const language = replyLanguage(chat.question);
+  const messages = [
+    { role: "system", content: `${system}\n\nThe question is in ${language}. Write the whole reply in ${language}, translating from the excerpts where needed.` },
+    ...chat.prior,
+    { role: "user", content: chat.question },
+  ];
   let lastError: unknown;
   for (const model of CHAT_MODELS) {
     try {
