@@ -120,14 +120,49 @@
   50% { transform: scale(1.12); }
 }
 
-/* The one box the demo leaves for the visitor breathes until it's ticked */
-.xc-check[data-hint] .xc-box {
-  animation: xc-hint 1.6s var(--ease-smooth-out) infinite;
+/* All ticked: the boxes turn green one after another, then the pill */
+.xc-elig {
+  --xc-green: #16a34a;
 }
 
-@keyframes xc-hint {
-  0%, 100% { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--lp-text) 22%, transparent), 0 0 0 0 color-mix(in srgb, var(--lp-text) 18%, transparent); }
-  50% { box-shadow: inset 0 0 0 1.5px var(--lp-text), 0 0 0 5px color-mix(in srgb, var(--lp-text) 0%, transparent); }
+:root[data-theme="dark"] .xc-elig {
+  --xc-green: #22c55e;
+}
+
+.xc-elig[data-done] .xc-box {
+  background: var(--xc-green);
+  box-shadow: inset 0 0 0 1.5px var(--xc-green);
+  transition-delay: calc(var(--i) * 40ms);
+}
+
+.xc-elig[data-done] .xc-box svg { color: #fff; }
+
+.xc-elig[data-done] .xc-elig-count { color: var(--xc-green); }
+
+.lp .xc-elig[data-done] .xc-elig-done {
+  background: var(--xc-green);
+  color: #fff;
+}
+
+.xc-elig[data-done] .xc-elig-done-mark svg {
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+  animation: xc-draw var(--duration-fast) var(--ease-smooth-out) 200ms forwards;
+}
+
+@keyframes xc-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.xc-check { position: relative; z-index: 1; }
+
+.xc-confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 /* Hint and result share one slot and cross-fade */
@@ -524,8 +559,9 @@
   .xc-rolltext-in,
   .xc-rolltext-out,
   .xc-check[data-on] .xc-box,
-  .xc-check[data-hint] .xc-box {
+  .xc-elig[data-done] .xc-elig-done-mark svg {
     animation: none;
+    stroke-dashoffset: 0;
   }
   .xc-rolltext-out { display: none; }
   .xc-story-title { animation: none; }

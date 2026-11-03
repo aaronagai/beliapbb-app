@@ -374,6 +374,8 @@ button.lp-btn {
 }
 
 .lp-card {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: 16px 16px 24px;
@@ -392,6 +394,11 @@ button.lp-btn {
   border-radius: 20px;
   background: var(--lp-surface-2);
   box-shadow: 0 1px 0 var(--lp-line);
+}
+
+/* The confetti canvas inside belongs to the whole card, not this panel */
+.lp-card-stage--elig {
+  position: static;
 }
 
 .lp-card-stage--story {

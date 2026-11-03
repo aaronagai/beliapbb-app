@@ -57,30 +57,117 @@ function useInView<T extends Element>() {
 /* ── Tanya FTES: eligibility check ─────────────────────────────────────── */
 
 const CRITERIA: MessageKey[] = ["landingElig1", "landingElig2", "landingElig3", "landingElig4", "landingElig5"];
-/** The demo ticks all but the last, so the visitor gets to finish it. */
-const AUTO_TICKS = CRITERIA.length - 1;
+const CONFETTI_COLORS = ["#16a34a", "#22c55e", "#86efac", "#facc15", "#f97316", "#ef4444", "#3b82f6"];
+
+/** A one-off confetti burst on a canvas covering the card's stage (clipped by it). */
+function burstConfetti(canvas: HTMLCanvasElement, origin: { x: number; y: number }) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return () => {};
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+
+  const parts = Array.from({ length: 90 }, () => {
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.9;
+    const speed = 5 + Math.random() * 7;
+    return {
+      x: origin.x + (Math.random() - 0.5) * 40,
+      y: origin.y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: 5 + Math.random() * 5,
+      rot: Math.random() * Math.PI,
+      spin: (Math.random() - 0.5) * 0.4,
+      tilt: Math.random() * Math.PI,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      round: Math.random() < 0.3,
+    };
+  });
+
+  const start = performance.now();
+  const life = 2200;
+  let raf = 0;
+  const frame = (now: number) => {
+    const t = now - start;
+    ctx.clearRect(0, 0, w, h);
+    const fade = Math.min(1, Math.max(0, (life - t) / 500));
+    for (const p of parts) {
+      p.vy += 0.28; // gravity
+      p.vx *= 0.985; // air
+      p.vy *= 0.985;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.spin;
+      p.tilt += 0.12;
+      ctx.save();
+      ctx.globalAlpha = fade;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.round) {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Paper flutter: the strip's height breathes as it turns
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, (p.size / 2) * Math.abs(Math.cos(p.tilt)) + 1);
+      }
+      ctx.restore();
+    }
+    if (t < life) raf = requestAnimationFrame(frame);
+    else ctx.clearRect(0, 0, w, h);
+  };
+  raf = requestAnimationFrame(frame);
+  return () => cancelAnimationFrame(raf);
+}
 
 export function EligibilityStage({ askHref }: { askHref: string }) {
   const { t } = useI18n();
   const [ref, seen] = useSeen<HTMLDivElement>();
   const [checked, setChecked] = useState<boolean[]>(() => CRITERIA.map(() => false));
   const touched = useRef(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pillRef = useRef<HTMLAnchorElement>(null);
+  const wasDone = useRef(false);
 
+  // Demo: the criteria tick one by one, all the way to the green result
   useEffect(() => {
     if (!seen || touched.current || prefersReducedMotion()) return;
-    const timers = Array.from({ length: AUTO_TICKS }, (_, i) =>
+    const timers = CRITERIA.map((_, i) =>
       window.setTimeout(() => {
         if (touched.current) return;
         setChecked((c) => c.map((v, j) => (j === i ? true : v)));
-      }, 500 + i * 380),
+      }, 500 + i * 420),
     );
     return () => timers.forEach(clearTimeout);
   }, [seen]);
 
   const count = checked.filter(Boolean).length;
   const done = count === CRITERIA.length;
-  const next = checked.indexOf(false);
-  const hinting = !touched.current && count === AUTO_TICKS && next === CRITERIA.length - 1;
+
+  // Confetti each time the list becomes complete, from the result pill
+  useEffect(() => {
+    const became = done && !wasDone.current;
+    wasDone.current = done;
+    if (!became || prefersReducedMotion()) return;
+    const canvas = canvasRef.current;
+    const pill = pillRef.current;
+    if (!canvas || !pill) return;
+    const c = canvas.getBoundingClientRect();
+    const p = pill.getBoundingClientRect();
+    let stop = () => {};
+    // Let the boxes turn green first
+    const id = window.setTimeout(() => {
+      stop = burstConfetti(canvas, { x: p.left - c.left + p.width / 2, y: p.top - c.top + p.height / 2 });
+    }, 260);
+    return () => {
+      clearTimeout(id);
+      stop();
+    };
+  }, [done]);
 
   function toggle(i: number) {
     touched.current = true;
@@ -88,7 +175,8 @@ export function EligibilityStage({ askHref }: { askHref: string }) {
   }
 
   return (
-    <div className="xc-elig" ref={ref}>
+    <div className="xc-elig" ref={ref} data-done={done || undefined}>
+      <canvas className="xc-confetti" ref={canvasRef} aria-hidden="true" />
       <div className="xc-elig-head">
         <span>{t("landingEligTitle")}</span>
         <span className="xc-elig-count" aria-hidden="true">
@@ -104,7 +192,7 @@ export function EligibilityStage({ askHref }: { askHref: string }) {
               aria-checked={checked[i]}
               className="xc-check"
               data-on={checked[i] || undefined}
-              data-hint={(hinting && i === next) || undefined}
+              style={{ "--i": i } as CSSProperties}
               onClick={() => toggle(i)}
             >
               <span className="xc-box" aria-hidden="true">
@@ -122,6 +210,7 @@ export function EligibilityStage({ askHref }: { askHref: string }) {
           {t("landingEligHint")}
         </span>
         <a
+          ref={pillRef}
           className="xc-elig-done"
           href={askHref}
           data-on={done || undefined}

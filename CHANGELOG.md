@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.12.6 — 2026-11-03
+
+### Changed
+- Landing page, Tanya FTES card: the eligibility check ticks all five criteria one by one, then turns green ("Anda mungkin layak") with a confetti burst inside the card. Unticking and re-ticking plays it again; reduced motion skips the confetti
+
 ## 0.0.12.5 — 2026-11-03
 
 ### Changed

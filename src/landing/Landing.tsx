@@ -125,7 +125,7 @@ function Explore() {
         </h2>
         <div className="lp-explore">
           <article className="lp-card">
-            <div className="lp-card-stage">
+            <div className="lp-card-stage lp-card-stage--elig">
               <EligibilityStage askHref={appTab("ftes")} />
             </div>
             <h3 className="lp-card-title">
