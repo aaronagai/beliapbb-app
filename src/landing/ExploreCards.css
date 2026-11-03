@@ -259,20 +259,34 @@
 
 .xc-scrub-read {
   display: grid;
-  align-content: end;
-  gap: 4px;
+  align-content: start;
+  gap: 10px;
   flex: 1;
-  padding: 0 4px 12px;
+  min-height: 0;
+  padding: 4px 4px 0;
+}
+
+/* Number and title side by side; the title keeps two lines so nothing below moves */
+.xc-scrub-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: end;
+  gap: 12px;
+}
+
+.xc-scrub-num {
+  display: grid;
+  gap: 2px;
+  min-width: 2.2ch;
 }
 
 .xc-scrub-label {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--lp-muted);
 }
 
 .xc-scrub-big {
-  margin: -2px 0 2px -2px;
-  font-size: 64px;
+  font-size: 40px;
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -280,12 +294,28 @@
 }
 
 .xc-scrub-title {
-  /* Two lines reserved, so a long title never moves the rail */
   min-height: calc(2 * 1.2em);
-  font-size: 19px;
+  align-content: end;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.2;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
+}
+
+/* The article's own words, four lines at most */
+.xc-scrub-text {
+  min-height: calc(4 * 1.45em);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--lp-muted);
+}
+
+.xc-scrub-text > span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  text-wrap: pretty;
 }
 
 .xc-rolltext {
@@ -370,7 +400,7 @@
 .xc-scrub-ends {
   display: flex;
   justify-content: space-between;
-  margin: 2px 4px 0;
+  margin: 6px 4px 0;
   font-size: 12px;
   color: var(--lp-muted);
   font-variant-numeric: tabular-nums;

@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.12.7 — 2026-11-03
+
+### Changed
+- Landing page, Perlembagaan card: the article slider now shows each article's own text under its title, so dragging reads like flicking through the constitution. It lands on Artikel 23A (Pergerakan Belia PBB) when it comes into view
+
+### Fixed
+- The slider was missing Artikel 23A; all 42 articles (1–40, 17A, 23A) are in
+- Holding an arrow key on the slider no longer skips steps
+
 ## 0.0.12.6 — 2026-11-03
 
 ### Changed

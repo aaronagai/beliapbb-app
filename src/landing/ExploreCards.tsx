@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useI18n, type MessageKey } from "../i18n";
 import { fetchNewsFeed, type NewsCardModel } from "../jiwabakti";
+import { ARTICLES } from "./constitutionArticles";
 import "./ExploreCards.css";
 
 /* The explore cards' live stages. Each plays a short demo once when it scrolls into
@@ -233,53 +234,9 @@ export function EligibilityStage({ askHref }: { askHref: string }) {
 
 /* ── Perlembagaan: article scrubber ────────────────────────────────────── */
 
-/** The constitution's table of contents (amended to 7 June 2023), from public/perlembagaan.pdf. */
-const ARTICLES: [string, string][] = [
-  ["1", "Nama"],
-  ["2", "Alamat Berdaftar"],
-  ["3", "Lambang"],
-  ["4", "Lencana"],
-  ["5", "Bendera"],
-  ["6", "Cogan Kata dan Seruan"],
-  ["7", "Tujuan-Tujuan dan Kuasa-Kuasa"],
-  ["8", "Kelayakan Keahlian"],
-  ["9", "Permohonan Keahlian"],
-  ["10", "Penerimaan Keahlian"],
-  ["11", "Tanggungjawab dan Hak Ahli"],
-  ["12", "Pemberhentian Keahlian"],
-  ["13", "Perhimpunan Agung"],
-  ["14", "Majlis Tertinggi"],
-  ["15", "Caucus Parlimen"],
-  ["16", "Tanggungjawab Pemegang-Pemegang Jawatan"],
-  ["17", "Penubuhan, Pentadbiran dan Pengurusan Cawangan"],
-  ["17A", "Pendaftaran Cawangan dan Ranting"],
-  ["18", "Jawatankuasa Cawangan"],
-  ["19", "Penubuhan, Pentadbiran dan Pengurusan Ranting-Ranting"],
-  ["20", "Jawatankuasa Ranting"],
-  ["21", "Pelantikan Perwakilan"],
-  ["22", "Pergerakan Pemuda"],
-  ["23", "Pergerakan Wanita"],
-  ["24", "Syarat Menjadi Calon"],
-  ["25", "Disiplin Parti"],
-  ["26", "Buku Daftar Keahlian"],
-  ["27", "Kad Keahlian"],
-  ["28", "Sumber Kewangan"],
-  ["29", "Yuran"],
-  ["30", "Peruntukan Kewangan"],
-  ["31", "Harta Tak Alih"],
-  ["32", "Audit"],
-  ["33", "Peraturan-Peraturan"],
-  ["34", "Pindaan Perlembagaan"],
-  ["35", "Pungutan Suara (Referendum)"],
-  ["36", "Pembubaran, Percantuman dan Lain-Lain"],
-  ["37", "Pentafsiran"],
-  ["38", "Peruntukan Umum Mengenai Cawangan, Ranting dan Pergerakan"],
-  ["39", "Peruntukan-Peruntukan Khas"],
-  ["40", "Tarikh Kuatkuasa Perlembagaan"],
-];
 const LAST = ARTICLES.length - 1;
-/** Where the demo comes to rest: Article 8, membership eligibility. */
-const DEMO_TARGET = 7;
+/** Where the demo comes to rest: Article 23A, Pergerakan Belia PBB. */
+const DEMO_TARGET = ARTICLES.findIndex((a) => a.n === "23A");
 
 /** One rolling line: the outgoing value slides out as the new one slides in, in the direction of travel. */
 function RollText({ value, dir, className }: { value: string; dir: 1 | -1; className?: string }) {
@@ -314,12 +271,13 @@ export function ScrubberStage() {
   const [dragging, setDragging] = useState(false);
   const touched = useRef(false);
 
+  // The latest index, so held-down arrow keys step from where the last one landed
+  const indexRef = useRef(0);
   const go = useCallback((next: number) => {
     const clamped = Math.max(0, Math.min(LAST, next));
-    setIndex((i) => {
-      if (clamped !== i) setDir(clamped > i ? 1 : -1);
-      return clamped;
-    });
+    if (clamped !== indexRef.current) setDir(clamped > indexRef.current ? 1 : -1);
+    indexRef.current = clamped;
+    setIndex(clamped);
   }, []);
 
   // Demo: flick from Article 1 to Article 8, slowing as it arrives
@@ -328,7 +286,7 @@ export function ScrubberStage() {
     const timers: number[] = [];
     let at = 600;
     for (let i = 1; i <= DEMO_TARGET; i++) {
-      at += 70 + (i / DEMO_TARGET) ** 3 * 220;
+      at += 45 + (i / DEMO_TARGET) ** 4 * 260;
       timers.push(window.setTimeout(() => !touched.current && go(i), at));
     }
     return () => timers.forEach(clearTimeout);
@@ -353,7 +311,7 @@ export function ScrubberStage() {
 
   function onKeyDown(e: ReactKeyboardEvent<HTMLDivElement>) {
     const step = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 5, PageDown: -5 }[e.key];
-    if (step !== undefined) go(index + step);
+    if (step !== undefined) go(indexRef.current + step);
     else if (e.key === "Home") go(0);
     else if (e.key === "End") go(LAST);
     else return;
@@ -361,15 +319,20 @@ export function ScrubberStage() {
     e.preventDefault();
   }
 
-  const [num, title] = ARTICLES[index];
+  const { n: num, title, text } = ARTICLES[index];
   const pos = index / LAST;
 
   return (
     <div className="xc-scrub" ref={ref}>
       <div className="xc-scrub-read" aria-hidden="true">
-        <span className="xc-scrub-label">{t("landingScrubLabel")}</span>
-        <RollText value={num} dir={dir} className="xc-scrub-big" />
-        <RollText value={title} dir={dir} className="xc-scrub-title" />
+        <div className="xc-scrub-head">
+          <span className="xc-scrub-num">
+            <span className="xc-scrub-label">{t("landingScrubLabel")}</span>
+            <RollText value={num} dir={dir} className="xc-scrub-big" />
+          </span>
+          <RollText value={title} dir={dir} className="xc-scrub-title" />
+        </div>
+        <RollText value={text} dir={dir} className="xc-scrub-text" />
       </div>
       <div
         className="xc-scrub-rail"
@@ -380,7 +343,7 @@ export function ScrubberStage() {
         aria-valuemin={1}
         aria-valuemax={ARTICLES.length}
         aria-valuenow={index + 1}
-        aria-valuetext={`${t("landingScrubLabel")} ${num}: ${title}`}
+        aria-valuetext={`${t("landingScrubLabel")} ${num}: ${title}. ${text}`}
         data-dragging={dragging || undefined}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -390,7 +353,7 @@ export function ScrubberStage() {
         style={{ "--pos": pos } as CSSProperties}
       >
         <span className="xc-scrub-ticks" aria-hidden="true">
-          {ARTICLES.map(([n], i) => (
+          {ARTICLES.map(({ n }, i) => (
             <i key={n} data-on={i <= index || undefined} data-major={i === 0 || i === LAST || (Number(n) % 10 === 0 && !n.endsWith("A")) || undefined} />
           ))}
         </span>
