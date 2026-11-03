@@ -341,133 +341,183 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Headline deck ── */
+/* ── Stories ── */
 
-.xc-deck {
+.xc-story {
   position: relative;
   width: 100%;
   height: 100%;
-  /* Room above the top card for the two behind it to peek out */
-  padding-top: 20px;
-}
-
-.xc-deck-card {
-  --dx: 0px;
-  --rot: 0deg;
-  position: absolute;
-  inset: 20px 0 0;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  border-radius: 16px;
-  background: var(--lp-bg);
-  box-shadow: 0 0 0 1px var(--lp-line), 0 10px 24px -14px rgb(20 20 40 / 0.35);
+  border-radius: inherit;
+  background: var(--lp-surface);
+  color: #fff;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
-  touch-action: pan-y;
-  transform-origin: 50% 0;
-  transform: translate(var(--dx), calc(var(--d) * -10px)) scale(calc(1 - var(--d) * 0.05)) rotate(var(--rot));
-  transition:
-    transform var(--duration-slow) var(--ease-smooth-out),
-    opacity var(--duration-fast) var(--ease-smooth-out);
 }
 
-.xc-deck-card[data-top] { cursor: grab; }
-.xc-deck-card[data-dragging] { cursor: grabbing; transition: none; }
-.xc-deck-card[data-hidden] { opacity: 0; pointer-events: none; }
-
-/* Cards behind the top one dim a little so the stack reads as depth */
-.xc-deck-card:not([data-top]) .xc-deck-img,
-.xc-deck-card:not([data-top]) .xc-deck-body { opacity: 0.55; }
-
-.xc-deck-card[data-fly] {
+.xc-story-photo {
+  position: absolute;
+  inset: 0;
   opacity: 0;
-  transition:
-    transform var(--duration-fast) var(--ease-smooth-out),
-    opacity var(--duration-fast) var(--ease-smooth-out);
+  transition: opacity var(--duration-slow) var(--ease-smooth-out);
 }
 
-.xc-deck-card[data-fly="left"] { transform: translate(-115%, 6px) rotate(-10deg); }
-.xc-deck-card[data-fly="right"] { transform: translate(115%, 6px) rotate(10deg); }
+.xc-story-photo[data-on] { opacity: 1; }
 
-.xc-deck-img {
-  flex: 1;
-  min-height: 0;
-  background: var(--lp-surface);
-}
-
-.xc-deck-img img {
+.xc-story-photo img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scale(1.06);
+  transition: transform 5s linear;
+}
+
+/* A slow push-in while the story is up */
+.xc-story-photo[data-on] img { transform: scale(1); }
+
+.xc-story-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgb(0 0 0 / 0.35), transparent 22%),
+    linear-gradient(to top, rgb(0 0 0 / 0.75), rgb(0 0 0 / 0.35) 38%, transparent 62%);
+}
+
+.xc-story-bars {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
   pointer-events: none;
 }
 
-.xc-deck-body {
-  display: grid;
-  gap: 4px;
-  padding: 10px 14px 12px;
+.xc-story-bar {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.35);
 }
 
-.xc-deck-title {
+.xc-story-bar[data-done] { background: #fff; }
+
+.xc-story-fill {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  transform-origin: left;
+  animation: xc-story-fill linear forwards;
+}
+
+.xc-story[data-paused] .xc-story-fill { animation-play-state: paused; }
+
+@keyframes xc-story-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Tap zones: back on the left third, forward on the rest, above the headline */
+.xc-story-zone {
+  position: absolute;
+  top: 0;
+  bottom: 84px;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.xc-story-zone--prev { left: 0; width: 34%; }
+.xc-story-zone--next { right: 0; width: 66%; }
+
+.xc-story-zone:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #fff;
+  border-radius: inherit;
+}
+
+.lp .xc-story-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  color: #fff;
+}
+
+.xc-story-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  font-size: 14px;
+  min-height: calc(2 * 1.25em);
+  font-size: 16px;
   font-weight: 500;
-  line-height: 1.3;
-  /* Two lines always, so the cards in the stack share one height */
-  min-height: calc(2 * 1.3em);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+  animation: xc-story-title var(--duration-fast) var(--ease-smooth-out);
 }
 
-.xc-deck-body small {
+@keyframes xc-story-title {
+  from { opacity: 0; transform: translateY(6px); filter: blur(2px); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp .xc-story-text:hover .xc-story-title { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+}
+
+.xc-story-text small {
+  display: flex;
+  gap: 4px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.75);
+}
+
+.xc-story-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.xc-story--ghost {
+  color: var(--lp-text);
+}
+
+.xc-story--ghost .xc-story-bar { background: color-mix(in srgb, var(--lp-text) 10%, transparent); }
+
+.xc-story--ghost .xc-story-text {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+}
+
+.xc-story--ghost .xc-story-text i {
+  display: block;
+  height: 9px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--lp-text) 10%, transparent);
+}
+
+.xc-story--ghost .xc-story-text i:nth-child(2) { width: 60%; }
+
+.xc-story--ghost .xc-story-text small {
   font-size: 12px;
   color: var(--lp-muted);
 }
-
-.xc-deck-card--ghost .xc-deck-body i {
-  display: block;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--lp-surface);
-}
-
-.xc-deck-card--ghost .xc-deck-body i:nth-child(2) { width: 60%; }
-
-.xc-deck-next {
-  position: absolute;
-  right: 10px;
-  bottom: 62px;
-  z-index: 20;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 0;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--lp-bg) 88%, transparent);
-  color: var(--lp-text);
-  box-shadow: 0 0 0 1px var(--lp-line), 0 4px 12px -4px rgb(0 0 0 / 0.25);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  cursor: pointer;
-  transition: transform var(--duration-quick) var(--ease-smooth-out);
-}
-
-.xc-deck-next svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.25;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.xc-deck-next:active { transform: scale(0.92); }
 
 @media (prefers-reduced-motion: reduce) {
   .xc-roll,
@@ -478,9 +528,8 @@
     animation: none;
   }
   .xc-rolltext-out { display: none; }
-  .xc-deck-card,
-  .xc-deck-card[data-fly],
-  .xc-scrub-thumb {
-    transition-property: opacity;
-  }
+  .xc-story-title { animation: none; }
+  .xc-story-fill { animation: none; }
+  .xc-story-photo img { transform: none; transition: none; }
+  .xc-scrub-thumb { transition-property: opacity; }
 }

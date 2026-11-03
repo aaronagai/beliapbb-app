@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.12.5 — 2026-11-03
+
+### Changed
+- Landing page, Berita terkini card: the latest Jiwa Bakti stories now play like Stories instead of a swipe deck. One full photo with the headline, progress bars across the top, tap right for next and left for back, hold or hover to pause
+
 ## 0.0.12.4 — 2026-11-03
 
 ### Changed

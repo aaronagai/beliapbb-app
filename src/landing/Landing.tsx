@@ -5,7 +5,7 @@ import { CONSTITUTION_PDF_URL } from "../constitutionPdf";
 import { APP_URL, LEADERSHIP_URL, appLink } from "../links";
 import { AppIcon, APP_ICON_KINDS, type AppIconKind } from "./AppIcons";
 import { AppDemo } from "./AppDemo";
-import { EligibilityStage, NewsDeckStage, ScrubberStage } from "./ExploreCards";
+import { EligibilityStage, NewsStoriesStage, ScrubberStage } from "./ExploreCards";
 import "./Landing.css";
 
 const BASE = import.meta.env.BASE_URL;
@@ -143,8 +143,8 @@ function Explore() {
             <p className="lp-card-body">{t("landingConstBody")}</p>
           </article>
           <article className="lp-card">
-            <div className="lp-card-stage lp-card-stage--deck">
-              <NewsDeckStage />
+            <div className="lp-card-stage lp-card-stage--story">
+              <NewsStoriesStage />
             </div>
             <h3 className="lp-card-title">
               <a href={appTab("berita")}>{t("latestNews")}</a>

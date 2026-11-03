@@ -316,12 +316,12 @@ export function ScrubberStage() {
   );
 }
 
-/* ── Berita: live headline deck ────────────────────────────────────────── */
+/* ── Berita: live stories ─────────────────────────────────────────────── */
 
-const DECK_SIZE = 5;
-const VISIBLE = 3;
-const AUTO_MS = 4200;
-const THROW_PX = 70;
+const STORY_COUNT = 5;
+const STORY_MS = 5000;
+/** Holding longer than this pauses (as in Stories) instead of counting as a tap. */
+const HOLD_MS = 220;
 
 function formatDate(iso: string, locale: string) {
   try {
@@ -331,147 +331,136 @@ function formatDate(iso: string, locale: string) {
   }
 }
 
-export function NewsDeckStage() {
+export function NewsStoriesStage() {
   const { t, language } = useI18n();
   const [ref, inView] = useInView<HTMLDivElement>();
   const [items, setItems] = useState<NewsCardModel[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [order, setOrder] = useState<number[]>([]);
-  const [drag, setDrag] = useState<{ id: number; x: number } | null>(null);
-  const [flying, setFlying] = useState<{ id: number; dir: 1 | -1 } | null>(null);
+  const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
-  const start = useRef<{ x: number; y: number; t: number; moved: boolean } | null>(null);
+  const [held, setHeld] = useState(false);
+  const [reduced] = useState(prefersReducedMotion);
   const requested = useRef(false);
+  const holdTimer = useRef<number | undefined>(undefined);
+  const wasHold = useRef(false);
 
   // Fetch the feed the first time the card comes on screen
   useEffect(() => {
     if (!inView || requested.current) return;
     requested.current = true;
-    fetchNewsFeed({ count: DECK_SIZE })
-      .then((list) => {
-        if (!list.length) throw new Error("empty");
-        setItems(list);
-        setOrder(list.map((_, i) => i));
-      })
-      .catch(() => setFailed(true));
+    fetchNewsFeed({ count: STORY_COUNT })
+      .then((list) => list.length && setItems(list))
+      .catch(() => {
+        /* the placeholder stays */
+      });
   }, [inView]);
 
-  const advance = useCallback(
-    (dir: 1 | -1) => {
-      if (flying || order.length < 2) return;
-      const top = order[0];
-      setFlying({ id: top, dir });
-      window.setTimeout(() => {
-        setOrder((o) => [...o.slice(1), o[0]]);
-        setFlying(null);
-      }, 260);
-    },
-    [flying, order],
-  );
+  const count = items?.length ?? 0;
+  const step = useCallback((by: 1 | -1) => setIndex((i) => (i + by + count) % count), [count]);
+  const paused = hovered || held || !inView || reduced;
 
-  // Idle: the next story comes up every few seconds while the deck is on screen
-  useEffect(() => {
-    if (!items || !inView || hovered || drag || prefersReducedMotion()) return;
-    const id = window.setTimeout(() => advance(-1), AUTO_MS);
-    return () => clearTimeout(id);
-  }, [items, inView, hovered, drag, order, advance]);
-
-  function onPointerDown(e: ReactPointerEvent<HTMLAnchorElement>, id: number) {
-    if (id !== order[0] || flying) return;
-    start.current = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false };
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setDrag({ id, x: 0 });
+  function onZoneDown(e: ReactPointerEvent<HTMLButtonElement>) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    wasHold.current = false;
+    holdTimer.current = window.setTimeout(() => {
+      wasHold.current = true;
+      setHeld(true);
+    }, HOLD_MS);
   }
 
-  function onPointerMove(e: ReactPointerEvent<HTMLAnchorElement>) {
-    if (!start.current || !drag) return;
-    const dx = e.clientX - start.current.x;
-    if (Math.abs(dx) > 4) start.current.moved = true;
-    setDrag({ id: drag.id, x: dx });
+  function onZoneUp() {
+    clearTimeout(holdTimer.current);
+    setHeld(false);
   }
 
-  function onPointerUp(e: ReactPointerEvent<HTMLAnchorElement>) {
-    if (!start.current || !drag) return;
-    const dx = e.clientX - start.current.x;
-    const speed = Math.abs(dx) / Math.max(1, performance.now() - start.current.t);
-    setDrag(null);
-    if (Math.abs(dx) > THROW_PX || (Math.abs(dx) > 24 && speed > 0.5)) advance(dx > 0 ? 1 : -1);
+  function onZoneClick(by: 1 | -1) {
+    // A hold only pauses; a tap moves
+    if (wasHold.current) {
+      wasHold.current = false;
+      return;
+    }
+    step(by);
   }
-
-  function onClick(e: React.MouseEvent<HTMLAnchorElement>, id: number) {
-    // A drag is not a click; only the top card opens
-    if (start.current?.moved || id !== order[0]) e.preventDefault();
-    start.current = null;
-  }
-
-  const dateLocale = language === "ms" ? "ms-MY" : "en-MY";
 
   if (!items) {
     return (
-      <div className="xc-deck" ref={ref} aria-busy={!failed}>
-        {[2, 1, 0].map((depth) => (
-          <div className="xc-deck-card xc-deck-card--ghost" key={depth} style={{ "--d": depth } as CSSProperties}>
-            <span className="xc-deck-img" />
-            <span className="xc-deck-body">
-              <i />
-              <i />
-              <small>{t("newsSource")}</small>
-            </span>
-          </div>
-        ))}
+      <div className="xc-story xc-story--ghost" ref={ref} aria-busy="true">
+        <div className="xc-story-bars" aria-hidden="true">
+          {Array.from({ length: STORY_COUNT }, (_, i) => (
+            <span className="xc-story-bar" key={i} />
+          ))}
+        </div>
+        <div className="xc-story-text">
+          <i />
+          <i />
+          <small>{t("newsSource")}</small>
+        </div>
       </div>
     );
   }
 
+  const item = items[index];
+  const dateLocale = language === "ms" ? "ms-MY" : "en-MY";
+
   return (
     <div
-      className="xc-deck"
+      className="xc-story"
       ref={ref}
+      data-paused={paused || undefined}
       onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(true)}
       onPointerLeave={() => setHovered(false)}
     >
-      {items.map((item, i) => {
-        const depth = order.indexOf(i);
-        const isTop = depth === 0;
-        const style: CSSProperties & Record<string, string | number> = { "--d": Math.min(depth, VISIBLE), zIndex: items.length - depth };
-        if (drag && drag.id === i) {
-          style["--dx"] = `${drag.x}px`;
-          style["--rot"] = `${drag.x / 24}deg`;
-        }
-        return (
-          <a
-            key={item.id}
-            className="xc-deck-card"
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            draggable={false}
-            tabIndex={isTop ? 0 : -1}
-            aria-hidden={!isTop}
-            data-top={isTop || undefined}
-            data-hidden={depth >= VISIBLE || undefined}
-            data-dragging={(drag && drag.id === i) || undefined}
-            data-fly={flying && flying.id === i ? (flying.dir > 0 ? "right" : "left") : undefined}
-            style={style}
-            onPointerDown={(e) => onPointerDown(e, i)}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={() => setDrag(null)}
-            onClick={(e) => onClick(e, i)}
-          >
-            <span className="xc-deck-img">{item.image && <img src={item.image} alt="" loading="lazy" decoding="async" draggable={false} />}</span>
-            <span className="xc-deck-body">
-              <span className="xc-deck-title">{item.title}</span>
-              <small>
-                {t("newsSource")} · <time dateTime={item.date}>{formatDate(item.date, dateLocale)}</time>
-              </small>
-            </span>
-          </a>
-        );
-      })}
-      <button type="button" className="xc-deck-next" onClick={() => advance(-1)} aria-label={t("landingNewsNext")} title={t("landingNewsSwipe")}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
-      </button>
+      {items.map((it, i) => (
+        <span className="xc-story-photo" data-on={i === index || undefined} key={it.id} aria-hidden="true">
+          {it.image && <img src={it.image} alt="" loading={i < 2 ? "eager" : "lazy"} decoding="async" draggable={false} />}
+        </span>
+      ))}
+      <span className="xc-story-shade" aria-hidden="true" />
+
+      <div className="xc-story-bars" aria-hidden="true">
+        {items.map((it, i) => (
+          <span className="xc-story-bar" key={it.id} data-done={i < index || undefined}>
+            {i === index && (
+              <i
+                key={`${index}-${count}`}
+                className="xc-story-fill"
+                style={{ animationDuration: `${STORY_MS}ms` }}
+                onAnimationEnd={() => step(1)}
+              />
+            )}
+          </span>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="xc-story-zone xc-story-zone--prev"
+        aria-label={t("landingNewsPrev")}
+        onPointerDown={onZoneDown}
+        onPointerUp={onZoneUp}
+        onPointerCancel={onZoneUp}
+        onClick={() => onZoneClick(-1)}
+      />
+      <button
+        type="button"
+        className="xc-story-zone xc-story-zone--next"
+        aria-label={t("landingNewsNext")}
+        onPointerDown={onZoneDown}
+        onPointerUp={onZoneUp}
+        onPointerCancel={onZoneUp}
+        onClick={() => onZoneClick(1)}
+      />
+
+      <a className="xc-story-text" href={item.url} target="_blank" rel="noopener noreferrer" aria-live="polite">
+        <span className="xc-story-title" key={item.id}>
+          {item.title}
+        </span>
+        <small>
+          {t("newsSource")} · <time dateTime={item.date}>{formatDate(item.date, dateLocale)}</time>
+          <span className="xc-story-count" aria-hidden="true">
+            {index + 1}/{count}
+          </span>
+        </small>
+      </a>
     </div>
   );
 }
