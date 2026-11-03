@@ -5,6 +5,7 @@ import { CONSTITUTION_PDF_URL } from "../constitutionPdf";
 import { APP_URL, LEADERSHIP_URL, appLink } from "../links";
 import { AppIcon, APP_ICON_KINDS, type AppIconKind } from "./AppIcons";
 import { AppDemo } from "./AppDemo";
+import { EligibilityStage, NewsDeckStage, ScrubberStage } from "./ExploreCards";
 import "./Landing.css";
 
 const BASE = import.meta.env.BASE_URL;
@@ -116,7 +117,6 @@ function CtaIcons() {
 
 function Explore() {
   const { t } = useI18n();
-  const exampleQuestion = t("constitutionChatEmpty").split(": ").pop();
   return (
     <section className="lp-section" id="ciri" aria-labelledby="lp-explore-title">
       <div className="lp-wrap">
@@ -124,48 +124,33 @@ function Explore() {
           {t("landingExploreTitle")}
         </h2>
         <div className="lp-explore">
-          <a className="lp-card" href={appTab("ftes")}>
+          <article className="lp-card">
             <div className="lp-card-stage">
-              <div className="lp-chat">
-                <p className="lp-bubble lp-bubble--me">{t("ftesPromoAsk")}</p>
-                <p className="lp-bubble lp-bubble--them" aria-label={t("landingTyping")}>
-                  <span className="lp-dots"><i /><i /><i /></span>
-                </p>
-              </div>
+              <EligibilityStage askHref={appTab("ftes")} />
             </div>
-            <h3 className="lp-card-title">{t("ftesNav")}</h3>
+            <h3 className="lp-card-title">
+              <a href={appTab("ftes")}>{t("ftesNav")}</a>
+            </h3>
             <p className="lp-card-body">{t("landingFtesBody")}</p>
-          </a>
-          <a className="lp-card" href={appTab("perlembagaan")}>
+          </article>
+          <article className="lp-card">
             <div className="lp-card-stage">
-              <div className="lp-ask">
-                <span className="lp-ask-text">{exampleQuestion}</span>
-                <span className="lp-ask-send" aria-hidden="true">
-                  <svg viewBox="0 0 24 24"><path d="M12 19V5m0 0-6 6m6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </span>
-              </div>
+              <ScrubberStage />
             </div>
-            <h3 className="lp-card-title">{t("landingConstTitle")}</h3>
+            <h3 className="lp-card-title">
+              <a href={appTab("perlembagaan")}>{t("landingConstTitle")}</a>
+            </h3>
             <p className="lp-card-body">{t("landingConstBody")}</p>
-          </a>
-          <a className="lp-card" href={appTab("berita")}>
-            <div className="lp-card-stage">
-              <div className="lp-news">
-                {[0, 1].map((i) => (
-                  <div className="lp-news-row" key={i}>
-                    <span className="lp-news-thumb" />
-                    <span className="lp-news-lines">
-                      <i />
-                      <i />
-                      <small>{t("newsSource")}</small>
-                    </span>
-                  </div>
-                ))}
-              </div>
+          </article>
+          <article className="lp-card">
+            <div className="lp-card-stage lp-card-stage--deck">
+              <NewsDeckStage />
             </div>
-            <h3 className="lp-card-title">{t("latestNews")}</h3>
+            <h3 className="lp-card-title">
+              <a href={appTab("berita")}>{t("latestNews")}</a>
+            </h3>
             <p className="lp-card-body">{t("landingNewsBody")}</p>
-          </a>
+          </article>
         </div>
       </div>
     </section>

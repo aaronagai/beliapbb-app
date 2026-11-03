@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.12.4 — 2026-11-03
+
+### Changed
+- Landing page, "Satu aplikasi" section: the three cards are now interactive. Tanya FTES has a tap-through eligibility check of the five official FTES criteria; Perlembagaan has a scrubber through all 41 articles of the constitution; Berita shows the latest Jiwa Bakti stories live as a swipeable deck. Each plays a short demo once when it comes into view and stops as soon as you touch it
+- The explore cards sit three across from 1024px wide (stacked below that)
+
 ## 0.0.12.3 — 2026-11-03
 
 ### Changed
