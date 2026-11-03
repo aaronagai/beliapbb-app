@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.0.12.3 — 2026-11-03
+
+### Changed
+- Landing page: the app screenshot under the hero is now a live demo. A laptop shows the app's Home and a phone asks Tanya FTES "Adakah saya layak untuk FTES?", with the answer and its official sources streaming in. Follows the site's language and dark mode; phones get a phone-only version
+- Landing page loads lighter: small news thumbnails instead of full-size photos
+
 ## 0.0.12.2 — 2026-10-30
 
 ### Changed

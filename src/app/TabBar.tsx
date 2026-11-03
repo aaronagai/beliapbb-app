@@ -6,7 +6,7 @@ export type TabBarTab = "home" | "tanya" | "berita" | "sertai" | "saya";
 type IconPair = { outline: ReactNode; filled: ReactNode };
 
 /* Outline when idle, filled when active (icon swap). 24px grid, 1.8 stroke. */
-const ICONS: Record<TabBarTab, IconPair> = {
+export const TAB_ICONS: Record<TabBarTab, IconPair> = {
   home: {
     outline: <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />,
     filled: <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1Z" fill="currentColor" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />,
@@ -89,10 +89,10 @@ export function TabBar({ active, onSelect }: { active: TabBarTab; onSelect: (tab
             >
               <span className="app-tabbar-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" className="app-tabbar-svg app-tabbar-svg--outline">
-                  {ICONS[tab].outline}
+                  {TAB_ICONS[tab].outline}
                 </svg>
                 <svg viewBox="0 0 24 24" className="app-tabbar-svg app-tabbar-svg--filled">
-                  {ICONS[tab].filled}
+                  {TAB_ICONS[tab].filled}
                 </svg>
               </span>
               <span className="app-tabbar-label">{t(labelKey)}</span>

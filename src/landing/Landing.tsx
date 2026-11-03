@@ -4,6 +4,7 @@ import { Logo } from "../Logo";
 import { CONSTITUTION_PDF_URL } from "../constitutionPdf";
 import { APP_URL, LEADERSHIP_URL, appLink } from "../links";
 import { AppIcon, APP_ICON_KINDS, type AppIconKind } from "./AppIcons";
+import { AppDemo } from "./AppDemo";
 import "./Landing.css";
 
 const BASE = import.meta.env.BASE_URL;
@@ -446,7 +447,7 @@ export function Landing() {
         <section className="lp-preview-wrap" aria-label={t("landingPreviewAlt")}>
           <div className="lp-wrap">
             <a className="lp-preview" href={APP_HREF}>
-              <img src={`${BASE}landing/app-preview.jpg`} alt={t("landingPreviewAlt")} width={1440} height={900} loading="lazy" />
+              <AppDemo />
             </a>
           </div>
         </section>

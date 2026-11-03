@@ -328,18 +328,7 @@ button.lp-btn {
 
 .lp-preview {
   display: block;
-  padding: clamp(10px, 2vw, 22px);
   border-radius: clamp(20px, 3vw, 32px);
-  background: var(--lp-surface);
-}
-
-.lp-preview img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: clamp(12px, 1.6vw, 18px);
-  box-shadow: 0 1px 0 var(--lp-line), 0 24px 48px -24px rgb(20 20 40 / 0.25);
-  background: var(--lp-surface-2);
 }
 
 /* ── Sections ── */

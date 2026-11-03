@@ -1,7 +1,7 @@
 {
   "name": "beliapbb-app",
   "private": true,
-  "version": "0.0.12.2",
+  "version": "0.0.12.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,6 +21,7 @@
     "@fontsource/geist-sans": "^5.2.5",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "lucide-react": "^1.66.0",
     "openai": "^4.83.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
