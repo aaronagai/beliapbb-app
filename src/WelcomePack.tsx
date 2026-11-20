@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { CONSTITUTION_PDF_URL } from "./constitutionPdf";
 import { useI18n } from "./i18n";
 import { LEADERSHIP_URL } from "./links";
@@ -12,22 +13,32 @@ export function WelcomePack({
   signed,
   onBack,
   onAnother,
+  title,
+  intro,
+  pendingText,
+  children,
 }: {
   reference: string;
   signed: boolean;
-  onBack: () => void;
+  onBack?: () => void;
   onAnother: () => void;
+  title?: string;
+  intro?: string;
+  pendingText?: string;
+  children?: ReactNode;
 }) {
   const { t } = useI18n();
   return (
     <div className="application-sent profile-card welcome-pack">
-      <h2>{t("welcomePackTitle")}</h2>
-      <p className="application-sent-pdf-note">{t("welcomePackIntro")}</p>
+      <h2>{title ?? t("welcomePackTitle")}</h2>
+      <p className="application-sent-pdf-note">{intro ?? t("welcomePackIntro")}</p>
 
       <div className="welcome-pack-status" data-state={signed ? "signed" : "pending"}>
         <span className="welcome-pack-ref">{reference}</span>
-        <span>{t(signed ? "welcomePackStatusSigned" : "welcomePackStatusPending")}</span>
+        <span>{signed ? t("welcomePackStatusSigned") : (pendingText ?? t("welcomePackStatusPending"))}</span>
       </div>
+
+      {children}
 
       <LinkList
         title={t("sertaiDocsTitle")}
@@ -37,9 +48,11 @@ export function WelcomePack({
         ]}
       />
 
-      <button type="button" className="profile-save-btn profile-save-btn--secondary application-sent-next" onClick={onBack}>
-        {t("welcomePackBack")}
-      </button>
+      {onBack ? (
+        <button type="button" className="profile-save-btn profile-save-btn--secondary application-sent-next" onClick={onBack}>
+          {t("welcomePackBack")}
+        </button>
+      ) : null}
       <button type="button" className="profile-save-btn profile-save-btn--secondary application-sent-next" onClick={onAnother}>
         {t("applicationSentAnother")}
       </button>

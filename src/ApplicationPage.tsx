@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { applicationEndpoint, attachApplicationPdf, bytesToBase64, submitApplication, uploadSignedForm } from "./applicationApi";
 import { useI18n, type MessageKey } from "./i18n";
 import { SignedFormUpload } from "./SignedFormUpload";
@@ -6,6 +6,7 @@ import { BorangPreview } from "./BorangPreview";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import { WelcomePack } from "./WelcomePack";
 import { ApplicationSteps } from "./ApplicationSteps";
+import { clearApplication, markApplicationSigned, readApplication, saveApplication, type ApplicationRecord } from "./applicationRecord";
 import type { BorangOp } from "./borangPdf";
 import {
   CAWANGAN_OPTIONS,
@@ -177,6 +178,29 @@ type PdfState =
   | { kind: "ready"; url: string; name: string; ops: BorangOp[] }
   | { kind: "failed" };
 
+/** The form, one short step at a time. Required fields are checked when leaving their step. */
+const STEPS = ["stepWho", "stepContact", "stepMembership", "stepReview"] as const;
+const STEP_REQUIRED: (keyof Draft)[][] = [["cawangan", "nama", "noKadPengenalan"], ["telBimbit"], ["kategoriAhli"], []];
+
+function hasDraftContent(d: Draft): boolean {
+  return Boolean(d.nama || d.cawangan || d.noKadPengenalan || d.telBimbit || d.email || d.alamatRumah);
+}
+
+/** First visit: carry the name and cawangan over from the Saya profile so nothing is typed twice. */
+function prefillFromProfile(d: Draft): Draft {
+  if (hasDraftContent(d)) return d;
+  try {
+    const raw = localStorage.getItem("beliapbb_profile");
+    if (!raw) return d;
+    const p = JSON.parse(raw) as { name?: unknown; cawangan?: unknown };
+    const name = typeof p.name === "string" ? p.name.trim() : "";
+    const cawangan = typeof p.cawangan === "string" && CAWANGAN_OPTIONS.includes(p.cawangan) ? p.cawangan : "";
+    return { ...d, nama: name.toUpperCase(), cawangan };
+  } catch {
+    return d;
+  }
+}
+
 /** dd/mm/yyyy in Kuching time, as printed next to the signature. */
 const kuchingToday = () => new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kuching" });
 
@@ -198,7 +222,7 @@ async function makeFilledPdf(
 export function ApplicationPage() {
   const { t } = useI18n();
   const endpoint = applicationEndpoint();
-  const [d, setD] = useState<Draft>(() => readDraft());
+  const [d, setD] = useState<Draft>(() => prefillFromProfile(readDraft()));
   const [saved, setSaved] = useState(false);
   const [send, setSend] = useState<SendState>({ kind: "idle" });
   const [pdf, setPdf] = useState<PdfState>({ kind: "none" });
@@ -214,6 +238,14 @@ export function ApplicationPage() {
   const [signError, setSignError] = useState<MessageKey | null>(null);
   /** After submitting: the sign page, then the welcome pack on its own page. */
   const [stage, setStage] = useState<"sign" | "welcome">("sign");
+  /** Which short step of the form is showing (0-3), and whether the intro has been dismissed. */
+  const [step, setStep] = useState(0);
+  const [started, setStarted] = useState(() => hasDraftContent(readDraft()));
+  const [stepError, setStepError] = useState<string | null>(null);
+  /** The official form as it will print, shown on the review step. */
+  const [previewOps, setPreviewOps] = useState<BorangOp[] | null>(null);
+  /** An application already sent from this device. */
+  const [record, setRecord] = useState<ApplicationRecord | null>(() => readApplication());
   /* Spam trap: hidden from people, filled in by bots */
   const [website, setWebsite] = useState("");
 
@@ -232,6 +264,50 @@ export function ApplicationPage() {
       return false;
     }
   }, [d]);
+
+  // Autosave: nothing typed is lost if the tab closes or the phone sleeps.
+  useEffect(() => {
+    if (send.kind === "sent") return;
+    const id = window.setTimeout(() => {
+      if (hasDraftContent(d)) saveLocally();
+    }, 500);
+    return () => window.clearTimeout(id);
+  }, [d, send.kind, saveLocally]);
+
+  // Review step: draw the official form from the answers so far (no reference number yet).
+  useEffect(() => {
+    if (step !== 3 || send.kind === "sent") return;
+    let live = true;
+    setPreviewOps(null);
+    makeFilledPdf(d, "")
+      .then((made) => live && setPreviewOps(made.ops))
+      .catch(() => live && setPreviewOps([]));
+    return () => {
+      live = false;
+    };
+    // Only when the review step opens; later edits to the declaration don't redraw the form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  const validateStep = (n: number): string | null => {
+    const labels = Object.fromEntries(REQUIRED) as Record<string, MessageKey>;
+    const missing = STEP_REQUIRED[n].filter((k) => !String(d[k]).trim()).map((k) => t(labels[k as string]));
+    if (missing.length) return t("applicationErrorMissing").replace("{{fields}}", missing.join(", "));
+    if (n === 0 && d.noKadPengenalan.replace(/\D/g, "").length !== 12) return t("applicationErrorIc");
+    return null;
+  };
+
+  const goStep = (next: number) => {
+    setStepError(null);
+    setStep(next);
+    window.scrollTo({ top: 0 });
+  };
+
+  const nextStep = () => {
+    const err = validateStep(step);
+    if (err) setStepError(err);
+    else goStep(step + 1);
+  };
 
   const sendOnline = useCallback(async (url: string) => {
     const missing = REQUIRED.filter(([key]) => !String(d[key]).trim()).map(([, label]) => t(label));
@@ -255,6 +331,9 @@ export function ApplicationPage() {
       setD(emptyDraft);
       setSentIc(submitted.noKadPengenalan.replace(/\D/g, ""));
       setSentData(submitted);
+      const rec: ApplicationRecord = { ref: result.ref, signed: false, at: new Date().toISOString() };
+      saveApplication(rec);
+      setRecord(rec);
       setSend({ kind: "sent", ref: result.ref });
       window.scrollTo({ top: 0, behavior: "smooth" });
       // Fill in the official PDF on this device (with the signature, if they drew one on the form page).
@@ -276,7 +355,11 @@ export function ApplicationPage() {
           // Signed on the form page: file the signed copy now (this also e-mails it to the applicant).
           const up = await uploadSignedForm(url, result.ref, submitted.noKadPengenalan.replace(/\D/g, ""), [bytesToBase64(bytes)], "digital");
           filedSigned = up.ok;
-          if (up.ok) setSigned(true);
+          if (up.ok) {
+            setSigned(true);
+            markApplicationSigned();
+            setRecord((r) => (r ? { ...r, signed: true } : r));
+          }
         }
       } catch {
         setPdf({ kind: "failed" });
@@ -311,8 +394,11 @@ export function ApplicationPage() {
         if (prev.kind === "ready") URL.revokeObjectURL(prev.url);
         return { kind: "ready", url: URL.createObjectURL(blob), name: `Borang-PBB-${send.ref}-bertandatangan.pdf`, ops: made.ops };
       });
-      if (result.ok) setSigned(true);
-      else setSignError(result.error === "busy" || result.error === "network" || result.error === "server" ? "signedErrorGeneric" : "signedErrorMatch");
+      if (result.ok) {
+        setSigned(true);
+        markApplicationSigned();
+        setRecord((r) => (r ? { ...r, signed: true } : r));
+      } else setSignError(result.error === "busy" || result.error === "network" || result.error === "server" ? "signedErrorGeneric" : "signedErrorMatch");
     } catch {
       setSignError("signedErrorGeneric");
     } finally {
@@ -340,6 +426,12 @@ export function ApplicationPage() {
     setSigned(false);
     setSignError(null);
     setFormSignature(null);
+    clearApplication();
+    setRecord(null);
+    setStep(0);
+    setStarted(false);
+    setStepError(null);
+    setPreviewOps(null);
     setStage("sign");
     setSend({ kind: "idle" });
   };
@@ -416,20 +508,80 @@ export function ApplicationPage() {
     );
   }
 
+  // Already applied from this device: show where it stands instead of a blank form.
+  if (record) {
+    return (
+      <section className="section section--apply" aria-label={t("applicationTitle")}>
+        <WelcomePack
+          reference={record.ref}
+          signed={record.signed}
+          title={t("statusTitle")}
+          intro={t("statusIntro")}
+          pendingText={t("statusPending")}
+          onAnother={startAnother}
+        >
+          {record.signed ? null : (
+            <SignedFormUpload
+              initialRef={record.ref}
+              onDone={() => {
+                markApplicationSigned();
+                setRecord((r) => (r ? { ...r, signed: true } : r));
+              }}
+            />
+          )}
+        </WelcomePack>
+      </section>
+    );
+  }
+
+  if (!started) {
+    return (
+      <section className="section section--apply" aria-label={t("applicationTitle")}>
+        <div className="application-start profile-card">
+          <h2>{t("startTitle")}</h2>
+          <p className="application-sent-pdf-note">{t("startBody")}</p>
+          <ol className="application-start-steps">
+            <li>{t("startS1")}</li>
+            <li>{t("startS2")}</li>
+            <li>{t("startS3")}</li>
+          </ol>
+          <button
+            type="button"
+            className="profile-save-btn"
+            onClick={() => {
+              setStarted(true);
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            {t("startBtn")}
+          </button>
+          {endpoint ? (
+            <details className="application-signed-details">
+              <summary>{t("startHaveRef")}</summary>
+              <SignedFormUpload />
+            </details>
+          ) : null}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="section section--apply" aria-label={t("applicationTitle")}>
-      <div className="application-intro profile-card">
-        <p className="application-intro-text">{t(endpoint ? "applicationSubtitleOnline" : "applicationSubtitle")}</p>
-      </div>
-
-      {endpoint ? (
-        <details className="application-signed-details">
-          <summary>{t("signedTitle")}</summary>
-          <SignedFormUpload />
-        </details>
-      ) : null}
+      <nav className="form-stepper" aria-label={t("stepsAria")}>
+        <p className="form-stepper-count">
+          {t("stepCount").replace("{{n}}", String(step + 1)).replace("{{total}}", String(STEPS.length))} · <strong>{t(STEPS[step])}</strong>
+        </p>
+        <div className="form-stepper-bar" role="presentation">
+          {STEPS.map((key, i) => (
+            <span key={key} data-state={i < step ? "done" : i === step ? "current" : "todo"} />
+          ))}
+        </div>
+      </nav>
 
       <div className="application-form">
+        {step === 0 ? (
+          <>
         <h2 className="application-section-title">{t("applicationSectionIdentity")}</h2>
         <div className="profile-card">
           <label className="profile-field" htmlFor="app-cawangan">
@@ -593,6 +745,10 @@ export function ApplicationPage() {
           <p className="application-hint">{t("applicationIcHint")}</p>
         </div>
 
+          </>
+        ) : null}
+        {step === 1 ? (
+          <>
         <h2 className="application-section-title">{t("applicationSectionAddress")}</h2>
         <div className="profile-card">
           <label className="profile-field" htmlFor="app-addr-home">
@@ -679,6 +835,10 @@ export function ApplicationPage() {
           </label>
         </div>
 
+          </>
+        ) : null}
+        {step === 2 ? (
+          <>
         <h2 className="application-section-title">{t("applicationSectionElectoral")}</h2>
         <div className="profile-card">
           <label className="profile-field" htmlFor="app-kp">
@@ -737,66 +897,13 @@ export function ApplicationPage() {
           </fieldset>
         </div>
 
-        <h2 className="application-section-title">{t("applicationSectionProposer")}</h2>
-        <div className="profile-card profile-card--tight-top">
-          <p className="application-hint">{t("applicationProposerHint")}</p>
-          <label className="profile-field" htmlFor="app-pen-n">
-            <span className="profile-label">{t("applicationLblProposerName")}</span>
-            <input
-              id="app-pen-n"
-              className="profile-input application-input-branch-reserved"
-              value={d.pencadangNama}
-              disabled
-            />
-          </label>
-          <label className="profile-field application-field-spaced" htmlFor="app-pen-ic">
-            <span className="profile-label">{t("applicationLblProposerIc")}</span>
-            <input
-              id="app-pen-ic"
-              className="profile-input application-input-branch-reserved"
-              value={d.pencadangIc}
-              disabled
-            />
-          </label>
-          <label className="profile-field application-field-spaced" htmlFor="app-pen-j">
-            <span className="profile-label">{t("applicationLblProposerJawatan")}</span>
-            <input
-              id="app-pen-j"
-              className="profile-input application-input-branch-reserved"
-              value={d.pencadangJawatan}
-              disabled
-            />
-          </label>
-        </div>
-        <div className="profile-card profile-card--tight-top">
-          <label className="profile-field" htmlFor="app-peny-n">
-            <span className="profile-label">{t("applicationLblSupporterName")}</span>
-            <input
-              id="app-peny-n"
-              className="profile-input application-input-branch-reserved"
-              value={d.penyokongNama}
-              disabled
-            />
-          </label>
-          <label className="profile-field application-field-spaced" htmlFor="app-peny-ic">
-            <span className="profile-label">{t("applicationLblSupporterIc")}</span>
-            <input
-              id="app-peny-ic"
-              className="profile-input application-input-branch-reserved"
-              value={d.penyokongIc}
-              disabled
-            />
-          </label>
-          <label className="profile-field application-field-spaced" htmlFor="app-peny-j">
-            <span className="profile-label">{t("applicationLblSupporterJawatan")}</span>
-            <input
-              id="app-peny-j"
-              className="profile-input application-input-branch-reserved"
-              value={d.penyokongJawatan}
-              disabled
-            />
-          </label>
-        </div>
+          </>
+        ) : null}
+        {step === 3 ? (
+          <>
+        <h2 className="application-section-title">{t("reviewTitle")}</h2>
+        <p className="application-sent-pdf-note">{t("reviewHint")}</p>
+        {previewOps === null ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : previewOps.length ? <BorangPreview ops={previewOps} /> : null}
 
         <h2 className="application-section-title">{t("applicationSectionDeclaration")}</h2>
         <div className="profile-card profile-card--tight-top">
@@ -816,22 +923,39 @@ export function ApplicationPage() {
 
         <p className="application-office-note">{t("applicationOfficeNote")}</p>
 
+          </>
+        ) : null}
+
         <label className="application-hp" aria-hidden="true">
           Website
           <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
         </label>
 
         <div className="application-actions">
-          <button
-            type="button"
-            className="profile-save-btn"
-            disabled={!d.pengakuan || send.kind === "sending"}
-            onClick={submit}
-          >
-            {endpoint
-              ? t(send.kind === "sending" ? "applicationSending" : "applicationSendBtn")
-              : t("applicationSubmitBtn")}
-          </button>
+          {step < 3 ? (
+            <button type="button" className="profile-save-btn" onClick={nextStep}>
+              {t("stepNext")}
+            </button>
+          ) : (
+            <button type="button" className="profile-save-btn" disabled={!d.pengakuan || send.kind === "sending"} onClick={submit}>
+              {endpoint ? t(send.kind === "sending" ? "applicationSending" : "applicationSendBtn") : t("applicationSubmitBtn")}
+            </button>
+          )}
+          {step > 0 ? (
+            <button
+              type="button"
+              className="profile-save-btn profile-save-btn--secondary"
+              onClick={() => goStep(step - 1)}
+              disabled={send.kind === "sending"}
+            >
+              {t("stepBack")}
+            </button>
+          ) : null}
+          {stepError ? (
+            <p className="application-error-msg" role="alert">
+              {stepError}
+            </p>
+          ) : null}
           {send.kind === "error" ? (
             <p className="application-error-msg" role="alert">
               {send.message}

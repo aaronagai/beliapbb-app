@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 ## 0.0.12.8 — 2026-11-20
 
 ### Changed
+- Flow restructure: joining is now a short guided flow. Sertai opens on a short intro (what you'll do, about 5 minutes), then four steps (Diri, Hubungi, Keahlian, Semak dan tandatangan) with a progress bar, required fields checked on each step, autosave, and name and cawangan carried over from the Saya profile. The last step shows the official form filled in from the answers so far, with the declaration and signature pad under it
+- The app remembers an application sent from this device (reference number and whether the signed form arrived, never the IC or answers): Utama shows it instead of the sample card, and Sertai shows its status page (with the signed-form upload if it is still missing) instead of a blank form
+- The disabled proposer and supporter fields are gone from the screen (they were never filled in digitally)
+
+### Changed
 - Typeface: trying TikTok Sans (OFL, self-hosted, Latin variable font, 44 KB) across the app, site and FTES pages, with Geist/Inter as fallbacks. To go back, remove "TikTok Sans" from `--font-sans` (index.css) and `--ftes-display` / `--ftes-sans` (FtesPage.css)
 
 ### Added

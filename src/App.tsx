@@ -111,7 +111,7 @@ function HomePage({ go }: { go: (tab: AppTab) => void }) {
   return (
     <div className="app-page app-home">
       <h1 className="app-greeting">{name ? t("greetingHey").replace(/\{\{name\}\}/g, name) : t("appWelcome")}</h1>
-      <HomeMembershipCard onEditProfile={() => go("saya")} />
+      <HomeMembershipCard onEditProfile={() => go("saya")} onOpenApplication={() => go("sertai")} />
       <nav className="app-quick-grid" aria-label={t("homeQuickAria")}>
         <QuickAction
           label={t("homeQuickFtes")}

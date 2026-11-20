@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { getCawanganDisplayLabel, isValidCawangan } from "./cawanganOptions";
 import { useI18n } from "./i18n";
+import { readApplication } from "./applicationRecord";
 
 const PROFILE_STORAGE_KEY = "beliapbb_profile";
 
@@ -23,8 +24,10 @@ function readCardFields(): { name: string; cawangan: string } {
  * A clearly labelled sample of the future digital membership card, filled from the visitor's
  * own saved profile. No QR code or verified tick until cards are issued from a member database.
  */
-export function HomeMembershipCard({ onEditProfile }: { onEditProfile: () => void }) {
+export function HomeMembershipCard({ onEditProfile, onOpenApplication }: { onEditProfile: () => void; onOpenApplication: () => void }) {
   const { t, language } = useI18n();
+  /** Once an application has been sent from this device, show where it stands instead of the sample. */
+  const [record] = useState(readApplication);
   const [name, setName] = useState("");
   const [cawangan, setCawangan] = useState("");
 
@@ -39,6 +42,34 @@ export function HomeMembershipCard({ onEditProfile }: { onEditProfile: () => voi
   }, [t, language]);
 
   const complete = Boolean(name && cawangan);
+
+  if (record) {
+    return (
+      <article className="home-membership-card" aria-label={t("homeAppKicker")}>
+        <div className="home-membership-card-body">
+          <header className="home-membership-card-top">
+            <Logo className="home-membership-card-logo" decorative />
+            <span className="home-membership-card-badge">{t("homeAppBadge")}</span>
+          </header>
+          <div className="home-membership-card-main">
+            <div className="home-membership-card-text">
+              <p className="home-membership-card-kicker">{t("homeAppKicker")}</p>
+              <p className="home-membership-card-name">
+                <span>{record.ref}</span>
+              </p>
+              <p className="home-membership-card-dun">{t(record.signed ? "homeAppSigned" : "homeAppPending")}</p>
+            </div>
+          </div>
+        </div>
+        <footer className="home-membership-card-foot">
+          <p>{t("homeAppHint")}</p>
+          <button type="button" className="home-membership-card-edit" onClick={onOpenApplication}>
+            {t("homeAppOpen")}
+          </button>
+        </footer>
+      </article>
+    );
+  }
 
   return (
     <article className="home-membership-card home-membership-card--sample" aria-label={t("membershipCardAria")}>

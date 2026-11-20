@@ -1140,3 +1140,62 @@
   padding-top: 1rem;
   border-top: 1px solid var(--color-border);
 }
+
+/* Form steps */
+.form-stepper {
+  margin: 0 0 1rem;
+}
+
+.form-stepper-count {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.form-stepper-count strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.form-stepper-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.25rem;
+}
+
+.form-stepper-bar > span {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--color-border-strong);
+}
+
+.form-stepper-bar > span[data-state="done"],
+.form-stepper-bar > span[data-state="current"] {
+  background: var(--color-text);
+}
+
+.form-stepper-bar > span[data-state="done"] {
+  opacity: 0.45;
+}
+
+/* Intro */
+.application-start h2 {
+  margin: 0 0 0.25rem;
+}
+
+.application-start-steps {
+  margin: 0.75rem 0 1.25rem;
+  padding: 0 0 0 1.25rem;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.9375rem;
+}
+
+.application-start .profile-save-btn {
+  min-height: 2.75rem;
+}
+
+.application-actions {
+  display: grid;
+  gap: 0.6rem;
+}

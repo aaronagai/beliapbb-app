@@ -35,7 +35,7 @@ async function prepare(file: File): Promise<string> {
 
 type State = { kind: "idle" } | { kind: "sending" } | { kind: "done" } | { kind: "error"; key: MessageKey };
 
-export function SignedFormUpload({ initialRef = "", initialIc = "" }: { initialRef?: string; initialIc?: string }) {
+export function SignedFormUpload({ initialRef = "", initialIc = "", onDone }: { initialRef?: string; initialIc?: string; onDone?: () => void }) {
   const { t } = useI18n();
   const endpoint = applicationEndpoint();
   const [ref, setRef] = useState(initialRef);
@@ -55,6 +55,7 @@ export function SignedFormUpload({ initialRef = "", initialIc = "" }: { initialR
       const result = await uploadSignedForm(endpoint, ref, ic.replace(/\D/g, ""), data);
       if (result.ok) {
         setFiles([]);
+        onDone?.();
         return setState({ kind: "done" });
       }
       const map: Record<string, MessageKey> = {
