@@ -186,6 +186,46 @@ function Six() {
   );
 }
 
+/* How to join: the one thing most visitors came for, before the rest of the tour. */
+const HOW: [MessageKey, MessageKey][] = [
+  ["landingHowS1Title", "landingHowS1Body"],
+  ["landingHowS2Title", "landingHowS2Body"],
+  ["landingHowS3Title", "landingHowS3Body"],
+];
+
+function HowToJoin() {
+  const { t } = useI18n();
+  return (
+    <section className="lp-section lp-section--first" id="cara" aria-labelledby="lp-how-title">
+      <div className="lp-wrap lp-how">
+        <div className="lp-how-text">
+          <h2 className="lp-h2" id="lp-how-title">{t("landingHowTitle")}</h2>
+          <ol className="lp-how-steps">
+            {HOW.map(([title, body], i) => (
+              <li key={title}>
+                <span className="lp-how-num">{String(i + 1).padStart(2, "0")}</span>
+                <div>
+                  <h3>{t(title)}</h3>
+                  <p>{t(body)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="lp-how-note">
+            <strong>{t("landingHowNeedTitle")}</strong> {t("landingHowNeed")}
+          </p>
+          <p className="lp-how-note">{t("landingHowPrivacy")}</p>
+          <a className="lp-btn lp-btn--dark" href={appTab("sertai")}>{t("landingJoin")}</a>
+        </div>
+        <div className="lp-how-visual" role="img" aria-label={t("landingHowAlt")}>
+          <img className="lp-how-page lp-how-page--back" src={`${BASE}borang-contoh-2.png`} alt="" loading="lazy" width="750" height="1084" />
+          <img className="lp-how-page lp-how-page--front" src={`${BASE}borang-contoh-1.png`} alt="" loading="lazy" width="750" height="1084" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* About (Frontify label + statement, Raw Materials numbered points). The statement's
    words darken as it scrolls into view where scroll-driven animations are supported. */
 const ABOUT_POINTS: [MessageKey, MessageKey][] = [
@@ -391,12 +431,12 @@ export function SiteNav() {
           <span>Belia PBB</span>
         </a>
         <nav className="lp-nav-links" aria-label={t("landingNavAria")}>
+          <a href={`${BASE}#cara`}>{t("landingNavHow")}</a>
           <a href={`${BASE}#ciri`}>{t("landingNavFeatures")}</a>
           <a href={LEADERSHIP_HREF}>{t("leadershipNav")}</a>
           <a href={`${BASE}#soalan`}>{t("landingNavFaq")}</a>
-          <a href={appTab("ftes")}>{t("ftesNav")}</a>
         </nav>
-        <a className="lp-btn lp-btn--dark lp-btn--sm" href={APP_HREF}>{t("landingOpenApp")}</a>
+        <a className="lp-btn lp-btn--dark lp-btn--sm" href={appTab("sertai")}>{t("landingJoin")}</a>
       </div>
     </header>
   );
@@ -421,7 +461,7 @@ export function Landing() {
             <p className="lp-sub">{t("landingSub")}</p>
             <div className="lp-ctas">
               <a className="lp-btn lp-btn--dark" href={appTab("sertai")}>{t("landingJoin")}</a>
-              <a className="lp-btn lp-btn--soft" href={APP_HREF}>
+              <a className="lp-btn lp-btn--text" href={APP_HREF}>
                 {t("landingOpenApp")}
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6-6m6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </a>
@@ -431,12 +471,13 @@ export function Landing() {
 
         <section className="lp-preview-wrap" aria-label={t("landingPreviewAlt")}>
           <div className="lp-wrap">
-            <a className="lp-preview" href={APP_HREF}>
+            <a className="lp-preview" href={appTab("ftes")}>
               <AppDemo />
             </a>
           </div>
         </section>
 
+        <HowToJoin />
         <About />
         <Explore />
         <Six />

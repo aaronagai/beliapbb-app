@@ -10,7 +10,7 @@
   --lp-surface-2: #ffffff;
   --lp-line: rgb(0 0 0 / 0.08);
   --lp-nav-frost: rgb(255 255 255 / 0.8);
-  --lp-font: "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --lp-font: "TikTok Sans", "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --duration-quick: 150ms;
   --duration-fast: 250ms;
@@ -174,6 +174,7 @@ button.lp-btn {
 
 .lp-btn--dark { background: var(--lp-text); color: var(--lp-bg) !important; }
 .lp-btn--soft { background: var(--lp-surface); }
+.lp-btn--text { background: transparent; padding: 0 14px; }
 .lp-btn--light { background: #fff; color: #141414 !important; }
 .lp-btn--ghost-light { background: rgb(255 255 255 / 0.16); color: #fff !important; }
 
@@ -181,6 +182,7 @@ button.lp-btn {
   .lp-btn--dark:hover { background: color-mix(in srgb, var(--lp-text) 86%, var(--lp-bg)); }
   .lp-btn--soft:hover { background: color-mix(in srgb, var(--lp-surface) 80%, var(--lp-text) 8%); }
   .lp-btn--soft:hover svg { transform: translateX(3px); }
+  .lp-btn--text:hover svg { transform: translateX(3px); }
   .lp-btn--ghost-light:hover { background: rgb(255 255 255 / 0.24); }
 }
 
@@ -1131,3 +1133,89 @@ button.lp-btn {
 
 @keyframes lp-fade { from { opacity: 0; } }
 @keyframes lp-fade-out { to { opacity: 0; } }
+
+/* How to join: steps beside a real filled-in form */
+
+.lp-how {
+  display: grid;
+  gap: 40px;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .lp-how { grid-template-columns: 1.05fr 0.95fr; gap: 72px; }
+}
+
+.lp-how-steps {
+  display: grid;
+  gap: 24px;
+  margin: clamp(24px, 3vw, 36px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-how-steps li {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  gap: 14px;
+}
+
+.lp-how-num {
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--lp-muted);
+  padding-top: 3px;
+}
+
+.lp-how-steps h3 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.lp-how-steps p {
+  margin: 6px 0 0;
+  max-width: 44ch;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--lp-muted);
+}
+
+.lp-how-note {
+  margin: 24px 0 0;
+  max-width: 48ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--lp-muted);
+}
+
+.lp-how-note strong {
+  color: var(--lp-text);
+  font-weight: 500;
+}
+
+.lp-how-text .lp-btn {
+  margin-top: 28px;
+}
+
+.lp-how-visual {
+  position: relative;
+  aspect-ratio: 750 / 1084;
+  max-width: 440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.lp-how-page {
+  position: absolute;
+  width: 82%;
+  height: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 18px 48px rgb(0 0 0 / 0.14);
+}
+
+.lp-how-page--back { top: 0; right: 0; transform: rotate(3deg); }
+.lp-how-page--front { bottom: 0; left: 0; transform: rotate(-2deg); }

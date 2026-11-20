@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 ## 0.0.12.8 — 2026-11-20
 
 ### Changed
+- Landing page: one primary goal. The hero has a single solid "Sertai Belia PBB" button with "Buka aplikasi" as a quiet text link, and a plainer subtitle (5 minutes, fill in on your phone, sign on screen). The nav button now says Sertai, and the nav leads with "Cara menyertai". A new "Sertai dalam tiga langkah" section sits right after the hero: the three steps, what to have ready, a privacy line, a Sertai button, and a picture of the real filled-in form (sample data). The phone demo now links to the FTES page it shows
+- TikTok Sans now also applies to the landing page (it has its own font token, which the first try missed)
 - Joining runs in a focused mode: while someone is on the Sertai intro, steps or the pages right after sending, the tab bar and site link are hidden and a plain "Keluar" takes their place; the welcome page ends with a "Selesai" button back to Utama. The status view (after applying) keeps the normal tab bar
 - FAQ answers on the landing page no longer mention downloading the blank PDF form
 - Flow restructure: joining is now a short guided flow. Sertai opens on a short intro (what you'll do, about 5 minutes), then four steps (Diri, Hubungi, Keahlian, Semak dan tandatangan) with a progress bar, required fields checked on each step, autosave, and name and cawangan carried over from the Saya profile. The last step shows the official form filled in from the answers so far, with the declaration and signature pad under it
