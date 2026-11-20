@@ -496,6 +496,17 @@ function testConfirmEmail() {
   console.log("Test e-mail sent to " + to);
 }
 
+/**
+ * Run once from the editor (select authorizeAll → Run) after adding new features: makes Google ask for every
+ * permission the script uses (sheet, Drive folder, Gmail/alias, mail) in one go. Sends and writes nothing.
+ */
+function authorizeAll() {
+  SpreadsheetApp.openById(SHEET_ID).getName();
+  DriveApp.getRootFolder().getName();
+  var aliases = GmailApp.getAliases();
+  console.log("OK. Gmail aliases: " + aliases.join(", ") + " | mail quota left: " + MailApp.getRemainingDailyQuota());
+}
+
 function reply(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
