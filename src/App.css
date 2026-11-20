@@ -862,3 +862,25 @@
   line-height: 1.45;
   color: var(--color-text-secondary);
 }
+
+.application-signed {
+  margin-top: 0.75rem;
+}
+
+.application-signed-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.application-signed .profile-save-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+.application-signed-details > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+}

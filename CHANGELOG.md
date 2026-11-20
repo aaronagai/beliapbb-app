@@ -9,6 +9,8 @@ All notable changes to this project are documented in this file.
 - The filled form is also saved to a private Drive folder with a "Borang PDF" link on the applicant's row in the sheet, and e-mailed to the applicant as an attachment (one-time token, so nobody can attach a file to someone else's application)
 - Privacy notice above the declaration on the form (BM/EN)
 
+- The signed paper form comes back through the app: after printing and signing, the applicant photographs or scans it (up to 3 files, JPG/PNG/PDF, photos are shrunk on their phone) and uploads it on the success screen or later from the Sertai tab, using their reference number and IC number (5 wrong tries lock that reference for an hour). Files go to a per-application Drive folder, the row gets a "Borang Bertandatangan" link and received time (blank = still missing), and hello@ gets a short alert
+
 ### Changed
 - Reference numbers now come from a counter, so deleting test rows never reuses a reference
 - Sheet: Status dropdown (Baharu/Disemak/Lulus/Tolak), repeat-IC highlight, "Disemak oleh" and "Catatan" columns

@@ -49,3 +49,19 @@ export async function attachApplicationPdf(endpoint: string, ref: string, token:
     return false;
   }
 }
+
+export type SignedResult = { ok: true } | { ok: false; error: "match" | "locked" | "busy" | "nofile" | "toobig" | "type" | "server" | "network" };
+
+/** Uploads photos/scans of the signed paper form (base64, no data-URL prefix). */
+export async function uploadSignedForm(endpoint: string, ref: string, ic: string, files: string[]): Promise<SignedResult> {
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify({ action: "signed", ref: ref.trim().toUpperCase(), ic, files: files.map((data) => ({ data })) }),
+    });
+    const data = (await res.json()) as SignedResult;
+    return data && typeof data.ok === "boolean" ? data : { ok: false, error: "server" };
+  } catch {
+    return { ok: false, error: "network" };
+  }
+}

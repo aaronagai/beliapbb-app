@@ -62,6 +62,9 @@ var COLUMNS = [
   ["Catatan", null],
   // Link to the filled official PDF in Drive; added by the attach step below.
   ["Borang PDF", null],
+  // Signed paper form uploaded back by the applicant (photo/scan); blank = still missing.
+  ["Borang Bertandatangan", null],
+  ["Diterima (bertandatangan)", null],
 ];
 
 var REQUIRED = ["cawangan", "nama", "noKadPengenalan", "telBimbit", "kategoriAhli"];
@@ -72,6 +75,8 @@ function doPost(e) {
 
     // Second step: the app sends the filled-in official PDF for an application it just submitted.
     if (payload.action === "attach") return handleAttach(payload);
+    // Later: the applicant uploads a photo/scan of the signed paper form.
+    if (payload.action === "signed") return handleSigned(payload);
 
     // Spam trap: real visitors never see or fill the "website" field.
     if (payload.website) return reply({ ok: true, ref: "BPBB-0" });
@@ -308,6 +313,103 @@ function handleAttach(payload) {
 }
 
 /**
+ * The applicant uploads a photo/scan of the printed, signed form. Identified by reference number
+ * plus IC number (both must match the row). Files go to a per-application subfolder of the private
+ * Drive folder; the row gets a link and a received time. Wrong guesses lock that reference for an hour.
+ */
+var MAX_SIGNED_FILES = 3;
+var MAX_SIGNED_BYTES = 4 * 1024 * 1024;
+
+function fileKind(bytes) {
+  if (bytes.length > 4 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) return { mime: "application/pdf", ext: "pdf" };
+  if (bytes.length > 3 && (bytes[0] & 255) === 0xff && (bytes[1] & 255) === 0xd8) return { mime: "image/jpeg", ext: "jpg" };
+  if (bytes.length > 4 && (bytes[0] & 255) === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return { mime: "image/png", ext: "png" };
+  return null;
+}
+
+function handleSigned(payload) {
+  var ref = clean(payload.ref);
+  var ic = String(payload.ic || "").replace(/\D/g, "");
+  if (!/^BPBB-\d{4}-\d{5,}$/.test(ref) || ic.length !== 12) return reply({ ok: false, error: "match" });
+
+  var cache = CacheService.getScriptCache();
+  var failKey = "signed-fail-" + ref;
+  var fails = Number(cache.get(failKey) || 0);
+  if (fails >= 5) return reply({ ok: false, error: "locked" });
+  if (!underRateLimit()) return reply({ ok: false, error: "busy" });
+
+  var sheet = targetSheet();
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var colOf = function (name) { return headers.indexOf(name) + 1; };
+  var hit = sheet.getRange(1, 1, sheet.getLastRow(), 1).createTextFinder(ref).matchEntireCell(true).findNext();
+  var row = hit ? hit.getRow() : 0;
+  var cell = function (name) { return row && colOf(name) ? String(sheet.getRange(row, colOf(name)).getValue()).replace(/^'/, "") : ""; };
+  if (!row || cell("No. Kad Pengenalan").replace(/\D/g, "") !== ic) {
+    cache.put(failKey, String(fails + 1), 3600);
+    return reply({ ok: false, error: "match" });
+  }
+
+  var files = Array.isArray(payload.files) ? payload.files.slice(0, MAX_SIGNED_FILES) : [];
+  if (!files.length) return reply({ ok: false, error: "nofile" });
+  var decoded = [];
+  for (var i = 0; i < files.length; i++) {
+    var b64 = files[i] && typeof files[i].data === "string" ? files[i].data : "";
+    if (!b64 || b64.length > MAX_SIGNED_BYTES * 1.4) return reply({ ok: false, error: "toobig" });
+    var bytes = Utilities.base64Decode(b64);
+    var kind = bytes.length <= MAX_SIGNED_BYTES ? fileKind(bytes) : null;
+    if (!kind) return reply({ ok: false, error: "type" });
+    decoded.push({ bytes: bytes, kind: kind });
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var parent = pdfFolder();
+    var sub = parent.getFoldersByName(ref);
+    var folder = sub.hasNext() ? sub.next() : parent.createFolder(ref);
+    var stamp = Utilities.formatDate(new Date(), "Asia/Kuching", "yyyyMMdd-HHmmss");
+    decoded.forEach(function (f, idx) {
+      folder.createFile(Utilities.newBlob(f.bytes, f.kind.mime, ref + "-bertandatangan-" + stamp + "-" + (idx + 1) + "." + f.kind.ext));
+    });
+    var count = 0;
+    var it = folder.getFiles();
+    while (it.hasNext()) { it.next(); count++; }
+
+    var ensureCol = function (name) {
+      var c = colOf(name);
+      if (!c) { c = sheet.getLastColumn() + 1; sheet.getRange(1, c).setValue(name); headers[c - 1] = name; }
+      return c;
+    };
+    sheet.getRange(row, ensureCol("Borang Bertandatangan")).setFormula('=HYPERLINK("' + folder.getUrl() + '","Buka (' + count + ' fail)")');
+    sheet.getRange(row, ensureCol("Diterima (bertandatangan)")).setValue(new Date());
+  } finally {
+    lock.releaseLock();
+  }
+  cache.remove(failKey);
+  notifySigned(ref, cell("Nama"), cell("Cawangan"));
+  return reply({ ok: true });
+}
+
+/** Short alert to the secretariat that a signed form came in (name + cawangan only, never the IC). */
+function notifySigned(ref, nama, cawangan) {
+  if (!NOTIFY_EMAIL) return;
+  try {
+    MailApp.sendEmail({
+      to: NOTIFY_EMAIL,
+      subject: "Borang bertandatangan diterima " + ref + ": " + nama,
+      body:
+        "Pemohon telah memuat naik borang bertandatangan.\n\n" +
+        "Rujukan: " + ref + "\n" +
+        "Nama: " + nama + "\n" +
+        "Cawangan: " + cawangan + "\n\n" +
+        "Fail ada dalam sheet (lajur Borang Bertandatangan): https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit",
+    });
+  } catch (err) {
+    console.error("notifySigned failed", err);
+  }
+}
+
+/**
  * Short confirmation to the applicant (reference number only, never the IC number).
  * Skipped when the e-mail is missing/invalid or the daily mail quota is nearly used up, so the
  * secretariat alert above always has room. Sent from NOTIFY_EMAIL (needs the Gmail alias); replies go there too.
@@ -323,7 +425,7 @@ function confirmApplicant(ref, nama, cawangan, email, pdfBlob) {
       "Nombor rujukan: " + ref + "\n" +
       "Cawangan: " + cawangan + "\n\n" +
       (pdfBlob
-        ? "Borang permohonan anda yang telah diisi dilampirkan (PDF). Sila cetak, tandatangan pada ruangan pemohon, dan serahkan kepada urus setia atau cawangan anda.\n\n"
+        ? "Borang permohonan anda yang telah diisi dilampirkan (PDF). Sila cetak, tandatangan pada ruangan pemohon, kemudian ambil gambar atau imbas borang bertandatangan dan muat naik di https://app.beliapbb.com/#sertai menggunakan nombor rujukan dan no. kad pengenalan anda. Permohonan hanya lengkap selepas borang bertandatangan diterima.\n\n"
         : "") +
       "Urus setia akan menyemak permohonan anda dan menghubungi anda. " +
       "Sila simpan nombor rujukan ini dan sebutkannya jika anda menghubungi kami di " + NOTIFY_EMAIL + ".\n\n" +
@@ -331,7 +433,7 @@ function confirmApplicant(ref, nama, cawangan, email, pdfBlob) {
       "Hi " + nama + ", we have received your Belia PBB membership application. " +
       "Your reference number is " + ref + ". " +
       (pdfBlob
-        ? "Your filled-in application form is attached (PDF): please print it, sign in the applicant box, and hand it to the secretariat or your branch. "
+        ? "Your filled-in application form is attached (PDF): please print it, sign in the applicant box, then photograph or scan the signed form and upload it at https://app.beliapbb.com/#sertai with your reference number and IC number. Your application is complete only once the signed form is received. "
         : "") +
       "The secretariat will review it and contact you. " +
       "Questions: " + NOTIFY_EMAIL + ".\n\n" +

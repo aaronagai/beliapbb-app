@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { applicationEndpoint, attachApplicationPdf, submitApplication } from "./applicationApi";
 import { useI18n, type MessageKey } from "./i18n";
+import { SignedFormUpload } from "./SignedFormUpload";
 import {
   CAWANGAN_OPTIONS,
   DUN_CAWANGAN_OPTIONS,
@@ -185,6 +186,8 @@ export function ApplicationPage() {
   const [saved, setSaved] = useState(false);
   const [send, setSend] = useState<SendState>({ kind: "idle" });
   const [pdf, setPdf] = useState<PdfState>({ kind: "none" });
+  /** Kept in memory only, to pre-fill the signed-form upload right after submitting. */
+  const [sentIc, setSentIc] = useState("");
   /* Spam trap: hidden from people, filled in by bots */
   const [website, setWebsite] = useState("");
 
@@ -224,6 +227,7 @@ export function ApplicationPage() {
         /* private mode */
       }
       setD(emptyDraft);
+      setSentIc(submitted.noKadPengenalan.replace(/\D/g, ""));
       setSend({ kind: "sent", ref: result.ref });
       window.scrollTo({ top: 0, behavior: "smooth" });
       // Fill in the official PDF on this device, then hand a copy to the secretariat (and the applicant's inbox).
@@ -274,12 +278,14 @@ export function ApplicationPage() {
             </>
           ) : null}
           {pdf.kind === "failed" ? <p className="application-sent-pdf-note">{t("applicationPdfFailed")}</p> : null}
+          <SignedFormUpload initialRef={send.ref} initialIc={sentIc} />
           <button
             type="button"
             className="profile-save-btn"
             onClick={() => {
               if (pdf.kind === "ready") URL.revokeObjectURL(pdf.url);
               setPdf({ kind: "none" });
+              setSentIc("");
               setSend({ kind: "idle" });
             }}
           >
@@ -298,6 +304,13 @@ export function ApplicationPage() {
           {t("applicationDownloadBlank")}
         </a>
       </div>
+
+      {endpoint ? (
+        <details className="application-signed-details">
+          <summary>{t("signedTitle")}</summary>
+          <SignedFormUpload />
+        </details>
+      ) : null}
 
       <div className="application-form">
         <h2 className="application-section-title">{t("applicationSectionIdentity")}</h2>
