@@ -5,7 +5,7 @@
  * All positions are in PDF points measured from the TOP-left of the 540 × 780 page, read from the
  * form's own boxes. Signature, date, proposer, supporter and office boxes are left blank on purpose.
  */
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 
 export type BorangData = {
   cawangan: string;
@@ -35,6 +35,17 @@ export type BorangData = {
 };
 
 const PAGE_H = 780;
+
+/**
+ * One thing printed on the form, in page points from the top-left. The PDF and the on-screen
+ * preview are both drawn from this list, so every answer is its own element (easy to animate).
+ * `group` names the field it belongs to; ops are in reading order.
+ */
+export type BorangOp =
+  | { kind: "text"; page: 0 | 1; group: string; x: number; y: number; size: number; text: string }
+  | { kind: "tick"; page: 0 | 1; group: string; box: readonly [number, number, number, number] };
+
+export const BORANG_PAGE = { width: 540, height: 780 } as const;
 const INK = rgb(0.05, 0.1, 0.45);
 
 /** Tick boxes: [x0, y0, x1, y1] from the top-left. */
@@ -135,18 +146,23 @@ function wrap(font: PDFFont, text: string, size: number, maxW: number): string[]
   return lines;
 }
 
-export async function fillBorangPdf(templateBytes: ArrayBuffer | Uint8Array, d: BorangData, ref: string): Promise<Uint8Array> {
+export async function fillBorangPdf(
+  templateBytes: ArrayBuffer | Uint8Array,
+  d: BorangData,
+  ref: string,
+): Promise<{ bytes: Uint8Array; ops: BorangOp[] }> {
   const pdf = await PDFDocument.load(templateBytes);
   const font = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const [p1, p2] = pdf.getPages();
+  const ops: BorangOp[] = [];
+  let group = "";
 
-  const text = (page: PDFPage, s: string, x: number, baseline: number, size: number) => {
+  const text = (page: 0 | 1, s: string, x: number, baseline: number, size: number) => {
     if (!s) return;
-    page.drawText(s, { x, y: PAGE_H - baseline, size, font, color: INK });
+    ops.push({ kind: "text", page, group, x, y: baseline, size, text: s });
   };
 
   /** One line of text inside a box, shrunk (then trimmed) to fit. */
-  const field = (page: PDFPage, raw: string, x: number, baseline: number, maxW: number, maxSize: number, minSize = 7) => {
+  const field = (page: 0 | 1, raw: string, x: number, baseline: number, maxW: number, maxSize: number, minSize = 7) => {
     const s = formText(raw).replace(/\s+/g, " ").trim();
     if (!s) return;
     const size = fitSize(font, s, maxW, maxSize, minSize);
@@ -154,7 +170,7 @@ export async function fillBorangPdf(templateBytes: ArrayBuffer | Uint8Array, d: 
   };
 
   /** Wrapped paragraph inside an address box. */
-  const block = (page: PDFPage, raw: string, x: number, firstBaseline: number, maxW: number, bottom: number) => {
+  const block = (page: 0 | 1, raw: string, x: number, firstBaseline: number, maxW: number, bottom: number) => {
     const s = formText(raw).trim();
     if (!s) return;
     for (const [size, lead] of [[10.5, 13], [9.5, 11.5], [8.5, 10.2], [7.5, 9]] as const) {
@@ -171,7 +187,7 @@ export async function fillBorangPdf(templateBytes: ArrayBuffer | Uint8Array, d: 
   };
 
   /** Digits centred one per cell. `cells` are the 0-based cell indexes to use, in order. */
-  const cells = (page: PDFPage, xs: readonly number[], chars: string, cellIdx: readonly number[], baseline: number, size = 12) => {
+  const cells = (page: 0 | 1, xs: readonly number[], chars: string, cellIdx: readonly number[], baseline: number, size = 12) => {
     for (let i = 0; i < chars.length && i < cellIdx.length; i++) {
       const c = cellIdx[i];
       const w = font.widthOfTextAtSize(chars[i], size);
@@ -179,75 +195,106 @@ export async function fillBorangPdf(templateBytes: ArrayBuffer | Uint8Array, d: 
     }
   };
 
-  const tick = (page: PDFPage, box: Box) => {
-    const [x0, y0, x1, y1] = box;
-    const w = x1 - x0;
-    const h = y1 - y0;
-    const pt = (px: number, py: number) => ({ x: x0 + px * w, y: PAGE_H - (y0 + py * h) });
-    page.drawLine({ start: pt(0.2, 0.55), end: pt(0.42, 0.85), thickness: 1.8, color: INK });
-    page.drawLine({ start: pt(0.42, 0.85), end: pt(0.88, 0.12), thickness: 1.8, color: INK });
+  const tick = (page: 0 | 1, box: Box) => {
+    ops.push({ kind: "tick", page, group, box });
   };
 
   // ---------- Page 1 ----------
+  group = "ref";
   const refText = formText(ref);
   const refSize = 9;
-  text(p1, refText, 517 - font.widthOfTextAtSize(refText, refSize), 92, refSize);
+  text(0, refText, 517 - font.widthOfTextAtSize(refText, refSize), 92, refSize);
 
+  group = "cawangan";
   const caw = formText(d.cawangan).replace(/^N\./, "").trim(); // the form already prints "N."
-  field(p1, caw, 127, 166.5, 275, 11);
-  field(p1, d.rantingNo, 106, 191, 295, 11);
+  field(0, caw, 127, 166.5, 275, 11);
+  group = "ranting";
+  field(0, d.rantingNo, 106, 191, 295, 11);
+  group = "nama";
   const nama = formText(d.nama).replace(/\s+/g, " ").trim();
-  if (font.widthOfTextAtSize(nama, 8.5) <= 295) field(p1, nama, 106, 220, 295, 12, 8.5);
+  if (font.widthOfTextAtSize(nama, 8.5) <= 295) field(0, nama, 106, 220, 295, 12, 8.5);
   else {
     // Very long name: two lines in the Nama box instead of cutting it off.
     const lines = wrap(font, nama, 9, 295);
-    lines.slice(0, 2).forEach((ln, i) => text(p1, ln, 106, 213 + i * 11, 9));
+    lines.slice(0, 2).forEach((ln, i) => text(0, ln, 106, 213 + i * 11, 9));
   }
 
+  group = "tarikhLahir";
   const dob = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d.tarikhLahir.trim());
   const dobDigits = dob ? dob[3] + dob[2] + dob[1] : digitsOf(d.tarikhLahir).slice(0, 8);
-  cells(p1, DOB_X, dobDigits, [0, 1, 3, 4, 6, 7, 8, 9], 268);
+  cells(0, DOB_X, dobDigits, [0, 1, 3, 4, 6, 7, 8, 9], 268);
 
-  field(p1, d.tempatLahir, 104, 304, 186, 10.5);
-  if (d.jantina) tick(p1, TICK.jantina[d.jantina]);
+  group = "tempatLahir";
+  field(0, d.tempatLahir, 104, 304, 186, 10.5);
+  group = "jantina";
+  if (d.jantina) tick(0, TICK.jantina[d.jantina]);
 
+  group = "noKadPengenalan";
   const ic = digitsOf(d.noKadPengenalan);
-  if (d.icLama && !d.icBaru) cells(p1, IC_LAMA_X, ic.slice(0, 7), [1, 2, 3, 4, 5, 6, 7], 406);
-  else cells(p1, IC_BARU_X, ic.slice(0, 12), [0, 1, 2, 3, 4, 5, 7, 8, 10, 11, 12, 13], 371);
+  if (d.icLama && !d.icBaru) cells(0, IC_LAMA_X, ic.slice(0, 7), [1, 2, 3, 4, 5, 6, 7], 406);
+  else cells(0, IC_BARU_X, ic.slice(0, 12), [0, 1, 2, 3, 4, 5, 7, 8, 10, 11, 12, 13], 371);
 
+  group = "agama";
   if (d.agama) {
-    tick(p1, TICK.agama[d.agama]);
-    if (d.agama === "lain") field(p1, d.agamaLain, 366, 293.5, 138, 9.5);
+    tick(0, TICK.agama[d.agama]);
+    if (d.agama === "lain") field(0, d.agamaLain, 366, 293.5, 138, 9.5);
   }
+  group = "bangsa";
   const bangsaBox = (TICK.bangsa as Record<string, Box>)[d.bangsa];
   if (bangsaBox) {
-    tick(p1, bangsaBox);
-    if (d.bangsa === "lain") field(p1, d.bangsaLain, 366, 405.5, 140, 9.5);
+    tick(0, bangsaBox);
+    if (d.bangsa === "lain") field(0, d.bangsaLain, 366, 405.5, 140, 9.5);
   }
 
-  block(p1, d.alamatRumah, 42, 466, 247, 574);
-  block(p1, d.alamatPejabat, 42, 624, 247, 710);
+  group = "alamatRumah";
+  block(0, d.alamatRumah, 42, 466, 247, 574);
+  group = "alamatPejabat";
+  block(0, d.alamatPejabat, 42, 624, 247, 710);
 
+  group = "pekerjaan";
   if (d.pekerjaan) {
-    tick(p1, TICK.pekerjaan[d.pekerjaan]);
-    field(p1, d.pekerjaanNyata, 378, PEKERJAAN_LINE[d.pekerjaan], 128, 9);
+    tick(0, TICK.pekerjaan[d.pekerjaan]);
+    field(0, d.pekerjaanNyata, 378, PEKERJAAN_LINE[d.pekerjaan], 128, 9);
   }
 
+  group = "telRumah";
   const rumah = digitsOf(d.telRumah);
-  cells(p1, TEL_X, rumah.slice(0, 9), [0, 1, 2, 4, 5, 6, 7, 8, 9], 616, 11);
+  cells(0, TEL_X, rumah.slice(0, 9), [0, 1, 2, 4, 5, 6, 7, 8, 9], 616, 11);
+  group = "telPejabat";
   const pejabat = digitsOf(d.telPejabat);
-  cells(p1, TEL_X, pejabat.slice(0, 9), [0, 1, 2, 4, 5, 6, 7, 8, 9], 647, 11);
+  cells(0, TEL_X, pejabat.slice(0, 9), [0, 1, 2, 4, 5, 6, 7, 8, 9], 647, 11);
+  group = "telBimbit";
   const bimbit = digitsOf(d.telBimbit);
-  cells(p1, BIMBIT_X, bimbit.slice(0, 12), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 682, 11);
-  field(p1, d.email.toLowerCase(), 340, 709, 174, 10, 5.5);
+  cells(0, BIMBIT_X, bimbit.slice(0, 12), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 682, 11);
+  group = "email";
+  field(0, d.email.toLowerCase(), 340, 709, 174, 10, 5.5);
 
   // ---------- Page 2 ----------
+  group = "kawasanParlimen";
   const parlimen = /(\d{1,3})/.exec(d.kawasanParlimen)?.[1] ?? "";
-  if (parlimen) cells(p2, PARLIMEN_X, parlimen.padStart(3, "0"), [1, 2, 3], 58);
+  if (parlimen) cells(1, PARLIMEN_X, parlimen.padStart(3, "0"), [1, 2, 3], 58);
+  group = "kawasanNegeri";
   const negeri = /(\d{1,2})/.exec(d.kawasanNegeri)?.[1] ?? "";
-  if (negeri) cells(p2, NEGERI_X, negeri.padStart(2, "0"), [1, 2], 89);
-  if (d.kategoriAhli) tick(p2, TICK.kategori[d.kategoriAhli]);
+  if (negeri) cells(1, NEGERI_X, negeri.padStart(2, "0"), [1, 2], 89);
+  group = "kategoriAhli";
+  if (d.kategoriAhli) tick(1, TICK.kategori[d.kategoriAhli]);
+
+  // Draw the same list of items onto the real PDF.
+  const pages = pdf.getPages();
+  for (const op of ops) {
+    const page = pages[op.page];
+    if (op.kind === "text") {
+      page.drawText(op.text, { x: op.x, y: PAGE_H - op.y, size: op.size, font, color: INK });
+    } else {
+      const [x0, y0, x1, y1] = op.box;
+      const w = x1 - x0;
+      const h = y1 - y0;
+      const pt = (px: number, py: number) => ({ x: x0 + px * w, y: PAGE_H - (y0 + py * h) });
+      page.drawLine({ start: pt(0.2, 0.55), end: pt(0.42, 0.85), thickness: 1.8, color: INK });
+      page.drawLine({ start: pt(0.42, 0.85), end: pt(0.88, 0.12), thickness: 1.8, color: INK });
+    }
+  }
 
   pdf.setTitle(`Borang Permohonan Keahlian PBB - ${ref}`);
-  return pdf.save();
+  return { bytes: await pdf.save(), ops };
 }

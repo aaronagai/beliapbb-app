@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 import { applicationEndpoint, attachApplicationPdf, submitApplication } from "./applicationApi";
 import { useI18n, type MessageKey } from "./i18n";
 import { SignedFormUpload } from "./SignedFormUpload";
+import { BorangPreview } from "./BorangPreview";
+import type { BorangOp } from "./borangPdf";
 import {
   CAWANGAN_OPTIONS,
   DUN_CAWANGAN_OPTIONS,
@@ -166,9 +168,13 @@ type SendState =
   | { kind: "error"; message: string };
 
 /** The applicant's filled-in official form, made in their browser after a successful submit. */
-type PdfState = { kind: "none" } | { kind: "making" } | { kind: "ready"; url: string; name: string } | { kind: "failed" };
+type PdfState =
+  | { kind: "none" }
+  | { kind: "making" }
+  | { kind: "ready"; url: string; name: string; ops: BorangOp[] }
+  | { kind: "failed" };
 
-async function makeFilledPdf(data: Draft, ref: string): Promise<Uint8Array> {
+async function makeFilledPdf(data: Draft, ref: string): Promise<{ bytes: Uint8Array; ops: BorangOp[] }> {
   const [{ fillBorangPdf }, template] = await Promise.all([
     import("./borangPdf"),
     fetch(BORANG_PDF).then((r) => {
@@ -234,9 +240,10 @@ export function ApplicationPage() {
       setPdf({ kind: "making" });
       let bytes: Uint8Array | null = null;
       try {
-        bytes = await makeFilledPdf(submitted, result.ref);
+        const made = await makeFilledPdf(submitted, result.ref);
+        bytes = made.bytes;
         const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
-        setPdf({ kind: "ready", url: URL.createObjectURL(blob), name: `Borang-PBB-${result.ref}.pdf` });
+        setPdf({ kind: "ready", url: URL.createObjectURL(blob), name: `Borang-PBB-${result.ref}.pdf`, ops: made.ops });
       } catch {
         setPdf({ kind: "failed" });
       }
@@ -271,6 +278,7 @@ export function ApplicationPage() {
           {pdf.kind === "making" ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : null}
           {pdf.kind === "ready" ? (
             <>
+              <BorangPreview ops={pdf.ops} />
               <a className="profile-save-btn application-sent-pdf-btn" href={pdf.url} download={pdf.name}>
                 {t("applicationPdfDownload")}
               </a>

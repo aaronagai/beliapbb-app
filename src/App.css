@@ -884,3 +884,34 @@
   font-size: 0.875rem;
   padding: 0.25rem 0;
 }
+
+/* The applicant's filled-in official form, shown on the success screen. */
+.borang-preview {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+}
+
+.borang-page {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.08);
+}
+
+.borang-text {
+  fill: #0d1a73;
+  font-family: Helvetica, Arial, "Liberation Sans", sans-serif;
+  font-weight: 700;
+}
+
+.borang-tick {
+  fill: none;
+  stroke: #0d1a73;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

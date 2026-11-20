@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 ## 0.0.12.8 — 2026-11-20
 
 ### Added
-- After applying, the official "Borang Permohonan Keahlian PBB" is filled in for the applicant: their answers are printed in the right boxes and ticks of the real PDF, in their own browser. They download it, print it and sign the applicant box (proposer, supporter and office boxes stay blank). The reference number is printed at the top
+- After applying, the success screen shows the applicant's filled-in official form on the page (both pages; every answer is its own SVG element with `data-group` and an order index, ready to animate), and the official "Borang Permohonan Keahlian PBB" is filled in for the applicant: their answers are printed in the right boxes and ticks of the real PDF, in their own browser. They download it, print it and sign the applicant box (proposer, supporter and office boxes stay blank). The reference number is printed at the top
 - The filled form is also saved to a private Drive folder with a "Borang PDF" link on the applicant's row in the sheet, and e-mailed to the applicant as an attachment (one-time token, so nobody can attach a file to someone else's application)
 - Privacy notice above the declaration on the form (BM/EN)
 
