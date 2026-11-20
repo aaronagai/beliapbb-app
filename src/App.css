@@ -848,3 +848,17 @@
 
   
 }
+
+.application-sent-pdf-btn {
+  display: block;
+  margin-top: 0.75rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.application-sent-pdf-note {
+  margin: 0.6rem 0 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}

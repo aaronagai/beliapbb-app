@@ -13,7 +13,7 @@ export function applicationEndpoint(): string | null {
 }
 
 export type SubmitResult =
-  | { ok: true; ref: string }
+  | { ok: true; ref: string; token?: string }
   | { ok: false; error: "missing" | "declaration" | "ic" | "busy" | "server" | "network"; fields?: string[] };
 
 /** Sent as text/plain so the browser skips the CORS preflight Apps Script can't answer. */
@@ -24,5 +24,28 @@ export async function submitApplication(endpoint: string, payload: Record<string
     return data && typeof data.ok === "boolean" ? data : { ok: false, error: "server" };
   } catch {
     return { ok: false, error: "network" };
+  }
+}
+
+/**
+ * Step 2 of an application: hands the filled-in official PDF to the script, which files it in the
+ * secretariat's private Drive folder and e-mails it to the applicant. Best effort: the applicant
+ * already has the PDF on screen, so a failure here is not shown as an error. With no PDF the script
+ * still sends the plain confirmation e-mail.
+ */
+export async function attachApplicationPdf(endpoint: string, ref: string, token: string, pdf: Uint8Array | null): Promise<boolean> {
+  try {
+    let b64 = "";
+    if (pdf) {
+      let bin = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < pdf.length; i += chunk) bin += String.fromCharCode(...pdf.subarray(i, i + chunk));
+      b64 = btoa(bin);
+    }
+    const res = await fetch(endpoint, { method: "POST", body: JSON.stringify({ action: "attach", ref, token, pdf: b64 }) });
+    const data = (await res.json()) as { ok?: boolean };
+    return data.ok === true;
+  } catch {
+    return false;
   }
 }

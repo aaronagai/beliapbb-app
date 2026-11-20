@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { applicationEndpoint, submitApplication } from "./applicationApi";
+import { applicationEndpoint, attachApplicationPdf, submitApplication } from "./applicationApi";
 import { useI18n, type MessageKey } from "./i18n";
 import {
   CAWANGAN_OPTIONS,
@@ -164,12 +164,27 @@ type SendState =
   | { kind: "sent"; ref: string }
   | { kind: "error"; message: string };
 
+/** The applicant's filled-in official form, made in their browser after a successful submit. */
+type PdfState = { kind: "none" } | { kind: "making" } | { kind: "ready"; url: string; name: string } | { kind: "failed" };
+
+async function makeFilledPdf(data: Draft, ref: string): Promise<Uint8Array> {
+  const [{ fillBorangPdf }, template] = await Promise.all([
+    import("./borangPdf"),
+    fetch(BORANG_PDF).then((r) => {
+      if (!r.ok) throw new Error("template");
+      return r.arrayBuffer();
+    }),
+  ]);
+  return fillBorangPdf(template, data, ref);
+}
+
 export function ApplicationPage() {
   const { t } = useI18n();
   const endpoint = applicationEndpoint();
   const [d, setD] = useState<Draft>(() => readDraft());
   const [saved, setSaved] = useState(false);
   const [send, setSend] = useState<SendState>({ kind: "idle" });
+  const [pdf, setPdf] = useState<PdfState>({ kind: "none" });
   /* Spam trap: hidden from people, filled in by bots */
   const [website, setWebsite] = useState("");
 
@@ -200,6 +215,7 @@ export function ApplicationPage() {
       return;
     }
     setSend({ kind: "sending" });
+    const submitted = d; // keep the answers: the form is cleared below, the PDF is made from this copy
     const result = await submitApplication(url, { ...d, website });
     if (result.ok) {
       try {
@@ -210,6 +226,17 @@ export function ApplicationPage() {
       setD(emptyDraft);
       setSend({ kind: "sent", ref: result.ref });
       window.scrollTo({ top: 0, behavior: "smooth" });
+      // Fill in the official PDF on this device, then hand a copy to the secretariat (and the applicant's inbox).
+      setPdf({ kind: "making" });
+      let bytes: Uint8Array | null = null;
+      try {
+        bytes = await makeFilledPdf(submitted, result.ref);
+        const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
+        setPdf({ kind: "ready", url: URL.createObjectURL(blob), name: `Borang-PBB-${result.ref}.pdf` });
+      } catch {
+        setPdf({ kind: "failed" });
+      }
+      if (result.token) void attachApplicationPdf(url, result.ref, result.token, bytes);
       return;
     }
     saveLocally();
@@ -237,7 +264,25 @@ export function ApplicationPage() {
           <h2>{t("applicationSentTitle")}</h2>
           <p className="application-sent-ref">{send.ref}</p>
           <p>{t("applicationSentBody")}</p>
-          <button type="button" className="profile-save-btn" onClick={() => setSend({ kind: "idle" })}>
+          {pdf.kind === "making" ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : null}
+          {pdf.kind === "ready" ? (
+            <>
+              <a className="profile-save-btn application-sent-pdf-btn" href={pdf.url} download={pdf.name}>
+                {t("applicationPdfDownload")}
+              </a>
+              <p className="application-sent-pdf-note">{t("applicationPdfNext")}</p>
+            </>
+          ) : null}
+          {pdf.kind === "failed" ? <p className="application-sent-pdf-note">{t("applicationPdfFailed")}</p> : null}
+          <button
+            type="button"
+            className="profile-save-btn"
+            onClick={() => {
+              if (pdf.kind === "ready") URL.revokeObjectURL(pdf.url);
+              setPdf({ kind: "none" });
+              setSend({ kind: "idle" });
+            }}
+          >
             {t("applicationSentAnother")}
           </button>
         </div>

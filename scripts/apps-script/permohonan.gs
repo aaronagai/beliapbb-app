@@ -60,6 +60,8 @@ var COLUMNS = [
   // Filled in by the secretariat, never by the form.
   ["Disemak oleh", null],
   ["Catatan", null],
+  // Link to the filled official PDF in Drive; added by the attach step below.
+  ["Borang PDF", null],
 ];
 
 var REQUIRED = ["cawangan", "nama", "noKadPengenalan", "telBimbit", "kategoriAhli"];
@@ -67,6 +69,9 @@ var REQUIRED = ["cawangan", "nama", "noKadPengenalan", "telBimbit", "kategoriAhl
 function doPost(e) {
   try {
     var payload = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+
+    // Second step: the app sends the filled-in official PDF for an application it just submitted.
+    if (payload.action === "attach") return handleAttach(payload);
 
     // Spam trap: real visitors never see or fill the "website" field.
     if (payload.website) return reply({ ok: true, ref: "BPBB-0" });
@@ -85,7 +90,7 @@ function doPost(e) {
     try {
       var sheet = targetSheet();
       ensureHeader(sheet);
-      var ref = "BPBB-" + new Date().getFullYear() + "-" + pad(sheet.getLastRow(), 5);
+      var ref = "BPBB-" + new Date().getFullYear() + "-" + pad(nextRefNumber(sheet), 5);
       var row = COLUMNS.map(function (col) {
         var header = col[0], getter = col[1];
         if (header === "Rujukan") return ref;
@@ -100,8 +105,10 @@ function doPost(e) {
     }
 
     notify(ref, clean(payload.nama), clean(payload.cawangan));
-    confirmApplicant(ref, clean(payload.nama), clean(payload.cawangan), clean(payload.email));
-    return reply({ ok: true, ref: ref });
+    // One-time token (6 h) that lets this applicant's browser attach the PDF to this row, once.
+    var token = Utilities.getUuid();
+    CacheService.getScriptCache().put("attach-" + ref, token, 21600);
+    return reply({ ok: true, ref: ref, token: token });
   } catch (err) {
     console.error(err);
     return reply({ ok: false, error: "server" });
@@ -228,11 +235,84 @@ function notify(ref, nama, cawangan) {
 }
 
 /**
+ * Reference numbers come from a counter (not the row count), so deleting test rows can never
+ * cause a reference to be reused. Starts from the number of applications already in the sheet.
+ */
+function nextRefNumber(sheet) {
+  var props = PropertiesService.getScriptProperties();
+  var n = Number(props.getProperty("refCounter"));
+  if (!n) n = Math.max(sheet.getLastRow() - 1, 0);
+  n += 1;
+  props.setProperty("refCounter", String(n));
+  return n;
+}
+
+var PDF_FOLDER_NAME = "Borang Permohonan PBB (SULIT)";
+var MAX_PDF_BYTES = 2 * 1024 * 1024;
+
+/** Private Drive folder for the filled PDFs (created on first use, only the owner can open it). */
+function pdfFolder() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty("pdfFolderId");
+  if (id) {
+    try { return DriveApp.getFolderById(id); } catch (err) { /* deleted: make a new one */ }
+  }
+  var folder = DriveApp.createFolder(PDF_FOLDER_NAME);
+  props.setProperty("pdfFolderId", folder.getId());
+  return folder;
+}
+
+/**
+ * Step 2: store the applicant's filled-in official form, link it in the sheet, and e-mail it to
+ * the applicant. Needs the one-time token from step 1. With no PDF (the browser could not make
+ * one) the applicant still gets the plain confirmation.
+ */
+function handleAttach(payload) {
+  var ref = clean(payload.ref);
+  var token = clean(payload.token);
+  if (!/^BPBB-\d{4}-\d{5,}$/.test(ref)) return reply({ ok: false, error: "ref" });
+  var cache = CacheService.getScriptCache();
+  var expected = cache.get("attach-" + ref);
+  if (!expected || expected !== token) return reply({ ok: false, error: "token" });
+  if (!underRateLimit()) return reply({ ok: false, error: "busy" });
+  cache.remove("attach-" + ref); // single use
+
+  var sheet = targetSheet();
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var colOf = function (name) { return headers.indexOf(name) + 1; };
+  var hit = sheet.getRange(1, 1, sheet.getLastRow(), 1).createTextFinder(ref).matchEntireCell(true).findNext();
+  if (!hit) return reply({ ok: false, error: "ref" });
+  var row = hit.getRow();
+  var cell = function (name) { return colOf(name) ? String(sheet.getRange(row, colOf(name)).getValue()).replace(/^'/, "") : ""; };
+  var nama = cell("Nama"), cawangan = cell("Cawangan"), email = cell("E-mel");
+
+  var blob = null;
+  var b64 = typeof payload.pdf === "string" ? payload.pdf : "";
+  if (b64 && b64.length <= MAX_PDF_BYTES * 1.4) {
+    var bytes = Utilities.base64Decode(b64);
+    var isPdf = bytes.length > 4 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
+    if (isPdf && bytes.length <= MAX_PDF_BYTES) {
+      var safeName = nama.replace(/[^A-Za-z0-9 ]/g, "").trim().slice(0, 40);
+      blob = Utilities.newBlob(bytes, "application/pdf", ref + (safeName ? " - " + safeName : "") + ".pdf");
+      var file = pdfFolder().createFile(blob);
+      var linkCol = colOf("Borang PDF");
+      if (!linkCol) {
+        linkCol = headers.length + 1;
+        sheet.getRange(1, linkCol).setValue("Borang PDF");
+      }
+      sheet.getRange(row, linkCol).setFormula('=HYPERLINK("' + file.getUrl() + '","Buka borang")');
+    }
+  }
+  confirmApplicant(ref, nama, cawangan, email, blob);
+  return reply({ ok: true, stored: !!blob });
+}
+
+/**
  * Short confirmation to the applicant (reference number only, never the IC number).
  * Skipped when the e-mail is missing/invalid or the daily mail quota is nearly used up, so the
  * secretariat alert above always has room. Sent from NOTIFY_EMAIL (needs the Gmail alias); replies go there too.
  */
-function confirmApplicant(ref, nama, cawangan, email) {
+function confirmApplicant(ref, nama, cawangan, email, pdfBlob) {
   if (!email || !/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(email)) return;
   try {
     if (MailApp.getRemainingDailyQuota() < 20) return;
@@ -242,19 +322,30 @@ function confirmApplicant(ref, nama, cawangan, email) {
       "Terima kasih. Permohonan keahlian Belia PBB anda telah kami terima.\n\n" +
       "Nombor rujukan: " + ref + "\n" +
       "Cawangan: " + cawangan + "\n\n" +
+      (pdfBlob
+        ? "Borang permohonan anda yang telah diisi dilampirkan (PDF). Sila cetak, tandatangan pada ruangan pemohon, dan serahkan kepada urus setia atau cawangan anda.\n\n"
+        : "") +
       "Urus setia akan menyemak permohonan anda dan menghubungi anda. " +
       "Sila simpan nombor rujukan ini dan sebutkannya jika anda menghubungi kami di " + NOTIFY_EMAIL + ".\n\n" +
       "---\n" +
       "Hi " + nama + ", we have received your Belia PBB membership application. " +
-      "Your reference number is " + ref + ". The secretariat will review it and contact you. " +
+      "Your reference number is " + ref + ". " +
+      (pdfBlob
+        ? "Your filled-in application form is attached (PDF): please print it, sign in the applicant box, and hand it to the secretariat or your branch. "
+        : "") +
+      "The secretariat will review it and contact you. " +
       "Questions: " + NOTIFY_EMAIL + ".\n\n" +
       "Belia PBB Sarawak\nhttps://beliapbb.com";
     try {
       // Sends from hello@beliapbb.com once it is added as a "Send mail as" alias in this Gmail account.
-      GmailApp.sendEmail(email, subject, body, { from: NOTIFY_EMAIL, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak" });
+      GmailApp.sendEmail(email, subject, body, {
+        from: NOTIFY_EMAIL, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", attachments: pdfBlob ? [pdfBlob] : [],
+      });
     } catch (aliasErr) {
       // Alias not set up yet: send from the account's own address instead.
-      MailApp.sendEmail({ to: email, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", subject: subject, body: body });
+      MailApp.sendEmail({
+        to: email, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", subject: subject, body: body, attachments: pdfBlob ? [pdfBlob] : [],
+      });
     }
   } catch (err) {
     console.error("confirm failed", err);

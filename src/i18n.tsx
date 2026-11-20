@@ -79,6 +79,10 @@ export const messages = {
     applicationSentTitle: "Permohonan diterima",
     applicationSentBody: "Simpan nombor rujukan ini. Urus setia Belia PBB akan menyemak permohonan anda.",
     applicationSentAnother: "Isi permohonan lain",
+    applicationPdfMaking: "Menyediakan borang rasmi anda…",
+    applicationPdfDownload: "Muat turun borang PBB (PDF)",
+    applicationPdfNext: "Borang rasmi PBB anda telah diisi. Cetak, tandatangan pada ruangan pemohon, dan serahkan kepada urus setia atau cawangan anda. Salinan juga dihantar ke e-mel anda.",
+    applicationPdfFailed: "Permohonan anda telah diterima, tetapi borang PDF tidak dapat disediakan. Urus setia akan menghubungi anda. Anda juga boleh muat turun borang kosong dan mengisinya.",
     applicationErrorMissing: "Sila lengkapkan: {{fields}}.",
     applicationErrorIc: "No. kad pengenalan mesti 12 digit.",
     applicationErrorGeneric:
@@ -418,6 +422,10 @@ export const messages = {
     applicationSentTitle: "Application received",
     applicationSentBody: "Keep this reference number. The Belia PBB secretariat will review your application.",
     applicationSentAnother: "Fill in another application",
+    applicationPdfMaking: "Preparing your official form…",
+    applicationPdfDownload: "Download PBB form (PDF)",
+    applicationPdfNext: "Your official PBB form is filled in. Print it, sign in the applicant box, and hand it to the secretariat or your branch. A copy is also sent to your email.",
+    applicationPdfFailed: "Your application was received, but the PDF form could not be prepared. The secretariat will contact you. You can also download the blank form and fill it in.",
     applicationErrorMissing: "Please complete: {{fields}}.",
     applicationErrorIc: "IC number must be 12 digits.",
     applicationErrorGeneric:
