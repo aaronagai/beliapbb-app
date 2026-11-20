@@ -188,19 +188,29 @@ export function App() {
 
   const onFtesNavigate = useCallback((target: FtesNavTarget) => go(target), [go]);
 
+  /** While someone is joining, drop the tab bar and the exits: one focus, with a clear way out. */
+  const [joinFocus, setJoinFocus] = useState(false);
+  const focus = tab === "sertai" && joinFocus;
+
   if (tab === "ftes") return <FtesPage onNavigate={onFtesNavigate} />;
 
   return (
-    <div className={`app-shell app2${FULL_SCREEN.has(tab) ? " is-full" : ""}`}>
+    <div className={`app-shell app2${FULL_SCREEN.has(tab) ? " is-full" : ""}${focus ? " is-focus" : ""}`}>
       <header className={`app2-header${scrolled ? " is-scrolled" : ""}`}>
         <div className="app2-header-inner">
           <button type="button" className="app2-brand" onClick={() => go("home")} translate="no">
             <Logo className="app2-brand-logo" alt={t("logoAlt")} />
             <span>Belia PBB</span>
           </button>
-          <a className="app2-site-link" href={SITE_URL}>
-            {t("appSiteLink")}
-          </a>
+          {focus ? (
+            <button type="button" className="app2-site-link app2-exit" onClick={() => go("home")}>
+              {t("focusExit")}
+            </button>
+          ) : (
+            <a className="app2-site-link" href={SITE_URL}>
+              {t("appSiteLink")}
+            </a>
+          )}
         </div>
       </header>
 
@@ -217,13 +227,13 @@ export function App() {
             <LatestNews count={20} showHeading={false} />
           </div>
         ) : tab === "sertai" ? (
-          <SertaiPage />
+          <SertaiPage onFocusChange={setJoinFocus} onExit={() => go("home")} />
         ) : (
           <SayaPage />
         )}
       </main>
 
-      {FULL_SCREEN.has(tab) ? null : <TabBar active={barTab(tab)} onSelect={go} />}
+      {FULL_SCREEN.has(tab) || focus ? null : <TabBar active={barTab(tab)} onSelect={go} />}
     </div>
   );
 }

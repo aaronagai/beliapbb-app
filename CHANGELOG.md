@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 ## 0.0.12.8 — 2026-11-20
 
 ### Changed
+- Joining runs in a focused mode: while someone is on the Sertai intro, steps or the pages right after sending, the tab bar and site link are hidden and a plain "Keluar" takes their place; the welcome page ends with a "Selesai" button back to Utama. The status view (after applying) keeps the normal tab bar
+- FAQ answers on the landing page no longer mention downloading the blank PDF form
 - Flow restructure: joining is now a short guided flow. Sertai opens on a short intro (what you'll do, about 5 minutes), then four steps (Diri, Hubungi, Keahlian, Semak dan tandatangan) with a progress bar, required fields checked on each step, autosave, and name and cawangan carried over from the Saya profile. The last step shows the official form filled in from the answers so far, with the declaration and signature pad under it
 - The app remembers an application sent from this device (reference number and whether the signed form arrived, never the IC or answers): Utama shows it instead of the sample card, and Sertai shows its status page (with the signed-form upload if it is still missing) instead of a blank form
 - The disabled proposer and supporter fields are gone from the screen (they were never filled in digitally)

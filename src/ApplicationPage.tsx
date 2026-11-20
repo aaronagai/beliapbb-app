@@ -219,7 +219,7 @@ async function makeFilledPdf(
   return fillBorangPdf(template, data, ref, signature);
 }
 
-export function ApplicationPage() {
+export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (focus: boolean) => void; onExit?: () => void }) {
   const { t } = useI18n();
   const endpoint = applicationEndpoint();
   const [d, setD] = useState<Draft>(() => prefillFromProfile(readDraft()));
@@ -246,6 +246,12 @@ export function ApplicationPage() {
   const [previewOps, setPreviewOps] = useState<BorangOp[] | null>(null);
   /** An application already sent from this device. */
   const [record, setRecord] = useState<ApplicationRecord | null>(() => readApplication());
+  /** Joining (intro, steps, the pages right after sending) runs without the tab bar; the status view does not. */
+  const focusMode = send.kind === "sent" || !record;
+  useEffect(() => {
+    onFocusChange?.(focusMode);
+    return () => onFocusChange?.(false);
+  }, [focusMode, onFocusChange]);
   /* Spam trap: hidden from people, filled in by bots */
   const [website, setWebsite] = useState("");
 
@@ -444,7 +450,7 @@ export function ApplicationPage() {
   if (send.kind === "sent" && stage === "welcome") {
     return (
       <section className="section section--apply" aria-label={t("applicationTitle")}>
-        <WelcomePack reference={send.ref} signed={signed} onBack={() => goTo("sign")} onAnother={startAnother} />
+        <WelcomePack reference={send.ref} signed={signed} onBack={() => goTo("sign")} onAnother={startAnother} onDone={onExit} />
       </section>
     );
   }

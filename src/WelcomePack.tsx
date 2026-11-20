@@ -13,6 +13,7 @@ export function WelcomePack({
   signed,
   onBack,
   onAnother,
+  onDone,
   title,
   intro,
   pendingText,
@@ -22,6 +23,7 @@ export function WelcomePack({
   signed: boolean;
   onBack?: () => void;
   onAnother: () => void;
+  onDone?: () => void;
   title?: string;
   intro?: string;
   pendingText?: string;
@@ -48,6 +50,11 @@ export function WelcomePack({
         ]}
       />
 
+      {onDone ? (
+        <button type="button" className="profile-save-btn application-sent-next" onClick={onDone}>
+          {t("welcomePackDone")}
+        </button>
+      ) : null}
       {onBack ? (
         <button type="button" className="profile-save-btn profile-save-btn--secondary application-sent-next" onClick={onBack}>
           {t("welcomePackBack")}
