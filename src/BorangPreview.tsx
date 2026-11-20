@@ -36,6 +36,21 @@ export function BorangPreview({ ops }: { ops: BorangOp[] }) {
                 </text>
               );
             }
+            if (op.kind === "image") {
+              return (
+                <image
+                  key={i}
+                  className="borang-op borang-signature"
+                  data-group={op.group}
+                  style={style}
+                  href={op.dataUrl}
+                  x={op.x}
+                  y={op.y}
+                  width={op.w}
+                  height={op.h}
+                />
+              );
+            }
             const [x0, y0, x1, y1] = op.box;
             const w = x1 - x0;
             const h = y1 - y0;

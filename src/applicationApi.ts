@@ -27,6 +27,13 @@ export async function submitApplication(endpoint: string, payload: Record<string
   }
 }
 
+export function bytesToBase64(bytes: Uint8Array): string {
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  return btoa(bin);
+}
+
 /**
  * Step 2 of an application: hands the filled-in official PDF to the script, which files it in the
  * secretariat's private Drive folder and e-mails it to the applicant. Best effort: the applicant
@@ -35,13 +42,7 @@ export async function submitApplication(endpoint: string, payload: Record<string
  */
 export async function attachApplicationPdf(endpoint: string, ref: string, token: string, pdf: Uint8Array | null): Promise<boolean> {
   try {
-    let b64 = "";
-    if (pdf) {
-      let bin = "";
-      const chunk = 0x8000;
-      for (let i = 0; i < pdf.length; i += chunk) bin += String.fromCharCode(...pdf.subarray(i, i + chunk));
-      b64 = btoa(bin);
-    }
+    const b64 = pdf ? bytesToBase64(pdf) : "";
     const res = await fetch(endpoint, { method: "POST", body: JSON.stringify({ action: "attach", ref, token, pdf: b64 }) });
     const data = (await res.json()) as { ok?: boolean };
     return data.ok === true;
@@ -53,11 +54,17 @@ export async function attachApplicationPdf(endpoint: string, ref: string, token:
 export type SignedResult = { ok: true } | { ok: false; error: "match" | "locked" | "busy" | "nofile" | "toobig" | "type" | "server" | "network" };
 
 /** Uploads photos/scans of the signed paper form (base64, no data-URL prefix). */
-export async function uploadSignedForm(endpoint: string, ref: string, ic: string, files: string[]): Promise<SignedResult> {
+export async function uploadSignedForm(
+  endpoint: string,
+  ref: string,
+  ic: string,
+  files: string[],
+  method: "kertas" | "digital" = "kertas",
+): Promise<SignedResult> {
   try {
     const res = await fetch(endpoint, {
       method: "POST",
-      body: JSON.stringify({ action: "signed", ref: ref.trim().toUpperCase(), ic, files: files.map((data) => ({ data })) }),
+      body: JSON.stringify({ action: "signed", ref: ref.trim().toUpperCase(), ic, method, files: files.map((data) => ({ data })) }),
     });
     const data = (await res.json()) as SignedResult;
     return data && typeof data.ok === "boolean" ? data : { ok: false, error: "server" };

@@ -11,6 +11,9 @@ All notable changes to this project are documented in this file.
 
 - The signed paper form comes back through the app: after printing and signing, the applicant photographs or scans it (up to 3 files, JPG/PNG/PDF, photos are shrunk on their phone) and uploads it on the success screen or later from the Sertai tab, using their reference number and IC number (5 wrong tries lock that reference for an hour). Files go to a per-application Drive folder, the row gets a "Borang Bertandatangan" link and received time (blank = still missing), and hello@ gets a short alert
 
+- Applicants can sign on screen: after checking the filled form they draw their signature (finger or mouse); it is stamped into the "Tandatangan/ Cap Jari Pemohon" box with today's date (Kuching time), the form is redrawn with it, and the signed PDF is filed and e-mailed to them. The sheet records "Jenis tandatangan" (Digital or Kertas) so the secretariat can see how each was signed. Printing, signing on paper and uploading a photo remains as an alternative
+- After submitting, a simple welcome pack (Perlembagaan, Kepimpinan) is shown; the Dokumen list no longer sits under the form
+
 ### Changed
 - Reference numbers now come from a counter, so deleting test rows never reuses a reference
 - Sheet: Status dropdown (Baharu/Disemak/Lulus/Tolak), repeat-IC highlight, "Disemak oleh" and "Catatan" columns

@@ -65,6 +65,8 @@ var COLUMNS = [
   // Signed paper form uploaded back by the applicant (photo/scan); blank = still missing.
   ["Borang Bertandatangan", null],
   ["Diterima (bertandatangan)", null],
+  // "Digital" = drawn on screen in the app; "Kertas" = printed, signed and uploaded as a photo/scan.
+  ["Jenis tandatangan", null],
 ];
 
 var REQUIRED = ["cawangan", "nama", "noKadPengenalan", "telBimbit", "kategoriAhli"];
@@ -349,6 +351,7 @@ function handleSigned(payload) {
     return reply({ ok: false, error: "match" });
   }
 
+  var digital = payload.method === "digital";
   var files = Array.isArray(payload.files) ? payload.files.slice(0, MAX_SIGNED_FILES) : [];
   if (!files.length) return reply({ ok: false, error: "nofile" });
   var decoded = [];
@@ -382,23 +385,28 @@ function handleSigned(payload) {
     };
     sheet.getRange(row, ensureCol("Borang Bertandatangan")).setFormula('=HYPERLINK("' + folder.getUrl() + '","Buka (' + count + ' fail)")');
     sheet.getRange(row, ensureCol("Diterima (bertandatangan)")).setValue(new Date());
+    sheet.getRange(row, ensureCol("Jenis tandatangan")).setValue(digital ? "Digital" : "Kertas");
   } finally {
     lock.releaseLock();
   }
   cache.remove(failKey);
-  notifySigned(ref, cell("Nama"), cell("Cawangan"));
+  notifySigned(ref, cell("Nama"), cell("Cawangan"), digital);
+  // Digital signature: the signed PDF itself is the applicant's copy.
+  if (digital && decoded[0].kind.ext === "pdf") {
+    sendSignedCopy(ref, cell("Nama"), cell("E-mel"), Utilities.newBlob(decoded[0].bytes, "application/pdf", ref + " - bertandatangan.pdf"));
+  }
   return reply({ ok: true });
 }
 
 /** Short alert to the secretariat that a signed form came in (name + cawangan only, never the IC). */
-function notifySigned(ref, nama, cawangan) {
+function notifySigned(ref, nama, cawangan, digital) {
   if (!NOTIFY_EMAIL) return;
   try {
     MailApp.sendEmail({
       to: NOTIFY_EMAIL,
       subject: "Borang bertandatangan diterima " + ref + ": " + nama,
       body:
-        "Pemohon telah memuat naik borang bertandatangan.\n\n" +
+        (digital ? "Pemohon telah menandatangani borang secara digital (lukis di skrin)." : "Pemohon telah memuat naik borang bertandatangan (kertas).") + "\n\n" +
         "Rujukan: " + ref + "\n" +
         "Nama: " + nama + "\n" +
         "Cawangan: " + cawangan + "\n\n" +
@@ -406,6 +414,38 @@ function notifySigned(ref, nama, cawangan) {
     });
   } catch (err) {
     console.error("notifySigned failed", err);
+  }
+}
+
+/** Send to an applicant from hello@beliapbb.com (once it is a Gmail alias), else from this account. */
+function deliver(email, subject, body, blob) {
+  try {
+    GmailApp.sendEmail(email, subject, body, {
+      from: NOTIFY_EMAIL, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", attachments: blob ? [blob] : [],
+    });
+  } catch (aliasErr) {
+    MailApp.sendEmail({
+      to: email, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", subject: subject, body: body, attachments: blob ? [blob] : [],
+    });
+  }
+}
+
+/** Signed copy for an applicant who signed on screen. */
+function sendSignedCopy(ref, nama, email, blob) {
+  if (!email || !/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(email)) return;
+  try {
+    if (MailApp.getRemainingDailyQuota() < 20) return;
+    deliver(
+      email,
+      "Borang keahlian Belia PBB bertandatangan (" + ref + ")",
+      "Salam " + nama + ",\n\nBorang permohonan keahlian anda yang telah ditandatangani dilampirkan (PDF). " +
+        "Urus setia akan menyemak permohonan anda dan menghubungi anda.\n\nNombor rujukan: " + ref + "\n\n---\n" +
+        "Hi " + nama + ", your signed membership application form is attached (PDF). The secretariat will review it and contact you. " +
+        "Reference: " + ref + "\n\nBelia PBB Sarawak\nhttps://beliapbb.com",
+      blob
+    );
+  } catch (err) {
+    console.error("signed copy failed", err);
   }
 }
 
@@ -425,7 +465,7 @@ function confirmApplicant(ref, nama, cawangan, email, pdfBlob) {
       "Nombor rujukan: " + ref + "\n" +
       "Cawangan: " + cawangan + "\n\n" +
       (pdfBlob
-        ? "Borang permohonan anda yang telah diisi dilampirkan (PDF). Sila cetak, tandatangan pada ruangan pemohon, kemudian ambil gambar atau imbas borang bertandatangan dan muat naik di https://app.beliapbb.com/#sertai menggunakan nombor rujukan dan no. kad pengenalan anda. Permohonan hanya lengkap selepas borang bertandatangan diterima.\n\n"
+        ? "Borang permohonan anda yang telah diisi dilampirkan (PDF). Sila tandatangani borang: lukis tandatangan anda di skrin pada https://app.beliapbb.com/#sertai, atau cetak borang, tandatangan pada ruangan pemohon, kemudian ambil gambar atau imbas dan muat naik di pautan yang sama menggunakan nombor rujukan dan no. kad pengenalan anda. Permohonan hanya lengkap selepas borang bertandatangan diterima.\n\n"
         : "") +
       "Urus setia akan menyemak permohonan anda dan menghubungi anda. " +
       "Sila simpan nombor rujukan ini dan sebutkannya jika anda menghubungi kami di " + NOTIFY_EMAIL + ".\n\n" +
@@ -433,22 +473,12 @@ function confirmApplicant(ref, nama, cawangan, email, pdfBlob) {
       "Hi " + nama + ", we have received your Belia PBB membership application. " +
       "Your reference number is " + ref + ". " +
       (pdfBlob
-        ? "Your filled-in application form is attached (PDF): please print it, sign in the applicant box, then photograph or scan the signed form and upload it at https://app.beliapbb.com/#sertai with your reference number and IC number. Your application is complete only once the signed form is received. "
+        ? "Your filled-in application form is attached (PDF). Please sign it: draw your signature on screen at https://app.beliapbb.com/#sertai, or print it, sign the applicant box, then photograph or scan it and upload it at the same link with your reference number and IC number. Your application is complete only once the signed form is received. "
         : "") +
       "The secretariat will review it and contact you. " +
       "Questions: " + NOTIFY_EMAIL + ".\n\n" +
       "Belia PBB Sarawak\nhttps://beliapbb.com";
-    try {
-      // Sends from hello@beliapbb.com once it is added as a "Send mail as" alias in this Gmail account.
-      GmailApp.sendEmail(email, subject, body, {
-        from: NOTIFY_EMAIL, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", attachments: pdfBlob ? [pdfBlob] : [],
-      });
-    } catch (aliasErr) {
-      // Alias not set up yet: send from the account's own address instead.
-      MailApp.sendEmail({
-        to: email, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", subject: subject, body: body, attachments: pdfBlob ? [pdfBlob] : [],
-      });
-    }
+    deliver(email, subject, body, pdfBlob);
   } catch (err) {
     console.error("confirm failed", err);
   }

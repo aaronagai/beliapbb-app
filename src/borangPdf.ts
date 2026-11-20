@@ -43,7 +43,15 @@ const PAGE_H = 780;
  */
 export type BorangOp =
   | { kind: "text"; page: 0 | 1; group: string; x: number; y: number; size: number; text: string }
-  | { kind: "tick"; page: 0 | 1; group: string; box: readonly [number, number, number, number] };
+  | { kind: "tick"; page: 0 | 1; group: string; box: readonly [number, number, number, number] }
+  | { kind: "image"; page: 0 | 1; group: string; x: number; y: number; w: number; h: number; dataUrl: string };
+
+/** The applicant's on-screen signature (PNG data URL, transparent background) and the signing date. */
+export type BorangSignature = { dataUrl: string; aspect: number; date: string };
+
+/** Where the signature and date go on page 2 ("Tandatangan/ Cap Jari Pemohon" and "Tarikh"), from the top-left. */
+const SIGN_BOX = { x: 182, y: 221, w: 134, h: 44 } as const;
+const SIGN_DATE = { x: 404, baseline: 264, size: 10 } as const;
 
 export const BORANG_PAGE = { width: 540, height: 780 } as const;
 const INK = rgb(0.05, 0.1, 0.45);
@@ -150,6 +158,7 @@ export async function fillBorangPdf(
   templateBytes: ArrayBuffer | Uint8Array,
   d: BorangData,
   ref: string,
+  signature?: BorangSignature,
 ): Promise<{ bytes: Uint8Array; ops: BorangOp[] }> {
   const pdf = await PDFDocument.load(templateBytes);
   const font = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -279,12 +288,26 @@ export async function fillBorangPdf(
   group = "kategoriAhli";
   if (d.kategoriAhli) tick(1, TICK.kategori[d.kategoriAhli]);
 
+  if (signature) {
+    group = "tandatangan";
+    // Fit the signature inside its box, keeping its shape, sitting on the signature line.
+    const boxAspect = SIGN_BOX.w / SIGN_BOX.h;
+    const w = signature.aspect >= boxAspect ? SIGN_BOX.w : SIGN_BOX.h * signature.aspect;
+    const h = signature.aspect >= boxAspect ? SIGN_BOX.w / signature.aspect : SIGN_BOX.h;
+    ops.push({ kind: "image", page: 1, group, x: SIGN_BOX.x + (SIGN_BOX.w - w) / 2, y: SIGN_BOX.y + (SIGN_BOX.h - h), w, h, dataUrl: signature.dataUrl });
+    group = "tarikhTandatangan";
+    text(1, signature.date, SIGN_DATE.x, SIGN_DATE.baseline, SIGN_DATE.size);
+  }
+
   // Draw the same list of items onto the real PDF.
   const pages = pdf.getPages();
   for (const op of ops) {
     const page = pages[op.page];
     if (op.kind === "text") {
       page.drawText(op.text, { x: op.x, y: PAGE_H - op.y, size: op.size, font, color: INK });
+    } else if (op.kind === "image") {
+      const png = await pdf.embedPng(op.dataUrl);
+      page.drawImage(png, { x: op.x, y: PAGE_H - op.y - op.h, width: op.w, height: op.h });
     } else {
       const [x0, y0, x1, y1] = op.box;
       const w = x1 - x0;

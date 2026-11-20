@@ -915,3 +915,66 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* On-screen signature pad. */
+.signpad-canvas {
+  display: block;
+  width: 100%;
+  touch-action: none;
+  cursor: crosshair;
+  background: #fff;
+  border: 1.5px dashed var(--color-border);
+  border-radius: 0.5rem;
+}
+
+.signpad-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2rem;
+  margin-top: 0.4rem;
+}
+
+.signpad-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.signpad-clear {
+  margin-left: auto;
+  padding: 0.3rem 0.75rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.signpad-clear:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.application-sign {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.borang-signature {
+  mix-blend-mode: multiply;
+}
+
+.welcome-pack {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.welcome-pack-title {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}

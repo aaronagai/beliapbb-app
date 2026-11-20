@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
-import { applicationEndpoint, attachApplicationPdf, submitApplication } from "./applicationApi";
+import { applicationEndpoint, attachApplicationPdf, bytesToBase64, submitApplication, uploadSignedForm } from "./applicationApi";
 import { useI18n, type MessageKey } from "./i18n";
 import { SignedFormUpload } from "./SignedFormUpload";
 import { BorangPreview } from "./BorangPreview";
+import { SignaturePad, type SignatureResult } from "./SignaturePad";
+import { WelcomePack } from "./WelcomePack";
 import type { BorangOp } from "./borangPdf";
 import {
   CAWANGAN_OPTIONS,
@@ -174,7 +176,11 @@ type PdfState =
   | { kind: "ready"; url: string; name: string; ops: BorangOp[] }
   | { kind: "failed" };
 
-async function makeFilledPdf(data: Draft, ref: string): Promise<{ bytes: Uint8Array; ops: BorangOp[] }> {
+async function makeFilledPdf(
+  data: Draft,
+  ref: string,
+  signature?: { dataUrl: string; aspect: number; date: string },
+): Promise<{ bytes: Uint8Array; ops: BorangOp[] }> {
   const [{ fillBorangPdf }, template] = await Promise.all([
     import("./borangPdf"),
     fetch(BORANG_PDF).then((r) => {
@@ -182,7 +188,7 @@ async function makeFilledPdf(data: Draft, ref: string): Promise<{ bytes: Uint8Ar
       return r.arrayBuffer();
     }),
   ]);
-  return fillBorangPdf(template, data, ref);
+  return fillBorangPdf(template, data, ref, signature);
 }
 
 export function ApplicationPage() {
@@ -194,6 +200,12 @@ export function ApplicationPage() {
   const [pdf, setPdf] = useState<PdfState>({ kind: "none" });
   /** Kept in memory only, to pre-fill the signed-form upload right after submitting. */
   const [sentIc, setSentIc] = useState("");
+  /** The submitted answers, kept in memory so the form can be re-drawn with the signature on it. */
+  const [sentData, setSentData] = useState<Draft | null>(null);
+  const [signature, setSignature] = useState<SignatureResult | null>(null);
+  const [signing, setSigning] = useState(false);
+  const [signed, setSigned] = useState(false);
+  const [signError, setSignError] = useState<MessageKey | null>(null);
   /* Spam trap: hidden from people, filled in by bots */
   const [website, setWebsite] = useState("");
 
@@ -234,6 +246,7 @@ export function ApplicationPage() {
       }
       setD(emptyDraft);
       setSentIc(submitted.noKadPengenalan.replace(/\D/g, ""));
+      setSentData(submitted);
       setSend({ kind: "sent", ref: result.ref });
       window.scrollTo({ top: 0, behavior: "smooth" });
       // Fill in the official PDF on this device, then hand a copy to the secretariat (and the applicant's inbox).
@@ -257,6 +270,34 @@ export function ApplicationPage() {
     });
   }, [d, website, saveLocally, t]);
 
+  /** Stamp the drawn signature and today's date onto the form, show it, and file the signed copy. */
+  const signForm = useCallback(async () => {
+    if (send.kind !== "sent" || !sentData || !endpoint) return;
+    if (!signature) {
+      setSignError("signPadNeed");
+      return;
+    }
+    setSigning(true);
+    setSignError(null);
+    try {
+      const date = new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kuching" });
+      const made = await makeFilledPdf(sentData, send.ref, { ...signature, date });
+      const blob = new Blob([made.bytes as BlobPart], { type: "application/pdf" });
+      const result = await uploadSignedForm(endpoint, send.ref, sentIc, [bytesToBase64(made.bytes)], "digital");
+      // Show the signed form either way; only mark it submitted once the secretariat has it.
+      setPdf((prev) => {
+        if (prev.kind === "ready") URL.revokeObjectURL(prev.url);
+        return { kind: "ready", url: URL.createObjectURL(blob), name: `Borang-PBB-${send.ref}-bertandatangan.pdf`, ops: made.ops };
+      });
+      if (result.ok) setSigned(true);
+      else setSignError(result.error === "busy" || result.error === "network" || result.error === "server" ? "signedErrorGeneric" : "signedErrorMatch");
+    } catch {
+      setSignError("signedErrorGeneric");
+    } finally {
+      setSigning(false);
+    }
+  }, [send, sentData, endpoint, signature, sentIc]);
+
   const submit = useCallback(() => {
     if (!d.pengakuan) return;
     if (endpoint) {
@@ -279,14 +320,40 @@ export function ApplicationPage() {
           {pdf.kind === "ready" ? (
             <>
               <BorangPreview ops={pdf.ops} />
+              {signed ? (
+                <div className="application-sign" role="status">
+                  <h3 className="application-signed-title">{t("signDoneTitle")}</h3>
+                  <p className="application-sent-pdf-note">{t("signDoneBody")}</p>
+                </div>
+              ) : (
+                <div className="application-sign">
+                  <h3 className="application-signed-title">{t("signPadTitle")}</h3>
+                  <p className="application-sent-pdf-note">{t("signPadIntro")}</p>
+                  <SignaturePad onChange={setSignature} disabled={signing} />
+                  <button type="button" className="profile-save-btn application-sent-pdf-btn" onClick={() => void signForm()} disabled={signing}>
+                    {signing ? t("signPadSigning") : t("signPadSubmit")}
+                  </button>
+                  {signError ? (
+                    <p className="application-error-msg" role="alert">
+                      {t(signError)}
+                    </p>
+                  ) : null}
+                </div>
+              )}
               <a className="profile-save-btn application-sent-pdf-btn" href={pdf.url} download={pdf.name}>
-                {t("applicationPdfDownload")}
+                {t(signed ? "applicationPdfDownloadSigned" : "applicationPdfDownload")}
               </a>
-              <p className="application-sent-pdf-note">{t("applicationPdfNext")}</p>
+              {signed ? null : <p className="application-sent-pdf-note">{t("applicationPdfNext")}</p>}
             </>
           ) : null}
           {pdf.kind === "failed" ? <p className="application-sent-pdf-note">{t("applicationPdfFailed")}</p> : null}
-          <SignedFormUpload initialRef={send.ref} initialIc={sentIc} />
+          {signed ? null : (
+            <details className="application-signed-details">
+              <summary>{t("signPaperSummary")}</summary>
+              <SignedFormUpload initialRef={send.ref} initialIc={sentIc} />
+            </details>
+          )}
+          {pdf.kind === "making" ? null : <WelcomePack />}
           <button
             type="button"
             className="profile-save-btn"
@@ -294,6 +361,10 @@ export function ApplicationPage() {
               if (pdf.kind === "ready") URL.revokeObjectURL(pdf.url);
               setPdf({ kind: "none" });
               setSentIc("");
+              setSentData(null);
+              setSignature(null);
+              setSigned(false);
+              setSignError(null);
               setSend({ kind: "idle" });
             }}
           >
