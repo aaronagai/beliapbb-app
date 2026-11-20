@@ -20,9 +20,9 @@ const HOST_OK = /(^|\.)beliapbb\.com$/.test(window.location.hostname);
 export const analyticsEnabled = Boolean(KEY) && HOST_OK;
 
 type Props = Record<string, string | number | boolean | null>;
-type PostHog = { init: (key: string, options: Record<string, unknown>) => void; capture: (event: string, props?: Props) => void };
+type PostHog = { init: (key: string, options: Record<string, unknown>) => void; capture: (event: string, props?: Props, options?: Record<string, unknown>) => void };
 
-const queue: [string, Props][] = [];
+const queue: [string, Props, Record<string, unknown>?][] = [];
 let ph: PostHog | null = null;
 let kind: "app" | "site" = "site";
 
@@ -33,11 +33,13 @@ function baseProps(): Props {
   return { site: kind, phone: window.matchMedia("(max-width: 768px)").matches, $current_url: cleanUrl() };
 }
 
-export function track(event: string, props: Props = {}): void {
+/** `beacon` sends immediately in a way that survives the page being left (e.g. a click that navigates away). */
+export function track(event: string, props: Props = {}, beacon = false): void {
   if (!analyticsEnabled) return;
   const p = { ...baseProps(), ...props };
-  if (ph) ph.capture(event, p);
-  else if (queue.length < 50) queue.push([event, p]);
+  const options = beacon ? { send_instantly: true, transport: "sendBeacon" } : undefined;
+  if (ph) ph.capture(event, p, options);
+  else if (queue.length < 50) queue.push([event, p, options]);
 }
 
 /** Load PostHog and send page views. `watchHash` is for the app, where each tab is a hash. */
@@ -72,7 +74,7 @@ export function initAnalytics(options: { kind: "app" | "site"; watchHash: boolea
       },
     });
     ph = lib;
-    for (const [event, props] of queue.splice(0)) lib.capture(event, props);
+    for (const [event, props, options] of queue.splice(0)) lib.capture(event, props, options);
   };
   document.head.appendChild(script);
 
@@ -111,7 +113,7 @@ export function trackAppLinks(): void {
               : a.closest("footer")
                 ? "footer"
                 : (a.closest("section[id]")?.id ?? "page");
-      track("app_link_click", { to: a.hash.replace("#", "") || "home", where });
+      track("app_link_click", { to: a.hash.replace("#", "") || "home", where }, true);
     },
     true,
   );

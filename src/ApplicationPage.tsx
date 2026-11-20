@@ -236,6 +236,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const [formSignature, setFormSignature] = useState<SignatureResult | null>(null);
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState(false);
+  /** The signed copy is being filed (takes a few seconds): show that instead of the signing pad. */
+  const [filing, setFiling] = useState(false);
   const [signError, setSignError] = useState<MessageKey | null>(null);
   /** After submitting: the sign page, then the welcome pack on its own page. */
   const [stage, setStage] = useState<"sign" | "welcome">("sign");
@@ -365,8 +367,10 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
         });
         if (sig) {
           // Signed on the form page: file the signed copy now (this also e-mails it to the applicant).
+          setFiling(true);
           const up = await uploadSignedForm(url, result.ref, submitted.noKadPengenalan.replace(/\D/g, ""), [bytesToBase64(bytes)], "digital");
           filedSigned = up.ok;
+          setFiling(false);
           if (up.ok) {
             track("join_signed", { method: "digital", where: "form" });
             setSigned(true);
@@ -377,6 +381,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
       } catch {
         setPdf({ kind: "failed" });
       }
+      setFiling(false);
       setFormSignature(null);
       // Not signed here (or filing failed): hand over the filled form so the applicant still gets their e-mail.
       if (!filedSigned && result.token) void attachApplicationPdf(url, result.ref, result.token, bytes);
@@ -440,6 +445,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     setSentData(null);
     setSignature(null);
     setSigned(false);
+    setFiling(false);
     setSignError(null);
     setFormSignature(null);
     clearApplication();
@@ -485,6 +491,10 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                 <div className="application-sign" role="status">
                   <h3 className="application-signed-title">{t("signDoneTitle")}</h3>
                   <p className="application-sent-pdf-note">{t("signDoneBody")}</p>
+                </div>
+              ) : filing ? (
+                <div className="application-sign" role="status">
+                  <h3 className="application-signed-title">{t("signFiling")}</h3>
                 </div>
               ) : (
                 <div className="application-sign">

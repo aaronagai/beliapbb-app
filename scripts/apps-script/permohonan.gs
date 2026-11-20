@@ -390,7 +390,8 @@ function handleSigned(payload) {
     lock.releaseLock();
   }
   cache.remove(failKey);
-  notifySigned(ref, cell("Nama"), cell("Cawangan"), digital);
+  // Signed on screen = the application arrived complete (already alerted). Only paper uploads need a second alert.
+  if (!digital) notifySigned(ref, cell("Nama"), cell("Cawangan"), digital);
   // Digital signature: the signed PDF itself is the applicant's copy.
   if (digital && decoded[0].kind.ext === "pdf") {
     sendSignedCopy(ref, cell("Nama"), cell("E-mel"), Utilities.newBlob(decoded[0].bytes, "application/pdf", ref + " - bertandatangan.pdf"));
@@ -417,17 +418,15 @@ function notifySigned(ref, nama, cawangan, digital) {
   }
 }
 
-/** Send to an applicant from hello@beliapbb.com (once it is a Gmail alias), else from this account. */
+/**
+ * Send to an applicant. Comes from this Google account's address under the name "Belia PBB Sarawak";
+ * replies go to NOTIFY_EMAIL (hello@, which forwards to the secretariat). hello@ itself can't be the
+ * sender without a Google Workspace mailbox, so we don't try.
+ */
 function deliver(email, subject, body, blob) {
-  try {
-    GmailApp.sendEmail(email, subject, body, {
-      from: NOTIFY_EMAIL, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", attachments: blob ? [blob] : [],
-    });
-  } catch (aliasErr) {
-    MailApp.sendEmail({
-      to: email, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", subject: subject, body: body, attachments: blob ? [blob] : [],
-    });
-  }
+  MailApp.sendEmail({
+    to: email, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", subject: subject, body: body, attachments: blob ? [blob] : [],
+  });
 }
 
 /** Signed copy for an applicant who signed on screen. */
@@ -498,13 +497,12 @@ function testConfirmEmail() {
 
 /**
  * Run once from the editor (select authorizeAll → Run) after adding new features: makes Google ask for every
- * permission the script uses (sheet, Drive folder, Gmail/alias, mail) in one go. Sends and writes nothing.
+ * permission the script uses (sheet, Drive folder, mail) in one go. Sends and writes nothing.
  */
 function authorizeAll() {
   SpreadsheetApp.openById(SHEET_ID).getName();
   DriveApp.getRootFolder().getName();
-  var aliases = GmailApp.getAliases();
-  console.log("OK. Gmail aliases: " + aliases.join(", ") + " | mail quota left: " + MailApp.getRemainingDailyQuota());
+  console.log("OK. Mail quota left today: " + MailApp.getRemainingDailyQuota());
 }
 
 function reply(obj) {
