@@ -5,6 +5,7 @@ import { SignedFormUpload } from "./SignedFormUpload";
 import { BorangPreview } from "./BorangPreview";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import { WelcomePack } from "./WelcomePack";
+import { track } from "./analytics";
 import { ApplicationSteps } from "./ApplicationSteps";
 import { clearApplication, markApplicationSigned, readApplication, saveApplication, type ApplicationRecord } from "./applicationRecord";
 import type { BorangOp } from "./borangPdf";
@@ -304,6 +305,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   };
 
   const goStep = (next: number) => {
+    track("join_step", { step: next + 1, back: next < step });
     setStepError(null);
     setStep(next);
     window.scrollTo({ top: 0 });
@@ -311,8 +313,10 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
   const nextStep = () => {
     const err = validateStep(step);
-    if (err) setStepError(err);
-    else goStep(step + 1);
+    if (err) {
+      setStepError(err);
+      track("join_step_blocked", { step: step + 1 });
+    } else goStep(step + 1);
   };
 
   const sendOnline = useCallback(async (url: string) => {
@@ -326,9 +330,11 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
       return;
     }
     setSend({ kind: "sending" });
+    track("join_submit", { signed: formSignature !== null });
     const submitted = d; // keep the answers: the form is cleared below, the PDF is made from this copy
     const result = await submitApplication(url, { ...d, website });
     if (result.ok) {
+      track("join_submitted", { signed: formSignature !== null });
       try {
         localStorage.removeItem(DRAFT_KEY);
       } catch {
@@ -362,6 +368,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           const up = await uploadSignedForm(url, result.ref, submitted.noKadPengenalan.replace(/\D/g, ""), [bytesToBase64(bytes)], "digital");
           filedSigned = up.ok;
           if (up.ok) {
+            track("join_signed", { method: "digital", where: "form" });
             setSigned(true);
             markApplicationSigned();
             setRecord((r) => (r ? { ...r, signed: true } : r));
@@ -375,6 +382,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
       if (!filedSigned && result.token) void attachApplicationPdf(url, result.ref, result.token, bytes);
       return;
     }
+    track("join_submit_failed", { error: result.error });
     saveLocally();
     setSend({
       kind: "error",
@@ -401,6 +409,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
         return { kind: "ready", url: URL.createObjectURL(blob), name: `Borang-PBB-${send.ref}-bertandatangan.pdf`, ops: made.ops };
       });
       if (result.ok) {
+        track("join_signed", { method: "digital", where: "after" });
         setSigned(true);
         markApplicationSigned();
         setRecord((r) => (r ? { ...r, signed: true } : r));
@@ -424,6 +433,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const pekerjaanNeedsDetail = d.pekerjaan === "kerajaan" || d.pekerjaan === "swasta" || d.pekerjaan === "sendiri" || d.pekerjaan === "lain";
 
   const startAnother = () => {
+    track("join_another");
     if (pdf.kind === "ready") URL.revokeObjectURL(pdf.url);
     setPdf({ kind: "none" });
     setSentIc("");
@@ -450,7 +460,11 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   if (send.kind === "sent" && stage === "welcome") {
     return (
       <section className="section section--apply" aria-label={t("applicationTitle")}>
-        <WelcomePack reference={send.ref} signed={signed} onBack={() => goTo("sign")} onAnother={startAnother} onDone={onExit} />
+        <WelcomePack reference={send.ref} signed={signed} onBack={() => goTo("sign")} onAnother={startAnother} onDone={() => {
+            track("join_done");
+            onExit?.();
+          }}
+        />
       </section>
     );
   }
@@ -487,7 +501,12 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                   ) : null}
                 </div>
               )}
-              <a className="profile-save-btn profile-save-btn--secondary application-sent-pdf-btn" href={pdf.url} download={pdf.name}>
+              <a
+                className="profile-save-btn profile-save-btn--secondary application-sent-pdf-btn"
+                href={pdf.url}
+                download={pdf.name}
+                onClick={() => track("form_downloaded", { signed })}
+              >
                 {t(signed ? "applicationPdfDownloadSigned" : "applicationPdfDownload")}
               </a>
               {signed ? null : <p className="application-sent-pdf-note">{t("applicationPdfNext")}</p>}
@@ -555,6 +574,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
             type="button"
             className="profile-save-btn"
             onClick={() => {
+              track("join_started");
               setStarted(true);
               window.scrollTo({ top: 0 });
             }}

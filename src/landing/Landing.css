@@ -1102,6 +1102,7 @@ button.lp-btn {
 
 .lp-footer-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -1219,3 +1220,10 @@ button.lp-btn {
 
 .lp-how-page--back { top: 0; right: 0; transform: rotate(3deg); }
 .lp-how-page--front { bottom: 0; left: 0; transform: rotate(-2deg); }
+
+.lp-footer-note {
+  order: 3;
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--lp-muted);
+}

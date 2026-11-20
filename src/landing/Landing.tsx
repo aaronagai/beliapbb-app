@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useI18n, type MessageKey } from "../i18n";
 import { Logo } from "../Logo";
 import { CONSTITUTION_PDF_URL } from "../constitutionPdf";
@@ -6,6 +6,7 @@ import { APP_URL, LEADERSHIP_URL, appLink } from "../links";
 import { AppIcon, APP_ICON_KINDS, type AppIconKind } from "./AppIcons";
 import { AppDemo } from "./AppDemo";
 import { EligibilityStage, NewsStoriesStage, ScrubberStage } from "./ExploreCards";
+import { trackOnceVisible } from "../analytics";
 import "./Landing.css";
 
 const BASE = import.meta.env.BASE_URL;
@@ -195,8 +196,10 @@ const HOW: [MessageKey, MessageKey][] = [
 
 function HowToJoin() {
   const { t } = useI18n();
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => trackOnceVisible(ref.current, "how_to_join_seen"), []);
   return (
-    <section className="lp-section lp-section--first" id="cara" aria-labelledby="lp-how-title">
+    <section ref={ref} className="lp-section lp-section--first" id="cara" aria-labelledby="lp-how-title">
       <div className="lp-wrap lp-how">
         <div className="lp-how-text">
           <h2 className="lp-h2" id="lp-how-title">{t("landingHowTitle")}</h2>
@@ -398,6 +401,7 @@ export function Footer() {
         </div>
         <div className="lp-footer-bar">
           <span>{t("footerCopyright").replace("{{endYear}}", String(new Date().getFullYear()))}</span>
+          <span className="lp-footer-note">{t("analyticsNote")}</span>
           <button
             type="button"
             className="lp-lang"

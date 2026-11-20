@@ -4,6 +4,9 @@ All notable changes to this project are documented in this file.
 
 ## 0.0.12.8 — 2026-11-20
 
+### Added
+- Analytics (PostHog, same approach as sarawakseats.org): visits plus a few named actions, no cookies (persistence in memory, so no consent banner), no autocapture, no session recording, no surveys or flags, text masked, query strings stripped, and only on beliapbb.com / app.beliapbb.com. Nothing typed into the application is ever sent. Events: app_link_click (which landing button, from where), how_to_join_seen, join_started, join_step, join_step_blocked, join_submit, join_submitted, join_submit_failed, join_signed (digital or paper), form_downloaded, join_done, join_another. Off until VITE_POSTHOG_KEY is set on both Cloudflare Pages projects. A short cookie-free-statistics note is in the landing footer and on Saya
+
 ### Changed
 - Landing page: one primary goal. The hero has a single solid "Sertai Belia PBB" button with "Buka aplikasi" as a quiet text link, and a plainer subtitle (5 minutes, fill in on your phone, sign on screen). The nav button now says Sertai, and the nav leads with "Cara menyertai". A new "Sertai dalam tiga langkah" section sits right after the hero: the three steps, what to have ready, a privacy line, a Sertai button, and a picture of the real filled-in form (sample data). The phone demo now links to the FTES page it shows
 - TikTok Sans now also applies to the landing page (it has its own font token, which the first try missed)

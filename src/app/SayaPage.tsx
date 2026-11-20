@@ -24,6 +24,7 @@ export function SayaPage() {
         ]}
       />
       <p className="app-legal">{t("footerCopyright").replace(/\{\{endYear\}\}/g, year)}</p>
+      <p className="app-legal">{t("analyticsNote")}</p>
     </div>
   );
 }

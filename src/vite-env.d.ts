@@ -10,4 +10,6 @@ interface ImportMetaEnv {
   readonly VITE_APP_URL?: string;
   /** Apps Script web app URL that stores membership applications */
   readonly VITE_APPLICATION_ENDPOINT?: string;
+  /** PostHog project API key (public by design); analytics stay off without it */
+  readonly VITE_POSTHOG_KEY?: string;
 }

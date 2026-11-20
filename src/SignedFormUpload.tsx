@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { track } from "./analytics";
 import { applicationEndpoint, uploadSignedForm } from "./applicationApi";
 import { useI18n, type MessageKey } from "./i18n";
 
@@ -55,6 +56,7 @@ export function SignedFormUpload({ initialRef = "", initialIc = "", onDone }: { 
       const result = await uploadSignedForm(endpoint, ref, ic.replace(/\D/g, ""), data);
       if (result.ok) {
         setFiles([]);
+        track("join_signed", { method: "paper" });
         onDone?.();
         return setState({ kind: "done" });
       }

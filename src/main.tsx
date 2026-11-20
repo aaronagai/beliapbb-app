@@ -6,6 +6,7 @@ import "./index.css";
 import { I18nProvider } from "./i18n";
 import { ThemeProvider } from "./theme";
 import { APP_URL } from "./links";
+import { initAnalytics, trackAppLinks } from "./analytics";
 
 /**
  * One entry, three builds:
@@ -56,13 +57,20 @@ function mount(node: ReactNode) {
   );
 }
 
+function mountApp() {
+  initAnalytics({ kind: "app", watchHash: true });
+  void import("./App").then(({ App }) => mount(<App />));
+}
+
 function mountSite() {
+  initAnalytics({ kind: "site", watchHash: false });
+  trackAppLinks();
   if (isLeadership) void import("./landing/Leadership").then(({ Leadership }) => mount(<Leadership />));
   else void import("./landing/Landing").then(({ Landing }) => mount(<Landing />));
 }
 
 if (TARGET === "app") {
-  void import("./App").then(({ App }) => mount(<App />));
+  mountApp();
 } else if (TARGET === "site") {
   // Normally _redirects sends /app/* to the app domain before this runs; this is the fallback.
   if (underApp) window.location.replace(`${APP_URL}${route.slice(4)}${window.location.hash}`);
@@ -71,7 +79,7 @@ if (TARGET === "app") {
 } else if (!underApp && !isLeadership && legacyAppHash) {
   window.location.replace(`${APP_URL}${window.location.hash}`);
 } else if (underApp) {
-  void import("./App").then(({ App }) => mount(<App />));
+  mountApp();
 } else {
   mountSite();
 }
