@@ -97,6 +97,7 @@ function doPost(e) {
     }
 
     notify(ref, clean(payload.nama), clean(payload.cawangan));
+    confirmApplicant(ref, clean(payload.nama), clean(payload.cawangan), clean(payload.email));
     return reply({ ok: true, ref: ref });
   } catch (err) {
     console.error(err);
@@ -165,6 +166,52 @@ function notify(ref, nama, cawangan) {
   } catch (err) {
     console.error("notify failed", err);
   }
+}
+
+/**
+ * Short confirmation to the applicant (reference number only, never the IC number).
+ * Skipped when the e-mail is missing/invalid or the daily mail quota is nearly used up, so the
+ * secretariat alert above always has room. Sent from NOTIFY_EMAIL (needs the Gmail alias); replies go there too.
+ */
+function confirmApplicant(ref, nama, cawangan, email) {
+  if (!email || !/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(email)) return;
+  try {
+    if (MailApp.getRemainingDailyQuota() < 20) return;
+    var subject = "Permohonan keahlian Belia PBB diterima (" + ref + ")";
+    var body =
+      "Salam " + nama + ",\n\n" +
+      "Terima kasih. Permohonan keahlian Belia PBB anda telah kami terima.\n\n" +
+      "Nombor rujukan: " + ref + "\n" +
+      "Cawangan: " + cawangan + "\n\n" +
+      "Urus setia akan menyemak permohonan anda dan menghubungi anda. " +
+      "Sila simpan nombor rujukan ini dan sebutkannya jika anda menghubungi kami di " + NOTIFY_EMAIL + ".\n\n" +
+      "---\n" +
+      "Hi " + nama + ", we have received your Belia PBB membership application. " +
+      "Your reference number is " + ref + ". The secretariat will review it and contact you. " +
+      "Questions: " + NOTIFY_EMAIL + ".\n\n" +
+      "Belia PBB Sarawak\nhttps://beliapbb.com";
+    try {
+      // Sends from hello@beliapbb.com once it is added as a "Send mail as" alias in this Gmail account.
+      GmailApp.sendEmail(email, subject, body, { from: NOTIFY_EMAIL, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak" });
+    } catch (aliasErr) {
+      // Alias not set up yet: send from the account's own address instead.
+      MailApp.sendEmail({ to: email, replyTo: NOTIFY_EMAIL, name: "Belia PBB Sarawak", subject: subject, body: body });
+    }
+  } catch (err) {
+    console.error("confirm failed", err);
+  }
+}
+
+/**
+ * Run from the Apps Script editor (select testConfirmEmail → Run) to preview the applicant e-mail.
+ * Sends one e-mail with a dummy reference to the address below; writes nothing to the sheet.
+ * Leave TEST_TO empty to send to the account running the script.
+ */
+function testConfirmEmail() {
+  var TEST_TO = ""; // e.g. "you@example.com"
+  var to = TEST_TO || Session.getEffectiveUser().getEmail();
+  confirmApplicant("BPBB-TEST-00000", "Ujian", "Cawangan Ujian", to);
+  console.log("Test e-mail sent to " + to);
 }
 
 function reply(obj) {
