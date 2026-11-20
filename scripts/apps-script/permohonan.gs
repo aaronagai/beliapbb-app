@@ -57,6 +57,9 @@ var COLUMNS = [
   ["Penyokong Nama", "penyokongNama"],
   ["Penyokong KP", "penyokongIc"],
   ["Penyokong Jawatan", "penyokongJawatan"],
+  // Filled in by the secretariat, never by the form.
+  ["Disemak oleh", null],
+  ["Catatan", null],
 ];
 
 var REQUIRED = ["cawangan", "nama", "noKadPengenalan", "telBimbit", "kategoriAhli"];
@@ -103,6 +106,62 @@ function doPost(e) {
     console.error(err);
     return reply({ ok: false, error: "server" });
   }
+}
+
+/**
+ * One-time (safe to re-run): sets up the secretariat's review tools on the sheet.
+ * Run from the Apps Script editor: select setupReviewWorkflow → Run.
+ *  - Status column: dropdown (Baharu / Disemak / Lulus / Tolak) with a colour per status
+ *  - Repeat IC numbers: Nama + IC cells turn orange when the same IC appears on another row
+ *  - "Disemak oleh" and "Catatan" columns added at the end; header row frozen
+ */
+var STATUS_OPTIONS = ["Baharu", "Disemak", "Lulus", "Tolak"];
+var STATUS_COLORS = { Baharu: "#fff2cc", Disemak: "#cfe2f3", Lulus: "#d9ead3", Tolak: "#f4cccc" };
+
+function setupReviewWorkflow() {
+  var sheet = targetSheet();
+  ensureHeader(sheet);
+  var headers = COLUMNS.map(function (c) { return c[0]; });
+  // Make sure every header exists (adds the two new secretariat columns to the existing sheet).
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
+
+  var col = function (name) { return headers.indexOf(name) + 1; };
+  var last = Math.max(sheet.getMaxRows(), 1000);
+  var rows = last - 1;
+
+  var statusCol = col("Status");
+  var statusRange = sheet.getRange(2, statusCol, rows, 1);
+  statusRange.setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(STATUS_OPTIONS, true).setAllowInvalid(false).build()
+  );
+
+  var rules = STATUS_OPTIONS.map(function (name) {
+    return SpreadsheetApp.newConditionalFormatRule()
+      .whenTextEqualTo(name).setBackground(STATUS_COLORS[name]).setRanges([statusRange]).build();
+  });
+
+  // Repeat IC: compare digits only, so 010101-13-1234 and 010101131234 count as the same person.
+  var icCol = col("No. Kad Pengenalan");
+  var L = columnLetter(icCol);
+  var strip = function (ref) { return 'SUBSTITUTE(SUBSTITUTE(' + ref + ',"-","")," ","")'; };
+  var dupFormula =
+    '=AND($' + L + '2<>"",SUMPRODUCT(--(' + strip('$' + L + '$2:$' + L + '$' + last) + '=' + strip('$' + L + '2') + '))>1)';
+  var namaCol = col("Nama");
+  var dupRanges = [sheet.getRange(2, namaCol, rows, 1), sheet.getRange(2, icCol, rows, 1)];
+  rules.push(
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied(dupFormula).setBackground("#fce5cd").setBold(true).setRanges(dupRanges).build()
+  );
+
+  sheet.setConditionalFormatRules(rules);
+  console.log("Review workflow set up on '" + sheet.getName() + "'.");
+}
+
+function columnLetter(n) {
+  var s = "";
+  while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+  return s;
 }
 
 /** Lets the app (and you) check the deployment is reachable. */
