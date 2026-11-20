@@ -71,9 +71,8 @@ export const messages = {
     applicationTitle: "Permohonan Keahlian PBB",
     applicationSubtitle:
       "Isi borang ini mengikut keterangan dalam Borang Permohonan Keahlian PBB (huruf besar jika diperlukan). Data disimpan pada peranti anda sehingga dihantar ke cawangan.",
-    applicationDownloadBlank: "Muat Turun Borang PDF Rasmi",
     applicationSubtitleOnline:
-      "Isi borang ini mengikut keterangan dalam Borang Permohonan Keahlian PBB (huruf besar jika diperlukan). Permohonan dihantar terus dan secara sulit kepada urus setia Belia PBB.",
+      "Isi maklumat anda di bawah. Kami akan isikan Borang Permohonan Keahlian PBB yang rasmi untuk anda. Permohonan dihantar terus dan secara sulit kepada urus setia Belia PBB.",
     applicationSendBtn: "Hantar Permohonan",
     applicationSending: "Menghantar…",
     applicationSentTitle: "Permohonan diterima",
@@ -454,9 +453,8 @@ export const messages = {
     applicationTitle: "PBB Membership Application",
     applicationSubtitle:
       "Complete this form based on the official Borang Permohonan Keahlian PBB (use capitals where the form requires). Data is stored on this device until you hand it in at a branch.",
-    applicationDownloadBlank: "Download Official PDF Form",
     applicationSubtitleOnline:
-      "Complete this form based on the official Borang Permohonan Keahlian PBB (use capitals where the form requires). Your application goes directly and confidentially to the Belia PBB secretariat.",
+      "Fill in your details below. We fill in the official Borang Permohonan Keahlian PBB for you. Your application goes directly and confidentially to the Belia PBB secretariat.",
     applicationSendBtn: "Send Application",
     applicationSending: "Sending…",
     applicationSentTitle: "Application received",

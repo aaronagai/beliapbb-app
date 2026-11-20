@@ -420,9 +420,6 @@ export function ApplicationPage() {
     <section className="section section--apply" aria-label={t("applicationTitle")}>
       <div className="application-intro profile-card">
         <p className="application-intro-text">{t(endpoint ? "applicationSubtitleOnline" : "applicationSubtitle")}</p>
-        <a className="application-pdf-link" href={BORANG_PDF} target="_blank" rel="noopener noreferrer">
-          {t("applicationDownloadBlank")}
-        </a>
       </div>
 
       {endpoint ? (
