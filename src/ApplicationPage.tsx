@@ -177,6 +177,9 @@ type PdfState =
   | { kind: "ready"; url: string; name: string; ops: BorangOp[] }
   | { kind: "failed" };
 
+/** dd/mm/yyyy in Kuching time, as printed next to the signature. */
+const kuchingToday = () => new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kuching" });
+
 async function makeFilledPdf(
   data: Draft,
   ref: string,
@@ -204,6 +207,8 @@ export function ApplicationPage() {
   /** The submitted answers, kept in memory so the form can be re-drawn with the signature on it. */
   const [sentData, setSentData] = useState<Draft | null>(null);
   const [signature, setSignature] = useState<SignatureResult | null>(null);
+  /** Signature drawn on the form page itself, before submitting (optional). */
+  const [formSignature, setFormSignature] = useState<SignatureResult | null>(null);
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState(false);
   const [signError, setSignError] = useState<MessageKey | null>(null);
@@ -252,18 +257,33 @@ export function ApplicationPage() {
       setSentData(submitted);
       setSend({ kind: "sent", ref: result.ref });
       window.scrollTo({ top: 0, behavior: "smooth" });
-      // Fill in the official PDF on this device, then hand a copy to the secretariat (and the applicant's inbox).
+      // Fill in the official PDF on this device (with the signature, if they drew one on the form page).
       setPdf({ kind: "making" });
       let bytes: Uint8Array | null = null;
+      let filedSigned = false;
       try {
-        const made = await makeFilledPdf(submitted, result.ref);
+        const sig = formSignature ? { ...formSignature, date: kuchingToday() } : undefined;
+        const made = await makeFilledPdf(submitted, result.ref, sig);
         bytes = made.bytes;
         const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
-        setPdf({ kind: "ready", url: URL.createObjectURL(blob), name: `Borang-PBB-${result.ref}.pdf`, ops: made.ops });
+        setPdf({
+          kind: "ready",
+          url: URL.createObjectURL(blob),
+          name: `Borang-PBB-${result.ref}${sig ? "-bertandatangan" : ""}.pdf`,
+          ops: made.ops,
+        });
+        if (sig) {
+          // Signed on the form page: file the signed copy now (this also e-mails it to the applicant).
+          const up = await uploadSignedForm(url, result.ref, submitted.noKadPengenalan.replace(/\D/g, ""), [bytesToBase64(bytes)], "digital");
+          filedSigned = up.ok;
+          if (up.ok) setSigned(true);
+        }
       } catch {
         setPdf({ kind: "failed" });
       }
-      if (result.token) void attachApplicationPdf(url, result.ref, result.token, bytes);
+      setFormSignature(null);
+      // Not signed here (or filing failed): hand over the filled form so the applicant still gets their e-mail.
+      if (!filedSigned && result.token) void attachApplicationPdf(url, result.ref, result.token, bytes);
       return;
     }
     saveLocally();
@@ -271,7 +291,7 @@ export function ApplicationPage() {
       kind: "error",
       message: result.error === "ic" ? t("applicationErrorIc") : t("applicationErrorGeneric"),
     });
-  }, [d, website, saveLocally, t]);
+  }, [d, website, formSignature, saveLocally, t]);
 
   /** Stamp the drawn signature and today's date onto the form, show it, and file the signed copy. */
   const signForm = useCallback(async () => {
@@ -283,8 +303,7 @@ export function ApplicationPage() {
     setSigning(true);
     setSignError(null);
     try {
-      const date = new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kuching" });
-      const made = await makeFilledPdf(sentData, send.ref, { ...signature, date });
+      const made = await makeFilledPdf(sentData, send.ref, { ...signature, date: kuchingToday() });
       const blob = new Blob([made.bytes as BlobPart], { type: "application/pdf" });
       const result = await uploadSignedForm(endpoint, send.ref, sentIc, [bytesToBase64(made.bytes)], "digital");
       // Show the signed form either way; only mark it submitted once the secretariat has it.
@@ -308,7 +327,7 @@ export function ApplicationPage() {
       return;
     }
     setSaved(saveLocally());
-  }, [d]);
+  }, [d, endpoint, sendOnline, saveLocally]);
 
   const pekerjaanNeedsDetail = d.pekerjaan === "kerajaan" || d.pekerjaan === "swasta" || d.pekerjaan === "sendiri" || d.pekerjaan === "lain";
 
@@ -320,6 +339,7 @@ export function ApplicationPage() {
     setSignature(null);
     setSigned(false);
     setSignError(null);
+    setFormSignature(null);
     setStage("sign");
     setSend({ kind: "idle" });
   };
@@ -789,6 +809,12 @@ export function ApplicationPage() {
             <input type="checkbox" checked={d.pengakuan} onChange={(e) => patch({ pengakuan: e.target.checked })} />
             <span>{t("applicationDeclarationCheckbox")}</span>
           </label>
+
+          <div className="application-form-sign">
+            <h3 className="application-signed-title">{t("formSignTitle")}</h3>
+            <p className="application-sent-pdf-note">{t("formSignHint")}</p>
+            <SignaturePad onChange={setFormSignature} disabled={send.kind === "sending"} />
+          </div>
         </div>
 
         <p className="application-office-note">{t("applicationOfficeNote")}</p>

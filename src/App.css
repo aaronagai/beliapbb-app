@@ -1134,3 +1134,9 @@
     }
   }
 }
+
+.application-form-sign {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
