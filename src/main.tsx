@@ -1,6 +1,7 @@
 import { StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import "./fonts/geist.css";
+import "./fonts/tiktok-sans.css";
 import "./index.css";
 import { I18nProvider } from "./i18n";
 import { ThemeProvider } from "./theme";

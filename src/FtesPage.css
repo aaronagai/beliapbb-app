@@ -37,8 +37,8 @@
   --ftes-focus: var(--ftes-fg);
 
   /* Type */
-  --ftes-display: "Inter", system-ui, -apple-system, sans-serif;
-  --ftes-sans: "Inter", var(--font-sans);
+  --ftes-display: "TikTok Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --ftes-sans: "TikTok Sans", "Inter", var(--font-sans);
 
   /* Motion (transitions.dev tokens) */
   --duration-quick: 150ms;

@@ -1,0 +1,8 @@
+/* Self-hosted TikTok Sans (OFL-1.1) — latin subset, variable weight, woff2 only */
+@font-face {
+  font-family: "TikTok Sans";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 900;
+  src: url("@fontsource-variable/tiktok-sans/files/tiktok-sans-latin-wght-normal.woff2") format("woff2-variations");
+}
