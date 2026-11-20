@@ -7,12 +7,15 @@
  * NEVER send anything typed into the application: no names, IC numbers, addresses, phone numbers,
  * e-mail, cawangan or answers. Events carry only which step/page/button, and yes/no flags.
  *
- * Off unless VITE_POSTHOG_KEY is set at build time (the project API key is public by design).
+ * On by default with the project key above (VITE_POSTHOG_KEY overrides it, e.g. to point at another project);
+ * it still only runs on the two production hostnames.
  * Each domain is its own anonymous visit: landing → app is linked through the referrer, not a user id.
  */
 import { APP_URL } from "./links";
 
-const KEY = import.meta.env.VITE_POSTHOG_KEY?.trim() ?? "";
+/** Project token of the "Belia PBB" PostHog project (US cloud). Write-only and public by design, like on sarawakseats.org. */
+const PROJECT_KEY = "phc_qhFLEqCutCAfZonXqTUeiHahdPMpfpGEFFuvPu6nEseV";
+const KEY = import.meta.env.VITE_POSTHOG_KEY?.trim() || PROJECT_KEY;
 const HOST_OK = /(^|\.)beliapbb\.com$/.test(window.location.hostname);
 export const analyticsEnabled = Boolean(KEY) && HOST_OK;
 
