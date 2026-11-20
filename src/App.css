@@ -967,18 +967,6 @@
   mix-blend-mode: multiply;
 }
 
-.welcome-pack {
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
-  text-align: left;
-}
-
-.welcome-pack-title {
-  margin: 0 0 0.25rem;
-  font-size: 1rem;
-}
-
 /* ---- Success flow polish ---- */
 .application-sent-ref {
   margin: 0.25rem 0 0.5rem;
@@ -1093,6 +1081,51 @@
 /* A state change (pad → signed) fades and rises in; reduced motion gets no movement at all. */
 @media (prefers-reduced-motion: no-preference) {
   .application-sign {
+    transition: opacity 200ms ease-out, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+}
+
+/* Welcome pack: its own page after signing. */
+.welcome-pack .app-links {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.welcome-pack-status {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-align: left;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  border-radius: 0.75rem;
+}
+
+.welcome-pack-status[data-state="signed"] {
+  color: #166534;
+}
+
+.welcome-pack-ref {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.application-sent-next {
+  margin-top: 0.75rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .welcome-pack {
     transition: opacity 200ms ease-out, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
 
     @starting-style {

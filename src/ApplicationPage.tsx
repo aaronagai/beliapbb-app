@@ -207,6 +207,8 @@ export function ApplicationPage() {
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState(false);
   const [signError, setSignError] = useState<MessageKey | null>(null);
+  /** After submitting: the sign page, then the welcome pack on its own page. */
+  const [stage, setStage] = useState<"sign" | "welcome">("sign");
   /* Spam trap: hidden from people, filled in by bots */
   const [website, setWebsite] = useState("");
 
@@ -310,6 +312,31 @@ export function ApplicationPage() {
 
   const pekerjaanNeedsDetail = d.pekerjaan === "kerajaan" || d.pekerjaan === "swasta" || d.pekerjaan === "sendiri" || d.pekerjaan === "lain";
 
+  const startAnother = () => {
+    if (pdf.kind === "ready") URL.revokeObjectURL(pdf.url);
+    setPdf({ kind: "none" });
+    setSentIc("");
+    setSentData(null);
+    setSignature(null);
+    setSigned(false);
+    setSignError(null);
+    setStage("sign");
+    setSend({ kind: "idle" });
+  };
+
+  const goTo = (next: "sign" | "welcome") => {
+    setStage(next);
+    window.scrollTo({ top: 0 });
+  };
+
+  if (send.kind === "sent" && stage === "welcome") {
+    return (
+      <section className="section section--apply" aria-label={t("applicationTitle")}>
+        <WelcomePack reference={send.ref} signed={signed} onBack={() => goTo("sign")} onAnother={startAnother} />
+      </section>
+    );
+  }
+
   if (send.kind === "sent") {
     return (
       <section className="section section--apply" aria-label={t("applicationTitle")}>
@@ -342,11 +369,7 @@ export function ApplicationPage() {
                   ) : null}
                 </div>
               )}
-              <a
-                className={`profile-save-btn application-sent-pdf-btn${signed ? "" : " profile-save-btn--secondary"}`}
-                href={pdf.url}
-                download={pdf.name}
-              >
+              <a className="profile-save-btn profile-save-btn--secondary application-sent-pdf-btn" href={pdf.url} download={pdf.name}>
                 {t(signed ? "applicationPdfDownloadSigned" : "applicationPdfDownload")}
               </a>
               {signed ? null : <p className="application-sent-pdf-note">{t("applicationPdfNext")}</p>}
@@ -359,23 +382,15 @@ export function ApplicationPage() {
               <SignedFormUpload initialRef={send.ref} initialIc={sentIc} />
             </details>
           )}
-          {pdf.kind === "making" ? null : <WelcomePack />}
-          <button
-            type="button"
-            className="profile-save-btn profile-save-btn--secondary application-sent-another"
-            onClick={() => {
-              if (pdf.kind === "ready") URL.revokeObjectURL(pdf.url);
-              setPdf({ kind: "none" });
-              setSentIc("");
-              setSentData(null);
-              setSignature(null);
-              setSigned(false);
-              setSignError(null);
-              setSend({ kind: "idle" });
-            }}
-          >
-            {t("applicationSentAnother")}
-          </button>
+          {pdf.kind === "making" ? null : (
+            <button
+              type="button"
+              className={`profile-save-btn application-sent-next${signed ? "" : " profile-save-btn--secondary"}`}
+              onClick={() => goTo("welcome")}
+            >
+              {t("welcomePackNext")}
+            </button>
+          )}
         </div>
       </section>
     );
