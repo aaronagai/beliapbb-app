@@ -3,114 +3,129 @@ import { useI18n } from "./i18n";
 
 export type SignatureResult = { dataUrl: string; aspect: number };
 
+type Pt = { x: number; y: number };
+
 const INK = "#0d1a73";
 const HEIGHT = 170;
+const LINE = 2.6;
+/** Export at a fixed scale so the signature looks the same on every screen. */
+const EXPORT_SCALE = 3;
+const EXPORT_PAD = 4;
+
+/** Draw smooth strokes: curve through the midpoints of consecutive samples. */
+function paint(ctx: CanvasRenderingContext2D, strokes: Pt[][], scale: number, offX = 0, offY = 0) {
+  ctx.lineWidth = LINE * scale;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = INK;
+  for (const s of strokes) {
+    if (!s.length) continue;
+    const X = (p: Pt) => (p.x - offX) * scale;
+    const Y = (p: Pt) => (p.y - offY) * scale;
+    ctx.beginPath();
+    ctx.moveTo(X(s[0]), Y(s[0]));
+    if (s.length === 1) ctx.lineTo(X(s[0]) + 0.01, Y(s[0]) + 0.01); // a tap leaves a dot
+    for (let i = 1; i < s.length - 1; i++) {
+      ctx.quadraticCurveTo(X(s[i]), Y(s[i]), (X(s[i]) + X(s[i + 1])) / 2, (Y(s[i]) + Y(s[i + 1])) / 2);
+    }
+    if (s.length > 1) ctx.lineTo(X(s[s.length - 1]), Y(s[s.length - 1]));
+    ctx.stroke();
+  }
+}
 
 /**
- * Draw-your-signature box (finger or mouse). Reports a tightly cropped transparent PNG each time a
- * stroke ends, or null when cleared. Ink is the same blue as the rest of the filled-in form.
+ * Draw-your-signature box (finger or mouse). Strokes are kept as points (in CSS pixels), so the box
+ * redraws cleanly if the phone rotates. Reports a tightly cropped transparent PNG when a stroke ends,
+ * or null when cleared. Only the first finger draws; a second touch is ignored.
  */
 export function SignaturePad({ onChange, disabled = false }: { onChange: (sig: SignatureResult | null) => void; disabled?: boolean }) {
   const { t } = useI18n();
   const canvas = useRef<HTMLCanvasElement>(null);
-  const drawing = useRef(false);
-  const last = useRef<{ x: number; y: number } | null>(null);
-  const box = useRef<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  const strokes = useRef<Pt[][]>([]);
+  const activePointer = useRef<number | null>(null);
   const [empty, setEmpty] = useState(true);
 
-  const setup = useCallback(() => {
+  const redraw = useCallback(() => {
     const c = canvas.current;
     if (!c) return;
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     const w = c.clientWidth;
-    c.width = Math.round(w * dpr);
-    c.height = Math.round(HEIGHT * dpr);
+    if (!w) return;
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(HEIGHT * dpr)) {
+      c.width = Math.round(w * dpr);
+      c.height = Math.round(HEIGHT * dpr);
+    }
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    ctx.lineWidth = 2.6 * dpr;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = INK;
+    ctx.clearRect(0, 0, c.width, c.height);
+    paint(ctx, strokes.current, dpr);
   }, []);
 
   useEffect(() => {
-    setup();
-  }, [setup]);
+    redraw();
+    const c = canvas.current;
+    if (!c || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(redraw);
+    ro.observe(c);
+    return () => ro.disconnect();
+  }, [redraw]);
 
-  const point = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const c = canvas.current!;
-    const r = c.getBoundingClientRect();
-    const dpr = c.width / r.width;
-    return { x: (e.clientX - r.left) * dpr, y: (e.clientY - r.top) * dpr };
+  const at = (e: React.PointerEvent<HTMLCanvasElement>): Pt => {
+    const r = canvas.current!.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
 
-  const grow = (p: { x: number; y: number }) => {
-    const pad = 4;
-    const b = box.current;
-    box.current = b
-      ? { x0: Math.min(b.x0, p.x - pad), y0: Math.min(b.y0, p.y - pad), x1: Math.max(b.x1, p.x + pad), y1: Math.max(b.y1, p.y + pad) }
-      : { x0: p.x - pad, y0: p.y - pad, x1: p.x + pad, y1: p.y + pad };
+  const exportSignature = () => {
+    const pts = strokes.current.flat();
+    if (!pts.length) return null;
+    const x0 = Math.min(...pts.map((p) => p.x)) - EXPORT_PAD;
+    const y0 = Math.min(...pts.map((p) => p.y)) - EXPORT_PAD;
+    const x1 = Math.max(...pts.map((p) => p.x)) + EXPORT_PAD;
+    const y1 = Math.max(...pts.map((p) => p.y)) + EXPORT_PAD;
+    const w = x1 - x0;
+    const h = y1 - y0;
+    if (w < 6 || h < 6) return null;
+    const out = document.createElement("canvas");
+    out.width = Math.round(w * EXPORT_SCALE);
+    out.height = Math.round(h * EXPORT_SCALE);
+    const ctx = out.getContext("2d");
+    if (!ctx) return null;
+    paint(ctx, strokes.current, EXPORT_SCALE, x0, y0);
+    return { dataUrl: out.toDataURL("image/png"), aspect: out.width / out.height };
   };
 
   const down = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (disabled) return;
+    if (disabled || activePointer.current !== null) return; // ignore a second finger
     e.preventDefault();
     canvas.current?.setPointerCapture(e.pointerId);
-    drawing.current = true;
-    const p = point(e);
-    last.current = p;
-    grow(p);
-    // A tap leaves a dot.
-    const ctx = canvas.current?.getContext("2d");
-    if (ctx) {
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(p.x + 0.01, p.y + 0.01);
-      ctx.stroke();
-    }
+    activePointer.current = e.pointerId;
+    strokes.current.push([at(e)]);
+    redraw();
   };
 
   const move = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!drawing.current) return;
-    const ctx = canvas.current?.getContext("2d");
-    const p = point(e);
-    if (ctx && last.current) {
-      ctx.beginPath();
-      ctx.moveTo(last.current.x, last.current.y);
-      // Smooth: curve through the midpoint of the last two samples.
-      const mx = (last.current.x + p.x) / 2;
-      const my = (last.current.y + p.y) / 2;
-      ctx.quadraticCurveTo(last.current.x, last.current.y, mx, my);
-      ctx.stroke();
-    }
-    last.current = p;
-    grow(p);
+    if (activePointer.current !== e.pointerId) return;
+    const s = strokes.current[strokes.current.length - 1];
+    if (!s) return;
+    // Pointer events can be coalesced: take every sample for a smoother line.
+    const samples = e.nativeEvent.getCoalescedEvents?.() ?? [];
+    const r = canvas.current!.getBoundingClientRect();
+    if (samples.length) for (const ev of samples) s.push({ x: ev.clientX - r.left, y: ev.clientY - r.top });
+    else s.push(at(e));
+    redraw();
   };
 
-  const up = () => {
-    if (!drawing.current) return;
-    drawing.current = false;
-    last.current = null;
-    const c = canvas.current;
-    const b = box.current;
-    if (!c || !b) return;
-    const x = Math.max(0, Math.floor(b.x0));
-    const y = Math.max(0, Math.floor(b.y0));
-    const w = Math.min(c.width, Math.ceil(b.x1)) - x;
-    const h = Math.min(c.height, Math.ceil(b.y1)) - y;
-    if (w < 8 || h < 8) return;
-    const out = document.createElement("canvas");
-    out.width = w;
-    out.height = h;
-    out.getContext("2d")?.drawImage(c, x, y, w, h, 0, 0, w, h);
-    setEmpty(false);
-    onChange({ dataUrl: out.toDataURL("image/png"), aspect: w / h });
+  const up = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (activePointer.current !== e.pointerId) return;
+    activePointer.current = null;
+    const sig = exportSignature();
+    setEmpty(!sig);
+    onChange(sig);
   };
 
   const clear = () => {
-    const c = canvas.current;
-    c?.getContext("2d")?.clearRect(0, 0, c.width, c.height);
-    box.current = null;
+    strokes.current = [];
+    redraw();
     setEmpty(true);
     onChange(null);
   };

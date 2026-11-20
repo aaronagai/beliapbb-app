@@ -15,6 +15,7 @@ All notable changes to this project are documented in this file.
 - After submitting, a simple welcome pack (Perlembagaan, Kepimpinan) is shown; the Dokumen list no longer sits under the form
 
 ### Changed
+- Success screen polish: a Dihantar / Tandatangan / Selesai step indicator, one solid primary button at a time (the rest are outline), press feedback and 44px tap targets, a larger tabular reference number, and a short fade when the signature pad turns into "signed". The signature pad redraws cleanly when the phone rotates, ignores a second finger, and exports at a fixed resolution
 - Reference numbers now come from a counter, so deleting test rows never reuses a reference
 - Sheet: Status dropdown (Baharu/Disemak/Lulus/Tolak), repeat-IC highlight, "Disemak oleh" and "Catatan" columns
 

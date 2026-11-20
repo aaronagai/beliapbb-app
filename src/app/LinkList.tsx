@@ -3,10 +3,10 @@ import { ExternalLinkArrowIcon } from "../ExternalLinkArrowIcon";
 export type LinkItem = { href: string; title: string; hint?: string };
 
 /** Grouped rows of outbound links (documents, sites) with a ↗ affordance. */
-export function LinkList({ title, items }: { title: string; items: LinkItem[] }) {
+export function LinkList({ title, items, hideTitle = false }: { title: string; items: LinkItem[]; hideTitle?: boolean }) {
   return (
     <section className="app-links" aria-label={title}>
-      <h2 className="app-section-title">{title}</h2>
+      <h2 className={hideTitle ? "visually-hidden" : "app-section-title"}>{title}</h2>
       <ul>
         {items.map((item) => (
           <li key={item.href}>

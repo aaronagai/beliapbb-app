@@ -5,6 +5,7 @@ import { SignedFormUpload } from "./SignedFormUpload";
 import { BorangPreview } from "./BorangPreview";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import { WelcomePack } from "./WelcomePack";
+import { ApplicationSteps } from "./ApplicationSteps";
 import type { BorangOp } from "./borangPdf";
 import {
   CAWANGAN_OPTIONS,
@@ -316,6 +317,7 @@ export function ApplicationPage() {
           <h2>{t("applicationSentTitle")}</h2>
           <p className="application-sent-ref">{send.ref}</p>
           <p>{t("applicationSentBody")}</p>
+          <ApplicationSteps signed={signed} />
           {pdf.kind === "making" ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : null}
           {pdf.kind === "ready" ? (
             <>
@@ -340,7 +342,11 @@ export function ApplicationPage() {
                   ) : null}
                 </div>
               )}
-              <a className="profile-save-btn application-sent-pdf-btn" href={pdf.url} download={pdf.name}>
+              <a
+                className={`profile-save-btn application-sent-pdf-btn${signed ? "" : " profile-save-btn--secondary"}`}
+                href={pdf.url}
+                download={pdf.name}
+              >
                 {t(signed ? "applicationPdfDownloadSigned" : "applicationPdfDownload")}
               </a>
               {signed ? null : <p className="application-sent-pdf-note">{t("applicationPdfNext")}</p>}
@@ -356,7 +362,7 @@ export function ApplicationPage() {
           {pdf.kind === "making" ? null : <WelcomePack />}
           <button
             type="button"
-            className="profile-save-btn"
+            className="profile-save-btn profile-save-btn--secondary application-sent-another"
             onClick={() => {
               if (pdf.kind === "ready") URL.revokeObjectURL(pdf.url);
               setPdf({ kind: "none" });

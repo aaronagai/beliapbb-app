@@ -101,7 +101,7 @@ export function SignedFormUpload({ initialRef = "", initialIc = "" }: { initialR
         hidden
         onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, MAX_FILES))}
       />
-      <button type="button" className="profile-save-btn application-signed-pick" onClick={() => input.current?.click()}>
+      <button type="button" className="profile-save-btn profile-save-btn--secondary application-signed-pick" onClick={() => input.current?.click()}>
         {files.length ? t("signedPicked").replace("{{n}}", String(files.length)) : t("signedPick")}
       </button>
       <button type="button" className="profile-save-btn" onClick={() => void send()} disabled={state.kind === "sending"}>

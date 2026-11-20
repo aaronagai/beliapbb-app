@@ -15,6 +15,7 @@ export function WelcomePack() {
       <p className="application-sent-pdf-note">{t("welcomePackIntro")}</p>
       <LinkList
         title={t("sertaiDocsTitle")}
+        hideTitle
         items={[
           { href: CONSTITUTION_PDF_URL, title: t("kenaliConstitution"), hint: t("resourcesConstitutionHint") },
           { href: LEADERSHIP_URL, title: t("sertaiLeaders"), hint: t("sertaiLeadersHint") },
