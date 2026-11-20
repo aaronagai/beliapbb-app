@@ -149,6 +149,8 @@ export const messages = {
     applicationDeclarationBody:
       "Saya memohon menjadi ahli Parti Pesaka Bumiputera Bersatu Sarawak. Jika diterima, saya sanggup mematuhi undang-undang pertubuhan PBB seperti dalam Perlembagaan, dan mengaku bukan ahli parti lain. Saya mengaku semua keterangan di atas adalah benar.",
     applicationDeclarationCheckbox: "Saya bersetuju dengan pengakuan di atas.",
+    applicationPrivacyNote:
+      "Notis privasi: maklumat anda, termasuk no. kad pengenalan, digunakan oleh urus setia Belia PBB hanya untuk memproses permohonan keahlian ini dan menghubungi anda. Ia disimpan dalam lembaran peribadi yang hanya boleh dilihat oleh urus setia dan tidak didedahkan kepada pihak di luar parti. Untuk menyemak, membetulkan atau memadam maklumat anda, e-mel hello@beliapbb.com.",
     applicationOfficeNote:
       "Ruangan untuk kegunaan cawangan atau ibu pejabat (tarikh mesyuarat, cop, semakan) tidak diisi dalam borang digital ini — lengkapkan pada salinan PDF bercetak jika perlu.",
     applicationSubmitBtn: "Simpan Permohonan (Peranti Ini)",
@@ -486,6 +488,8 @@ export const messages = {
     applicationDeclarationBody:
       "I apply to become a member of Parti Pesaka Bumiputera Bersatu Sarawak. If accepted, I agree to comply with PBB’s laws as in the Constitution, and confirm I am not a member of another party. I declare the information above is true.",
     applicationDeclarationCheckbox: "I agree with the declaration above.",
+    applicationPrivacyNote:
+      "Privacy notice: your details, including your IC number, are used by the Belia PBB secretariat only to process this membership application and to contact you. They are kept in a private sheet that only the secretariat can view, and are not disclosed to anyone outside the party. To check, correct or delete your details, email hello@beliapbb.com.",
     applicationOfficeNote:
       "Sections reserved for the branch or headquarters (meeting date, chop, processing) are not filled in this digital form — complete them on a printed PDF if required.",
     applicationSubmitBtn: "Save Application (This Device)",
