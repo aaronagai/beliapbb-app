@@ -86,6 +86,8 @@ export type Draft = {
   email: string;
   /** Ticked when the applicant has no e-mail (they are encouraged to get one, but not blocked). */
   tiadaEmail: boolean;
+  /** What to call them ("Hello Aniq!"), worked out from the name and editable. */
+  panggilan: string;
   kawasanParlimen: string;
   kawasanNegeri: string;
   kategoriAhli: "" | "induk" | "belia" | "wanita" | "pemuda";

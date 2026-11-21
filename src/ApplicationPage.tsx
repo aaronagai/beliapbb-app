@@ -45,6 +45,7 @@ const emptyDraft: Draft = {
   telBimbit: "",
   email: "",
   tiadaEmail: false,
+  panggilan: "",
   kawasanParlimen: "",
   kawasanNegeri: "",
   kategoriAhli: "",
@@ -170,6 +171,9 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   }, [focusMode, onFocusChange]);
   /* Spam trap: hidden from people, filled in by bots */
   const [website, setWebsite] = useState("");
+
+  const errorText = stepError ?? (send.kind === "error" ? send.message : null);
+  const shownError = useLast(errorText);
 
   const patch = useCallback((p: Partial<Draft>) => {
     setD((prev) => ({ ...prev, ...p }));
@@ -520,8 +524,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   }
 
   const screen = JOIN_SCREENS[step];
-  const errorText = stepError ?? (send.kind === "error" ? send.message : null);
-  const shownError = useLast(errorText);
   const isReview = screen.id === "review";
   const sending = send.kind === "sending";
 

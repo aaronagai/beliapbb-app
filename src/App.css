@@ -1750,3 +1750,127 @@
 .join-more-toggle[aria-expanded="true"] .join-chevron {
   transform: rotate(-135deg);
 }
+
+/* ---- Type and grey polish for the join flow ----
+   One loud thing per screen (the question), a quiet label above it, one grey for supporting text. */
+.app2 .app-page-title.app-page-title--quiet,
+.app-page-title.app-page-title--quiet {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.3;
+  color: var(--color-text-muted);
+}
+
+.join-progress {
+  margin-bottom: 2.25rem;
+}
+
+.join-seg {
+  height: 3px;
+  background: rgb(0 0 0 / 0.08);
+}
+
+.join-title {
+  margin-bottom: 0.625rem;
+  font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.125rem);
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.join-hint {
+  margin-bottom: 1.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.join-label {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--color-text);
+}
+
+.join-input {
+  min-height: 3.5rem;
+  font-size: 1.0625rem;
+  letter-spacing: -0.005em;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-surface);
+  border: 1px solid rgb(0 0 0 / 0.16);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.join-input::placeholder {
+  color: #8f8f8f;
+}
+
+.join-input:focus-visible {
+  outline: none;
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 4px rgb(0 0 0 / 0.07);
+}
+
+.join-note,
+.join-nudge,
+.join-derived {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.join-note {
+  margin-top: 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.join-derived {
+  color: var(--color-text);
+}
+
+.join .join-next {
+  min-height: 3.25rem;
+  padding: 0 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.join-chip {
+  font-size: 1rem;
+  border: 1px solid rgb(0 0 0 / 0.16);
+}
+
+.join-chip[aria-checked="true"] {
+  border-color: var(--color-text);
+}
+
+.join-option {
+  font-size: 1.0625rem;
+  border: 1px solid rgb(0 0 0 / 0.16);
+}
+
+.join-option[aria-checked="true"] {
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 1px var(--color-text);
+}
+
+.join .join-link {
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.join .join-link:active {
+  color: var(--color-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .join .join-link:hover {
+    color: var(--color-text);
+  }
+}
