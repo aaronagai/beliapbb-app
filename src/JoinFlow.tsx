@@ -3,7 +3,6 @@ import { getCawanganDisplayLabel } from "./cawanganOptions";
 import { BANGSA_MSG, BANGSA_VALUES, PARLIMEN_SARAWAK_OPTIONS, SARAWAK_TOWNS, cawanganUnder, parlimenOf, type Draft } from "./joinData";
 import { SARAWAK_CODE, STATE_NAMES, parseIc } from "./icInfo";
 import { formatPhone, isMobile } from "./normalise";
-import { callName } from "./nameParts";
 import type { MessageKey } from "./i18n";
 
 /**
@@ -223,21 +222,7 @@ function Kamu({ d, patch, t }: BodyProps) {
       <label className="join-label" htmlFor="join-nama">
         {t("applicationLblNamaIc")}
       </label>
-      <input id="join-nama" className="profile-input join-input" autoComplete="name" autoFocus value={d.nama}
-        onChange={(e) => {
-          const nama = e.target.value;
-          // Follow the name until they type their own call-name.
-          const follow = !d.panggilan || d.panggilan === callName(d.nama);
-          patch(follow ? { nama, panggilan: callName(nama) } : { nama });
-        }}
-      />
-      <Reveal open={d.nama.trim().includes(" ")}>
-        <label className="join-label" htmlFor="join-panggilan">
-          {t("joinCallName")}
-        </label>
-        <input id="join-panggilan" className="profile-input join-input" autoComplete="nickname" value={d.panggilan} onChange={(e) => patch({ panggilan: e.target.value })} />
-        <p className="join-note">{t("joinCallNameHint")}</p>
-      </Reveal>
+      <input id="join-nama" className="profile-input join-input" autoComplete="name" autoFocus value={d.nama} onChange={(e) => patch({ nama: e.target.value })} />
 
       <label className="join-label" htmlFor="join-ic">
         {t("applicationLblIcNo")}

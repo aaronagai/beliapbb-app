@@ -25,3 +25,17 @@ export function callName(full: string): string {
   if (own.length > 1 && JOINS.has(own[0].toUpperCase())) return nice(`${own[0]} ${own[1]}`);
   return nice(own[0] ?? "");
 }
+
+/**
+ * First and last name from a full name, for greetings ("Hello Aniq!") and the like. Never asked, always worked out.
+ * first = what people call them (see callName). last = the father's name when there is a bin/binti/anak,
+ * otherwise the final word. Someone with a single word has an empty last name.
+ */
+export function splitName(full: string): { first: string; last: string } {
+  const words = full.trim().split(/\s+/).filter(Boolean);
+  const first = callName(full);
+  if (words.length < 2) return { first, last: "" };
+  const cut = words.findIndex((w, i) => i > 0 && PATRONYMIC.has(clean(w).toUpperCase()));
+  const lastWords = cut === -1 ? words.slice(-1) : words.slice(cut + 1);
+  return { first, last: nice(lastWords.map(clean).filter(Boolean).join(" ")) };
+}

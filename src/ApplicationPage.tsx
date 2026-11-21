@@ -45,7 +45,6 @@ const emptyDraft: Draft = {
   telBimbit: "",
   email: "",
   tiadaEmail: false,
-  panggilan: "",
   kawasanParlimen: "",
   kawasanNegeri: "",
   kategoriAhli: "",
