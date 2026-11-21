@@ -198,13 +198,22 @@ export function App() {
     <div className={`app-shell app2${FULL_SCREEN.has(tab) ? " is-full" : ""}${focus ? " is-focus" : ""}`}>
       <header className={`app2-header${scrolled ? " is-scrolled" : ""}`}>
         <div className="app2-header-inner">
-          <button type="button" className="app2-brand" onClick={() => go("home")} translate="no">
-            <Logo className="app2-brand-logo" alt={t("logoAlt")} />
-            <span>Belia PBB</span>
-          </button>
+          <div className="app2-header-left">
+            <button type="button" className="app2-brand" onClick={() => go("home")} translate="no">
+              <Logo className="app2-brand-logo" alt={t("logoAlt")} />
+              <span>Belia PBB</span>
+            </button>
+            {focus ? (
+              <>
+                <span className="app2-focus-divider" aria-hidden />
+                <span className="app2-focus-title">{t("applicationTitle")}</span>
+              </>
+            ) : null}
+          </div>
           {focus ? (
-            <button type="button" className="app2-site-link app2-exit" onClick={() => go("home")}>
-              {t("focusExit")}
+            <button type="button" className="app2-site-link app2-exit" onClick={() => go("home")} aria-label={t("focusExit")}>
+              <span className="app2-exit-text">{t("focusExit")}</span>
+              <span className="app2-exit-x" aria-hidden />
             </button>
           ) : (
             <a className="app2-site-link" href={SITE_URL}>

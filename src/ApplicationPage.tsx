@@ -561,24 +561,27 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
         </nav>
 
         <aside className="join-rail" aria-label={t("stepsAria")}>
-          {PARTS.map((label, p) => (
-            <div key={label} className="join-rail-part">
-              <p className="join-rail-title">{t(label)}</p>
-              <ul>
-                {JOIN_SCREENS.map((sc, i) => {
-                  const key = RAIL_LABEL[sc.id];
-                  if (sc.part !== p || !key) return null;
-                  const at = screen.hidden ? REVIEW : step; // editing the category from the review still counts as "review"
-                  return (
+          {PARTS.map((label, p) => {
+            const at = screen.hidden ? REVIEW : step; // editing the category from the review still counts as "review"
+            const items = JOIN_SCREENS.map((sc, i) => [sc, i] as const).filter(([sc]) => sc.part === p && RAIL_LABEL[sc.id]);
+            const groupState = items.every(([, i]) => i < at) ? "done" : items.some(([, i]) => i === at) ? "now" : "next";
+            return (
+              <div key={label} className="join-rail-part" data-state={groupState}>
+                <p className="join-rail-title">
+                  {t(label)}
+                  <span className="join-rail-chevron" aria-hidden />
+                </p>
+                <ul>
+                  {items.map(([sc, i]) => (
                     <li key={sc.id} data-state={i < at ? "done" : i === at ? "now" : "next"} aria-current={i === at ? "step" : undefined}>
-                      <span className="join-rail-mark" aria-hidden />
-                      {t(key)}
+                      {t(RAIL_LABEL[sc.id]!)}
+                      <span className="join-rail-check" aria-hidden />
                     </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </aside>
 
         <form

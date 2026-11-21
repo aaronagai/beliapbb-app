@@ -710,3 +710,106 @@
   border: none;
   cursor: pointer;
 }
+
+/* Joining, desktop: Airwallex-style top bar (logo | title ... close) and a wider canvas. */
+.app2-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.app2-focus-divider,
+.app2-focus-title,
+.app2-exit-x {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .app2.is-focus .app2-header,
+  .app2.is-focus .app2-header.is-scrolled {
+    background: var(--app-bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    border-bottom: 1px solid var(--aw-line);
+  }
+
+  .app2.is-focus .app2-header-inner {
+    max-width: none;
+    height: 64px;
+    padding: 0 32px;
+  }
+
+  .app2.is-focus .app2-brand {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .app2.is-focus .app2-focus-divider {
+    display: block;
+    width: 1px;
+    height: 24px;
+    background: var(--aw-border);
+  }
+
+  .app2.is-focus .app2-focus-title {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--aw-text);
+    white-space: nowrap;
+  }
+
+  .app2.is-focus .app2-exit {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-right: -10px;
+  }
+
+  .app2.is-focus .app2-exit-text {
+    display: none;
+  }
+
+  .app2.is-focus .app2-exit-x {
+    position: relative;
+    display: block;
+    width: 18px;
+    height: 18px;
+  }
+
+  .app2.is-focus .app2-exit-x::before,
+  .app2.is-focus .app2-exit-x::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 0;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--aw-accent);
+    transform: rotate(45deg);
+  }
+
+  .app2.is-focus .app2-exit-x::after {
+    transform: rotate(-45deg);
+  }
+
+  .app2.is-focus .app2-main {
+    max-width: 1080px;
+    padding: 56px 32px 80px;
+  }
+
+  /* The title now lives in the bar; keep it for screen readers. */
+  .app2.is-focus .app-page-title--quiet {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}

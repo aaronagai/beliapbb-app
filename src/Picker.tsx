@@ -100,11 +100,17 @@ export function Picker({
     if (open && shown && searchable && desktop) search.current?.focus({ preventScroll: true });
   }, [open, shown, searchable, desktop]);
 
-  // Keep the highlighted row in view when moving with the arrow keys.
+  // Centre the chosen row when the list opens, then just keep the highlighted row in view while arrowing.
+  const justOpened = useRef(false);
+  useEffect(() => {
+    if (open) justOpened.current = true;
+  }, [open]);
   useEffect(() => {
     if (!open) return;
-    document.getElementById(`${listId}-${active}`)?.scrollIntoView({ block: "nearest" });
-  }, [active, open, listId]);
+    const el = document.getElementById(`${listId}-${active}`);
+    el?.scrollIntoView({ block: justOpened.current ? "center" : "nearest" });
+    justOpened.current = false;
+  }, [active, open, listId, shown]);
 
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
