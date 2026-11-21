@@ -4,14 +4,16 @@
  */
 const KEY = "beliapbb_application";
 
-export type ApplicationRecord = { ref: string; signed: boolean; at: string };
+export type ApplicationRecord = { ref: string; signed: boolean; at: string; first?: string };
 
 export function readApplication(): ApplicationRecord | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
     const p = JSON.parse(raw) as Partial<ApplicationRecord>;
-    return typeof p.ref === "string" && p.ref ? { ref: p.ref, signed: p.signed === true, at: typeof p.at === "string" ? p.at : "" } : null;
+    return typeof p.ref === "string" && p.ref
+      ? { ref: p.ref, signed: p.signed === true, at: typeof p.at === "string" ? p.at : "", first: typeof p.first === "string" ? p.first : undefined }
+      : null;
   } catch {
     return null;
   }

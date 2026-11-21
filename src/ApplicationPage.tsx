@@ -11,6 +11,7 @@ import { BANGSA_MSG } from "./joinData";
 import { parseIc } from "./icInfo";
 import { normaliseDraft } from "./normalise";
 import { fireConfetti } from "./confetti";
+import { splitName } from "./nameParts";
 import { parlimenOf } from "./joinData";
 import { WelcomePack } from "./WelcomePack";
 import { track } from "./analytics";
@@ -291,7 +292,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
         /* private mode */
       }
       setD(emptyDraft);
-      const rec: ApplicationRecord = { ref: result.ref, signed: false, at: new Date().toISOString() };
+      const rec: ApplicationRecord = { ref: result.ref, signed: false, at: new Date().toISOString(), first: splitName(submitted.nama).first || undefined };
       saveApplication(rec);
       setRecord(rec);
       setSend({ kind: "sent", ref: result.ref });
@@ -377,7 +378,11 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   if (send.kind === "sent" && stage === "welcome") {
     return (
       <section className="section section--apply" aria-label={t("applicationTitle")}>
-        <WelcomePack reference={send.ref} signed={signed} onBack={() => goTo("sign")} onAnother={startAnother} onDone={() => {
+        <WelcomePack
+          first={record?.first}
+          signed={signed}
+          onAnother={startAnother}
+          onDone={() => {
             track("join_done");
             onExit?.();
           }}
@@ -455,14 +460,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   if (record) {
     return (
       <section className="section section--apply" aria-label={t("applicationTitle")}>
-        <WelcomePack
-          reference={record.ref}
-          signed={record.signed}
-          title={t("statusTitle")}
-          intro={t("statusIntro")}
-          pendingText={t("statusPending")}
-          onAnother={startAnother}
-        >
+        <WelcomePack first={record.first} signed={record.signed} pendingText={t("statusPending")} onAnother={startAnother}>
           {record.signed ? null : (
             <SignedFormUpload
               initialRef={record.ref}
