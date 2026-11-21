@@ -1769,7 +1769,7 @@
 
 .join-seg {
   height: 3px;
-  background: rgb(0 0 0 / 0.08);
+  background: var(--join-track);
 }
 
 .join-title {
@@ -1800,19 +1800,19 @@
   font-size: 1.0625rem;
   letter-spacing: -0.005em;
   font-variant-numeric: tabular-nums;
-  background: var(--color-surface);
-  border: 1px solid rgb(0 0 0 / 0.16);
+  background: var(--join-fill);
+  border: 1px solid var(--join-line);
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .join-input::placeholder {
-  color: #8f8f8f;
+  color: var(--join-placeholder);
 }
 
 .join-input:focus-visible {
   outline: none;
   border-color: var(--color-text);
-  box-shadow: 0 0 0 4px rgb(0 0 0 / 0.07);
+  box-shadow: 0 0 0 4px var(--join-ring);
 }
 
 .join-note,
@@ -1841,7 +1841,7 @@
 
 .join-chip {
   font-size: 1rem;
-  border: 1px solid rgb(0 0 0 / 0.16);
+  border: 1px solid var(--join-line);
 }
 
 .join-chip[aria-checked="true"] {
@@ -1850,7 +1850,7 @@
 
 .join-option {
   font-size: 1.0625rem;
-  border: 1px solid rgb(0 0 0 / 0.16);
+  border: 1px solid var(--join-line);
 }
 
 .join-option[aria-checked="true"] {
@@ -1873,4 +1873,35 @@
   .join .join-link:hover {
     color: var(--color-text);
   }
+}
+
+/* Field edges and fills that work in both themes (the dark theme needs light lines on a dark page) */
+:root {
+  --join-line: rgb(0 0 0 / 0.16);
+  --join-fill: #fff;
+  --join-track: rgb(0 0 0 / 0.08);
+  --join-ring: rgb(0 0 0 / 0.07);
+  --join-placeholder: #8f8f8f;
+}
+
+[data-theme="dark"] {
+  --join-line: rgb(255 255 255 / 0.2);
+  --join-fill: #161616;
+  --join-track: rgb(255 255 255 / 0.14);
+  --join-ring: rgb(255 255 255 / 0.12);
+  --join-placeholder: #7d7d7d;
+}
+
+/* Choices get the same fill so they read as shapes, not floating text */
+.join-chip,
+.join-option {
+  background: var(--join-fill);
+}
+
+.join-chip[aria-checked="true"] {
+  background: var(--color-text);
+}
+
+.join-option[aria-checked="true"] {
+  background: var(--color-hover-strong);
 }
