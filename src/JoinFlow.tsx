@@ -46,7 +46,7 @@ export function validateScreen(id: ScreenId, d: Draft): MessageKey | null {
       if (!d.nama.trim()) return need;
       const ic = parseIc(d.noKadPengenalan);
       if (!ic.ok) return "applicationErrorIc";
-      return ic.kategori ? null : "joinUnder18";
+      return null; // under 18s can still apply; the secretariat follows up
     }
     case "cawangan": return d.kawasanParlimen && d.cawangan ? null : need;
     case "lagi": return d.tempatLahir.trim() && d.agama && d.bangsa ? null : need;
@@ -212,7 +212,7 @@ function Kamu({ d, patch, t }: BodyProps) {
       />
 
       {ic.ok ? (
-        <p className={`join-derived${ic.kategori ? "" : " is-error"}`} role="status">
+        <p className="join-derived" role="status">
           {ic.kategori ? (
             <>
               {ic.jantina === "lelaki" ? t("applicationOptJantinaLelaki") : t("applicationOptJantinaPerempuan")} · {ic.age} {t("joinYears")} ·{" "}

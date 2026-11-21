@@ -1574,11 +1574,6 @@
   animation: join-in-fade 180ms ease-out both;
 }
 
-.join-derived.is-error {
-  color: #b42318;
-  background: rgb(180 35 24 / 0.08);
-}
-
 .join-fixed {
   margin: 0;
   padding: 0.85rem 1rem;

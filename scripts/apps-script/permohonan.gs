@@ -69,7 +69,7 @@ var COLUMNS = [
   ["Jenis tandatangan", null],
 ];
 
-var REQUIRED = ["cawangan", "nama", "noKadPengenalan", "telBimbit", "kategoriAhli"];
+var REQUIRED = ["cawangan", "nama", "noKadPengenalan", "telBimbit"];
 
 function doPost(e) {
   try {

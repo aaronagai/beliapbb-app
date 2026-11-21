@@ -530,7 +530,9 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const icValue = ic.ok
     ? `${d.noKadPengenalan} · ${ic.jantina === "lelaki" ? t("applicationOptJantinaLelaki") : t("applicationOptJantinaPerempuan")} · ${ic.age} ${t("joinYears")}`
     : d.noKadPengenalan;
-  const kategoriValue = d.kategoriAhli
+  const kategoriValue = ic.ok && !ic.kategori
+    ? t("joinUnder18Row")
+    : d.kategoriAhli
     ? `${t(`applicationOptKategori_${d.kategoriAhli}` as MessageKey)}${ic.ok && ic.kategori === d.kategoriAhli ? ` · ${t("joinByAge")}` : ""}`
     : "";
 
