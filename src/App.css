@@ -2553,6 +2553,11 @@ textarea.join-input {
   color: var(--aw-muted);
 }
 
+/* The step list is desktop only */
+.join-rail {
+  display: none;
+}
+
 /* ---- Desktop: top bar, left step list, centred form (see the Airwallex flow) ---- */
 @media (min-width: 1024px) {
   .join {
@@ -2632,6 +2637,7 @@ textarea.join-input {
 
   /* The step list */
   .join-rail {
+    display: flex;
     position: sticky;
     top: 104px;
     grid-column: 1;
