@@ -89,15 +89,13 @@ export function WelcomePack({
         <a className="wp-card wp-card--link" href={CONSTITUTION_PDF_URL} target="_blank" rel="noopener noreferrer">
           <WelcomeArt kind="constitution" />
           <div className="wp-card-body">
-            <h3>{t("kenaliConstitution")}</h3>
-            <p>{t("resourcesConstitutionHint")}</p>
+            <h3>{t("welcomeConstitution")}</h3>
           </div>
         </a>
         <a className="wp-card wp-card--link" href={LEADERSHIP_URL} target="_blank" rel="noopener noreferrer">
           <WelcomeArt kind="leadership" />
           <div className="wp-card-body">
             <h3>{t("sertaiLeaders")}</h3>
-            <p>{t("sertaiLeadersHint")}</p>
           </div>
         </a>
       </div>

@@ -3562,3 +3562,12 @@ textarea.join-input {
     width: auto;
   }
 }
+
+/* Link cards have a title only, so the text block sits tighter */
+.wp-card--link .wp-card-body {
+  padding: 14px 16px;
+}
+
+.wp-card--link .wp-card-body h3 {
+  margin: 0;
+}
