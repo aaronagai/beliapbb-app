@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useI18n } from "./i18n";
 import type { BorangOp } from "./borangPdf";
 
 const W = 540;
@@ -14,13 +15,15 @@ const PAGES = [`${import.meta.env.BASE_URL}borang-halaman-1.png`, `${import.meta
  * the form. Ticks carry `pathLength="1"` so a stroke-dashoffset 1 → 0 draws them in.
  */
 export function BorangPreview({ ops, swipe = false }: { ops: BorangOp[]; swipe?: boolean }) {
+  const { t } = useI18n();
   const scroller = useRef<HTMLElement>(null);
   const [at, setAt] = useState(0);
+  const lockUntil = useRef(0); // while a tap-initiated scroll runs, ignore its in-between positions
 
   /** Which page is nearest the middle of the row. */
   const onScroll = () => {
     const el = scroller.current;
-    if (!el) return;
+    if (!el || Date.now() < lockUntil.current) return;
     const box = el.getBoundingClientRect();
     const mid = box.left + box.width / 2;
     let nearest = 0;
@@ -37,6 +40,8 @@ export function BorangPreview({ ops, swipe = false }: { ops: BorangOp[]; swipe?:
   };
 
   const goTo = (i: number) => {
+    setAt(i); // the highlight moves at once
+    lockUntil.current = Date.now() + 700;
     const page = scroller.current?.children[i] as HTMLElement | undefined;
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     page?.scrollIntoView({ behavior: calm ? "auto" : "smooth", inline: "center", block: "nearest" });
@@ -91,9 +96,12 @@ export function BorangPreview({ ops, swipe = false }: { ops: BorangOp[]; swipe?:
       ))}
     </figure>
     {swipe ? (
-      <div className="borang-dots" role="group" aria-label="Muka borang">
+      <div className="borang-seg" role="tablist" aria-label={t("sentPagesAria")} data-at={at}>
+        <span className="borang-seg-thumb" aria-hidden />
         {PAGES.map((_, i) => (
-          <button key={i} type="button" className="borang-dot" aria-label={`Muka ${i + 1}/2`} aria-current={at === i} onClick={() => goTo(i)} />
+          <button key={i} type="button" role="tab" className="borang-seg-opt" aria-selected={at === i} onClick={() => goTo(i)}>
+            {t("sentPage")} {i + 1}
+          </button>
         ))}
       </div>
     ) : null}
