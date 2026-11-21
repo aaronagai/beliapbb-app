@@ -559,6 +559,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   }
 
   const screen = JOIN_SCREENS[step];
+  /** Next looks grey until this screen's required answers are in, then goes solid (it stays tappable to explain what is missing). */
+  const ready = screen.id === "review" ? !!d.pengakuan && !!formSignature : !validateScreen(screen.id, d) && (screen.id !== "pengakuan" || !!formSignature);
   const isReview = screen.id === "review";
   const sending = send.kind === "sending";
 
@@ -710,7 +712,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
               </button>
             ) : null}
             <div className="join-footer-end">
-              <button type="submit" className="profile-save-btn join-next" disabled={isReview ? !d.pengakuan || !formSignature || sending : false}>
+              <button type="submit" className="profile-save-btn join-next" disabled={isReview ? !ready || sending : false} aria-disabled={!ready}>
                 {isReview
                   ? endpoint
                     ? t(sending ? "applicationSending" : "applicationSendBtn")

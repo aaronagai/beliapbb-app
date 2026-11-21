@@ -2954,3 +2954,20 @@ textarea.join-input {
     }
   }
 }
+
+/* Next: grey until the required answers are in, then solid (the Arcade pattern) */
+.app2 .join .join-next.profile-save-btn {
+  transition: background-color 180ms ease, color 180ms ease, transform 120ms ease-out;
+}
+
+.app2 .join .join-next.profile-save-btn[aria-disabled="true"] {
+  color: var(--aw-placeholder);
+  background: var(--aw-line);
+  cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app2 .join .join-next.profile-save-btn[aria-disabled="true"]:hover {
+    background: var(--aw-line);
+  }
+}
