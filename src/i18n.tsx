@@ -590,7 +590,7 @@ export const messages = {
     landingHowS3Body: "Draw your signature with your finger and send. That's it.",
     landingHowNeedTitle: "Have ready:",
     landingHowNeed: "your IC, address and mobile number.",
-    landingHowPrivacy: "Your details are sent confidentially and only seen by the Belia PBB secretariat.",
+    landingHowPrivacy: "Your details go straight to Belia PBB.",
     landingHowAlt: "A sample of the official Belia PBB membership form, filled in and signed",
     analyticsNote: "We use cookie-free statistics to understand how this site is used. Nothing you type into a form is sent.",
     signFiling: "Sending your signed form…",
