@@ -724,7 +724,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
             </p>
           ) : null}
 
-          <div className="join-footer">
+          <div className={`join-footer${isReview ? " join-footer--inline" : ""}`}>
             {step > 0 && !returnTo ? (
               <button type="button" className="join-link join-back" onClick={back} disabled={sending} aria-label={t("stepBack")}>
                 <span className="join-back-arrow" aria-hidden>

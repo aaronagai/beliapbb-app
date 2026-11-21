@@ -3030,3 +3030,11 @@ textarea.join-input {
   margin: 0;
   color: var(--aw-muted);
 }
+
+/* Review: Back and Send sit after the last card (not pinned), so people scroll through and check */
+.join-footer.join-footer--inline {
+  position: static;
+  margin-top: 24px;
+  padding: 0 0 calc(24px + env(safe-area-inset-bottom));
+  background: none;
+}
