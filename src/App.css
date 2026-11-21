@@ -3340,3 +3340,12 @@ textarea.join-input {
 .app2 .application-sent .sent-actions > * {
   margin: 0;
 }
+
+/* The reference number is a quiet detail under the heading, not a second headline */
+.app2 .application-sent .application-sent-ref {
+  margin: 4px 0 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--aw-muted);
+}
