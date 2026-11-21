@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { getCawanganDisplayLabel } from "./cawanganOptions";
 import { BANGSA_MSG, BANGSA_VALUES, PARLIMEN_SARAWAK_OPTIONS, SARAWAK_TOWNS, cawanganUnder, parlimenOf, type Draft } from "./joinData";
 import { SARAWAK_CODE, STATE_NAMES, parseIc } from "./icInfo";
+import { formatPhone, isMobile } from "./normalise";
 import type { MessageKey } from "./i18n";
 
 /**
@@ -51,6 +52,7 @@ export function validateScreen(id: ScreenId, d: Draft): MessageKey | null {
     case "lagi": return d.tempatLahir.trim() && d.agama && d.bangsa ? null : need;
     case "hubungi": {
       if (!d.telBimbit.trim() || !d.alamatRumah.trim()) return need;
+      if (!isMobile(d.telBimbit)) return "joinPhoneBad";
       return d.tiadaEmail || EMAIL.test(d.email.trim()) ? null : "joinEmailNeed";
     }
     case "kerja": return d.pekerjaan ? null : need;
@@ -105,15 +107,6 @@ function Choices<V extends string>({
         </button>
       ))}
     </div>
-  );
-}
-
-function Private({ t }: { t: T }) {
-  return (
-    <p className="join-private">
-      <span className="join-dot join-dot--sm" aria-hidden />
-      {t("joinPrivate")}
-    </p>
   );
 }
 
@@ -217,7 +210,6 @@ function Kamu({ d, patch, t }: BodyProps) {
         value={d.noKadPengenalan}
         onChange={(e) => onIc(e.target.value)}
       />
-      <Private t={t} />
 
       {ic.ok ? (
         <p className={`join-derived${ic.kategori ? "" : " is-error"}`} role="status">
@@ -411,8 +403,10 @@ function Hubungi({ d, patch, t }: BodyProps) {
         autoComplete="tel"
         autoFocus
         className="profile-input join-input"
+        placeholder="012-3456789"
         value={d.telBimbit}
         onChange={(e) => patch({ telBimbit: e.target.value })}
+        onBlur={() => patch({ telBimbit: formatPhone(d.telBimbit) })}
       />
 
       <label className="join-label" htmlFor="join-email">
@@ -446,7 +440,6 @@ function Hubungi({ d, patch, t }: BodyProps) {
         value={d.alamatRumah}
         onChange={(e) => patch({ alamatRumah: e.target.value })}
       />
-      <Private t={t} />
     </>
   );
 }
@@ -486,11 +479,11 @@ function Kerja({ d, patch, t }: BodyProps) {
         <label className="join-label" htmlFor="join-telrumah">
           {t("applicationLblTelRumah")}
         </label>
-        <input id="join-telrumah" type="tel" inputMode="tel" className="profile-input join-input" value={d.telRumah} onChange={(e) => patch({ telRumah: e.target.value })} />
+        <input id="join-telrumah" type="tel" inputMode="tel" className="profile-input join-input" value={d.telRumah} onChange={(e) => patch({ telRumah: e.target.value })} onBlur={() => patch({ telRumah: formatPhone(d.telRumah) })} />
         <label className="join-label" htmlFor="join-telpejabat">
           {t("applicationLblTelPejabat")}
         </label>
-        <input id="join-telpejabat" type="tel" inputMode="tel" className="profile-input join-input" value={d.telPejabat} onChange={(e) => patch({ telPejabat: e.target.value })} />
+        <input id="join-telpejabat" type="tel" inputMode="tel" className="profile-input join-input" value={d.telPejabat} onChange={(e) => patch({ telPejabat: e.target.value })} onBlur={() => patch({ telPejabat: formatPhone(d.telPejabat) })} />
       </details>
     </>
   );

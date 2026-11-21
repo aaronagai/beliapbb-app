@@ -7,6 +7,7 @@ import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import type { Draft } from "./joinData";
 import { JOIN_SCREENS, JoinScreenBody, VISIBLE_COUNT, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
 import { parseIc } from "./icInfo";
+import { normaliseDraft } from "./normalise";
 import { parlimenOf } from "./joinData";
 import { WelcomePack } from "./WelcomePack";
 import { track } from "./analytics";
@@ -199,7 +200,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     if (step !== REVIEW || send.kind === "sent") return;
     let live = true;
     setPreviewOps(null);
-    makeFilledPdf(d, "")
+    makeFilledPdf(normaliseDraft(d), "")
       .then((made) => live && setPreviewOps(made.ops))
       .catch(() => live && setPreviewOps([]));
     return () => {
@@ -250,8 +251,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     }
     setSend({ kind: "sending" });
     track("join_submit", { signed: formSignature !== null });
-    const submitted = d; // keep the answers: the form is cleared below, the PDF is made from this copy
-    const result = await submitApplication(url, { ...d, website });
+    const submitted = normaliseDraft(d); // tidied like the sheet will be; kept because the form is cleared below
+    const result = await submitApplication(url, { ...submitted, website });
     if (result.ok) {
       track("join_submitted", { signed: formSignature !== null });
       try {
@@ -597,8 +598,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
             <SignaturePad onChange={setFormSignature} disabled={send.kind === "sending"} />
           </div>
         </div>
-
-        <p className="application-office-note">{t("applicationOfficeNote")}</p>
               </>
             ) : (
               <JoinScreenBody screen={screen} d={d} patch={patch} t={t} />

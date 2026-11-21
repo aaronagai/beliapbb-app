@@ -92,6 +92,7 @@ function doPost(e) {
 
     if (!underRateLimit()) return reply({ ok: false, error: "busy" });
 
+    var p = normalise(payload);
     var lock = LockService.getScriptLock();
     lock.waitLock(10000);
     try {
@@ -103,7 +104,7 @@ function doPost(e) {
         if (header === "Rujukan") return ref;
         if (header === "Diterima") return new Date();
         if (header === "Status") return "Baharu";
-        var value = typeof getter === "function" ? getter(payload) : payload[getter];
+        var value = typeof getter === "function" ? getter(p) : p[getter];
         return safeCell(value);
       });
       sheet.appendRow(row);
@@ -111,7 +112,7 @@ function doPost(e) {
       lock.releaseLock();
     }
 
-    notify(ref, clean(payload.nama), clean(payload.cawangan));
+    notify(ref, p.nama, clean(p.cawangan));
     // One-time token (6 h) that lets this applicant's browser attach the PDF to this row, once.
     var token = Utilities.getUuid();
     CacheService.getScriptCache().put("attach-" + ref, token, 21600);
@@ -176,6 +177,83 @@ function columnLetter(n) {
   var s = "";
   while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
   return s;
+}
+
+/**
+ * Tidy every answer the same way, whatever sent it (the form, an old link, anything): capitals for names,
+ * places and addresses; one phone format (012-3456789); one IC format (980519-13-5123); lower-case e-mail;
+ * readable words instead of internal codes. Keep in sync with src/normalise.ts in the app.
+ */
+var LABELS = {
+  agama: { islam: "Islam", kristian: "Kristian", lain: "Lain-lain" },
+  bangsa: {
+    melayu_melanau: "Melayu / Melanau", iban: "Iban", kedayan: "Kedayan", bidayuh: "Bidayuh", kayan: "Kayan",
+    kelabit: "Kelabit", kenyah: "Kenyah", lun_bawang: "Lun Bawang", lain: "Lain-lain",
+  },
+  jantina: { lelaki: "Lelaki", perempuan: "Perempuan" },
+  pekerjaan: { kerajaan: "Kerajaan", swasta: "Swasta", sendiri: "Sendiri", lain: "Lain-lain" },
+  kategoriAhli: { induk: "Induk", belia: "Belia", wanita: "Wanita", pemuda: "Pemuda" },
+};
+
+function fmtPhone(v) {
+  var d = String(v == null ? "" : v).replace(/\D/g, "");
+  if (!d) return "";
+  if (d.indexOf("60") === 0 && d.length >= 11) d = "0" + d.slice(2); // +60 12 345 6789
+  if (d.charAt(0) !== "0" && d.length >= 9) d = "0" + d; // 12-3456789 typed without the leading 0
+  var cut = /^01/.test(d) || /^08/.test(d) ? 3 : 2; // 012-… and Sarawak 08x-… keep three digits
+  return d.slice(0, cut) + "-" + d.slice(cut);
+}
+
+function fmtIc(v) {
+  var d = String(v == null ? "" : v).replace(/\D/g, "");
+  return d.length === 12 ? d.slice(0, 6) + "-" + d.slice(6, 8) + "-" + d.slice(8) : d;
+}
+
+function normalise(p) {
+  var up = function (v) { return clean(v).replace(/[ \t]+/g, " ").toUpperCase(); };
+  var lines = function (v) {
+    return String(v == null ? "" : v).split(/\r?\n/).map(function (l) { return l.replace(/[ \t]+/g, " ").trim(); }).filter(Boolean).join("\n").slice(0, 500).toUpperCase();
+  };
+  var label = function (group, key, other) {
+    var k = clean(key);
+    if (!k) return "";
+    return k === "lain" && other ? "Lain-lain" : (LABELS[group][k] || up(k));
+  };
+  var o = {};
+  for (var k in p) o[k] = p[k];
+  o.nama = up(p.nama);
+  o.noKadPengenalan = fmtIc(p.noKadPengenalan);
+  o.icBaru = o.noKadPengenalan.length === 14 ? true : p.icBaru;
+  o.rantingNo = up(p.rantingNo).replace(/\s*\/\s*/g, "/");
+  o.tempatLahir = up(p.tempatLahir);
+  o.alamatRumah = lines(p.alamatRumah);
+  o.alamatPejabat = lines(p.alamatPejabat);
+  o.pekerjaanNyata = up(p.pekerjaanNyata);
+  o.agamaLain = up(p.agamaLain);
+  o.bangsaLain = up(p.bangsaLain);
+  o.telRumah = fmtPhone(p.telRumah);
+  o.telPejabat = fmtPhone(p.telPejabat);
+  o.telBimbit = fmtPhone(p.telBimbit);
+  o.email = clean(p.email).toLowerCase();
+  o.agama = label("agama", p.agama, o.agamaLain);
+  o.bangsa = label("bangsa", p.bangsa, o.bangsaLain);
+  o.jantina = label("jantina", p.jantina);
+  o.pekerjaan = label("pekerjaan", p.pekerjaan, o.pekerjaanNyata);
+  o.kategoriAhli = label("kategoriAhli", p.kategoriAhli);
+  return o;
+}
+
+/** Run from the editor (select testNormalise → Run): shows how sample entries get tidied. Writes nothing. */
+function testNormalise() {
+  var sample = {
+    nama: "  mohammad   naz  ", noKadPengenalan: "980519135123", rantingNo: "197 / 17 / 05", tempatLahir: "hospital kapit",
+    alamatRumah: "no 12,  jalan   ujian\n\n sibu ", telBimbit: "+60 12 345 6789", telRumah: "082375755", telPejabat: "",
+    email: " Ujian@Gmail.COM ", agama: "islam", bangsa: "melayu_melanau", jantina: "lelaki", pekerjaan: "swasta", kategoriAhli: "belia",
+  };
+  var n = normalise(sample);
+  console.log(JSON.stringify({ nama: n.nama, ic: n.noKadPengenalan, ranting: n.rantingNo, tempat: n.tempatLahir, alamat: n.alamatRumah,
+    tel: n.telBimbit, telRumah: n.telRumah, email: n.email, agama: n.agama, bangsa: n.bangsa, jantina: n.jantina, kerja: n.pekerjaan, kategori: n.kategoriAhli }));
+  console.log("phones: " + [fmtPhone("0198749009"), fmtPhone("016-8871060"), fmtPhone("011 1234 5678"), fmtPhone("03-12345678"), fmtPhone("12-3456789")].join(" | "));
 }
 
 /** Lets the app (and you) check the deployment is reachable. */
