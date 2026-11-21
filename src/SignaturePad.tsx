@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PenLine } from "reicon-react";
 import { useI18n } from "./i18n";
 
 export type SignatureResult = { dataUrl: string; aspect: number };
@@ -146,12 +147,7 @@ export function SignaturePad({ onChange, disabled = false }: { onChange: (sig: S
         />
         {/* A grey pen-and-scribble clue that this is where to sign; it fades once they start drawing. */}
         <div className="signpad-clue" data-hidden={!empty} aria-hidden>
-          <svg width="132" height="72" viewBox="0 0 132 72" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8 46c8-26 18-26 20-8s8 22 14 2 12-34 18-8 14 24 24 2c4-9 10-12 18-6" />
-            <path d="M8 60h100" strokeWidth="1.5" strokeDasharray="2 5" />
-            <path d="M104 8l10 10-26 26-13 3 3-13z" />
-            <path d="M99 13l10 10" />
-          </svg>
+          <PenLine size={40} />
         </div>
       </div>
       <div className="signpad-row">
