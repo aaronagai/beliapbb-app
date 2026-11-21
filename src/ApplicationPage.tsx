@@ -551,11 +551,10 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
       <div className="join" data-dir={dir}>
         <nav className="join-progress" aria-label={t("stepsAria")}>
           {PARTS.map((label, p) => (
-            <div key={label} className="join-part" data-state={screen.part === p ? "now" : screen.part > p ? "done" : "next"} aria-current={screen.part === p ? "step" : undefined}>
+            <div key={label} className="join-part" data-state={screen.part === p ? "now" : screen.part > p ? "done" : "next"} aria-current={screen.part === p ? "step" : undefined} aria-label={t(label)}>
               <span className="join-seg">
                 <i style={{ ["--p" as string]: partFill(p, step) } as React.CSSProperties} />
               </span>
-              <span className="join-part-label">{t(label)}</span>
             </div>
           ))}
         </nav>
