@@ -2971,3 +2971,18 @@ textarea.join-input {
     background: var(--aw-line);
   }
 }
+
+/* Desktop footer: Kembali and Seterusnya are exactly the same size */
+@media (min-width: 1024px) {
+  .join-footer .join-back,
+  .app2 .join .join-next.profile-save-btn {
+    box-sizing: border-box;
+    min-width: 8rem;
+    height: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0 24px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+}
