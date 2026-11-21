@@ -140,7 +140,7 @@ function HomePage({ go }: { go: (tab: AppTab) => void }) {
 }
 
 export function App() {
-  const { t } = useI18n();
+  const { t, language, setLanguage } = useI18n();
   const [tab, setTab] = useState<AppTab>(tabFromHash);
   const tabRef = useRef(tab);
   useEffect(() => {
@@ -211,10 +211,19 @@ export function App() {
             ) : null}
           </div>
           {focus ? (
-            <button type="button" className="app2-site-link app2-exit" onClick={() => go("home")} aria-label={t("focusExit")}>
-              <span className="app2-exit-text">{t("focusExit")}</span>
-              <span className="app2-exit-x" aria-hidden />
-            </button>
+            <div className="app2-header-right">
+              <div className="app2-lang" role="group" aria-label="Bahasa / Language">
+                {(["ms", "en"] as const).map((l) => (
+                  <button key={l} type="button" aria-pressed={language === l} onClick={() => setLanguage(l)} translate="no">
+                    {l === "ms" ? "BM" : "EN"}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="app2-site-link app2-exit" onClick={() => go("home")} aria-label={t("focusExit")}>
+                <span className="app2-exit-text">{t("focusExit")}</span>
+                <span className="app2-exit-x" aria-hidden />
+              </button>
+            </div>
           ) : (
             <a className="app2-site-link" href={SITE_URL}>
               {t("appSiteLink")}

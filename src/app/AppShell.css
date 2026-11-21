@@ -813,3 +813,38 @@
     white-space: nowrap;
   }
 }
+
+/* Language switch in the join top bar: BM | EN */
+.app2-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app2-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.app2-lang button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--aw-muted, var(--app-muted));
+  background: none;
+  border: 0;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.app2-lang button[aria-pressed="true"] {
+  color: var(--aw-text, var(--app-text));
+  font-weight: 600;
+  background: var(--aw-surface-2, var(--color-hover));
+}
