@@ -289,7 +289,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     }
     setSend({ kind: "sending" });
     track("join_submit", { signed: formSignature !== null });
-    const submitted = normaliseDraft(d); // tidied like the sheet will be; kept because the form is cleared below
+    const submitted = normaliseDraft({ ...d, pengakuan: true }); // signing is the agreement. Tidied like the sheet will be; kept because the form is cleared below
     const result = await submitApplication(url, { ...submitted, website });
     if (result.ok) {
       track("join_submitted", { signed: formSignature !== null });
@@ -383,7 +383,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   }, [send, sentData, endpoint, signature, sentIc]);
 
   const submit = useCallback(() => {
-    if (!d.pengakuan || !formSignature) return;
+    if (!formSignature) return;
     if (endpoint) {
       void sendOnline(endpoint);
       return;
@@ -560,7 +560,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
   const screen = JOIN_SCREENS[step];
   /** Next looks grey until this screen's required answers are in, then goes solid (it stays tappable to explain what is missing). */
-  const ready = screen.id === "review" ? !!d.pengakuan && !!formSignature : !validateScreen(screen.id, d) && (screen.id !== "pengakuan" || !!formSignature);
+  const ready = screen.id === "review" ? !!formSignature : !validateScreen(screen.id, d) && (screen.id !== "pengakuan" || !!formSignature);
   const isReview = screen.id === "review";
   const sending = send.kind === "sending";
 
@@ -636,7 +636,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           onSubmit={(e) => {
             e.preventDefault();
             if (isReview) {
-              if (d.pengakuan && !sending) submit();
+              if (formSignature && !sending) submit();
             } else next();
           }}
         >
@@ -647,10 +647,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
                 <div className="join-declaration">
           <p className="application-declaration-text">{t("applicationDeclarationBody")}</p>
-          <label className="application-check application-declaration-check">
-            <input type="checkbox" checked={d.pengakuan} onChange={(e) => patch({ pengakuan: e.target.checked })} />
-            <span>{t("applicationDeclarationCheckbox")}</span>
-          </label>
+          <p className="join-note">{t("joinSignAgree")}</p>
 
           <div className="application-form-sign">
             <h3 className="application-signed-title">{t("formSignTitle")}</h3>

@@ -79,7 +79,7 @@ export function validateScreen(id: ScreenId, d: Draft): MessageKey | null {
       return d.tiadaEmail || EMAIL.test(d.email.trim()) ? null : "joinEmailNeed";
     }
     case "kerja": return d.pekerjaan ? null : need;
-    case "pengakuan": return d.pengakuan ? null : "joinPengakuanNeed";
+    case "pengakuan": return null; // signing is the agreement; the page checks the signature itself
     case "kategori": return d.kategoriAhli ? null : need;
     default: return null;
   }
