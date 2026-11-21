@@ -156,7 +156,7 @@
 }
 
 .app2 .profile-save-btn {
-  border-radius: 999px;
+  border-radius: var(--radius-btn);
   background: var(--app-text);
   color: var(--app-bg);
   font-weight: 500;
@@ -274,7 +274,7 @@
   min-height: 36px;
   padding: 0 14px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-btn);
   background: var(--app-text);
   color: var(--app-bg);
   font: inherit;

@@ -5,6 +5,8 @@
 }
 
 :root {
+  /* Buttons and controls: a rectangle with a slight round, so it reads serious. */
+  --radius-btn: 6px;
   color-scheme: light;
   --color-bg: #fff;
   --color-bg-subtle: #f7f7f7;

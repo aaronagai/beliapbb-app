@@ -949,7 +949,7 @@
   color: inherit;
   background: transparent;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-btn);
   cursor: pointer;
 }
 
@@ -2301,7 +2301,7 @@
 .join-derived {
   color: var(--aw-text);
   background: var(--aw-surface-2);
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
 }
 
 .join-derived {
@@ -2324,7 +2324,7 @@
   color: var(--aw-text);
   background: var(--aw-field);
   border: 1px solid var(--aw-border);
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
@@ -2374,7 +2374,7 @@ textarea.join-input {
   color: var(--aw-text);
   background: var(--aw-field);
   border: 1px solid var(--aw-border);
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
   box-shadow: none;
 }
 
@@ -2482,7 +2482,7 @@ textarea.join-input {
 .picker-panel {
   background: var(--aw-field);
   border: 1px solid var(--aw-line);
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
   box-shadow: var(--aw-shadow);
 }
 
@@ -2497,7 +2497,7 @@ textarea.join-input {
   font-size: 0.9375rem;
   background: transparent;
   border: 0;
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--radius-btn) var(--radius-btn) 0 0;
   box-shadow: none;
 }
 
@@ -2529,7 +2529,7 @@ textarea.join-input {
 .picker-search-input {
   border-color: var(--aw-border);
   background: var(--aw-field);
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
 }
 
 .picker-search-input:focus-visible {
@@ -2540,7 +2540,7 @@ textarea.join-input {
 .join-pop {
   background: var(--aw-field);
   border-color: var(--aw-line);
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
   box-shadow: var(--aw-shadow);
   font-size: 0.875rem;
 }
@@ -2586,7 +2586,7 @@ textarea.join-input {
     min-height: 2.75rem;
     padding: 0 24px;
     font-size: 0.875rem;
-    border-radius: 8px;
+    border-radius: var(--radius-btn);
   }
 
   .join-screen {
@@ -2623,7 +2623,7 @@ textarea.join-input {
     text-decoration: none;
     background: transparent;
     border: 1px solid var(--aw-accent);
-    border-radius: 8px;
+    border-radius: var(--radius-btn);
     transition: background-color 150ms ease;
   }
 
@@ -2765,7 +2765,7 @@ textarea.join-input {
 .app2 .join .join-next.profile-save-btn {
   width: 100%;
   min-height: 3.25rem;
-  border-radius: 12px;
+  border-radius: var(--radius-btn);
 }
 
 .join-footer .join-back {
@@ -2778,7 +2778,7 @@ textarea.join-input {
   color: var(--aw-text);
   background: var(--aw-back-bg);
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-btn);
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -2820,7 +2820,7 @@ textarea.join-input {
 
   .app2 .join .join-next.profile-save-btn {
     width: auto;
-    border-radius: 8px;
+    border-radius: var(--radius-btn);
   }
 
   .join-footer .join-back {
@@ -2831,7 +2831,7 @@ textarea.join-input {
     color: var(--aw-accent);
     background: transparent;
     border: 1px solid var(--aw-accent);
-    border-radius: 8px;
+    border-radius: var(--radius-btn);
   }
 
   .join-footer .join-back:hover {
