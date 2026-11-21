@@ -4,6 +4,7 @@ import { BANGSA_MSG, BANGSA_VALUES, PARLIMEN_SARAWAK_OPTIONS, SARAWAK_TOWNS, caw
 import { SARAWAK_CODE, STATE_NAMES, parseIc } from "./icInfo";
 import { formatPhone, isMobile } from "./normalise";
 import type { MessageKey } from "./i18n";
+import { Picker } from "./Picker";
 
 /**
  * The join form: five short screens and a review. Most of what the paper form asks is already in the IC
@@ -27,6 +28,17 @@ export const JOIN_SCREENS: JoinScreen[] = [
 ];
 
 export const screenIndex = (id: ScreenId) => JOIN_SCREENS.findIndex((s) => s.id === id);
+/** Short names for the checklist beside the form on a wide screen. */
+export const RAIL_LABEL: Partial<Record<ScreenId, MessageKey>> = {
+  kamu: "railKamu",
+  cawangan: "railCawangan",
+  lagi: "railLagi",
+  hubungi: "railHubungi",
+  kerja: "railKerja",
+  pengakuan: "railPengakuan",
+  review: "railReview",
+};
+
 /** The three named parts of the progress bar, so people can see what is coming. */
 export const PARTS: MessageKey[] = ["joinPart1", "joinPart2", "joinPart3"];
 
@@ -306,41 +318,30 @@ function Cawangan({ d, patch, t }: BodyProps) {
           </a>
         </div>
       </div>
-      <select
+      <Picker
         id="join-parlimen"
-        className="profile-input profile-select join-input"
+        label={t("applicationLblKawasanParlimen")}
+        placeholder={t("applicationOptParlimenSelect")}
         value={d.kawasanParlimen}
-        onChange={(e) => {
-          const parlimen = e.target.value;
+        options={PARLIMEN_SARAWAK_OPTIONS.map((opt) => ({ value: opt, label: opt, sub: t("joinCountCawangan").replace("{{n}}", String(cawanganUnder(opt).length)) }))}
+        onChange={(parlimen) => {
           const keep = d.cawangan && cawanganUnder(parlimen).includes(d.cawangan);
           patch({ kawasanParlimen: parlimen, cawangan: keep ? d.cawangan : "", kawasanNegeri: keep ? d.kawasanNegeri : "" });
         }}
-      >
-        <option value="">{t("applicationOptParlimenSelect")}</option>
-        {PARLIMEN_SARAWAK_OPTIONS.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
+      />
 
       <label className="join-label" htmlFor="join-cawangan">
         {t("applicationLblCawangan")}
       </label>
-      <select
+      <Picker
         id="join-cawangan"
-        className="profile-input profile-select join-input"
+        label={t("applicationLblCawangan")}
+        placeholder={d.kawasanParlimen ? t("profileCawanganSelect") : t("joinPickParlimenFirst")}
         disabled={!d.kawasanParlimen}
         value={d.cawangan}
-        onChange={(e) => patch({ cawangan: e.target.value, kawasanNegeri: e.target.value })}
-      >
-        <option value="">{d.kawasanParlimen ? t("profileCawanganSelect") : t("joinPickParlimenFirst")}</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {getCawanganDisplayLabel(opt, t)}
-          </option>
-        ))}
-      </select>
+        options={options.map((opt) => ({ value: opt, label: getCawanganDisplayLabel(opt, t) }))}
+        onChange={(cawangan) => patch({ cawangan, kawasanNegeri: cawangan })}
+      />
 
       <input
         className="profile-input join-input join-input--second"
@@ -373,28 +374,23 @@ function Lagi({ d, patch, t }: BodyProps) {
         </p>
       ) : bornSarawak ? (
         <>
-          <select
+          <Picker
             id="join-pob"
-            className="profile-input profile-select join-input"
+            label={t("applicationLblTempatLahir")}
+            placeholder={t("joinPickTown")}
             value={otherTown ? "__lain" : d.tempatLahir}
-            onChange={(e) => {
-              if (e.target.value === "__lain") {
+            options={SARAWAK_TOWNS.map((town) => ({ value: town, label: town }))}
+            extra={{ value: "__lain", label: t("applicationOptAgamaLain") }}
+            onChange={(v) => {
+              if (v === "__lain") {
                 setOtherTown(true);
                 patch({ tempatLahir: "" });
               } else {
                 setOtherTown(false);
-                patch({ tempatLahir: e.target.value });
+                patch({ tempatLahir: v });
               }
             }}
-          >
-            <option value="">{t("joinPickTown")}</option>
-            {SARAWAK_TOWNS.map((town) => (
-              <option key={town} value={town}>
-                {town}
-              </option>
-            ))}
-            <option value="__lain">{t("applicationOptAgamaLain")}</option>
-          </select>
+          />
           <Reveal open={otherTown} focus>
             <input
               className="profile-input join-input join-input--second"

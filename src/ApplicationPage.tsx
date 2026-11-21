@@ -5,7 +5,7 @@ import { SignedFormUpload } from "./SignedFormUpload";
 import { BorangPreview } from "./BorangPreview";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import type { Draft } from "./joinData";
-import { JOIN_SCREENS, JoinScreenBody, PARTS, Reveal, partFill, useLast, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
+import { JOIN_SCREENS, JoinScreenBody, PARTS, RAIL_LABEL, Reveal, partFill, useLast, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
 import { parseIc } from "./icInfo";
 import { normaliseDraft } from "./normalise";
 import { parlimenOf } from "./joinData";
@@ -559,6 +559,27 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
             </div>
           ))}
         </nav>
+
+        <aside className="join-rail" aria-label={t("stepsAria")}>
+          {PARTS.map((label, p) => (
+            <div key={label} className="join-rail-part">
+              <p className="join-rail-title">{t(label)}</p>
+              <ul>
+                {JOIN_SCREENS.map((sc, i) => {
+                  const key = RAIL_LABEL[sc.id];
+                  if (sc.part !== p || !key) return null;
+                  const at = screen.hidden ? REVIEW : step; // editing the category from the review still counts as "review"
+                  return (
+                    <li key={sc.id} data-state={i < at ? "done" : i === at ? "now" : "next"} aria-current={i === at ? "step" : undefined}>
+                      <span className="join-rail-mark" aria-hidden />
+                      {t(key)}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </aside>
 
         <form
           className="join-screen"
