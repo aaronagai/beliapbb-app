@@ -1918,3 +1918,31 @@
 .join-declaration .application-form-sign {
   margin-top: 1.5rem;
 }
+
+/* Three named parts */
+.join-progress {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.join-part {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.join-part-label {
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  transition: color 200ms ease;
+}
+
+.join-part[data-state="now"] .join-part-label {
+  color: var(--color-text);
+}

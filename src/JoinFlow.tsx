@@ -13,22 +13,32 @@ import type { MessageKey } from "./i18n";
 export type ScreenId = "kamu" | "cawangan" | "lagi" | "hubungi" | "kerja" | "pengakuan" | "review" | "kategori";
 
 /** `hidden` screens are skipped when moving through the form; they open from a review row ("Ubah"). */
-export type JoinScreen = { id: ScreenId; hidden?: true };
+export type JoinScreen = { id: ScreenId; part: 0 | 1 | 2; hidden?: true };
 
 export const JOIN_SCREENS: JoinScreen[] = [
-  { id: "kamu" },
-  { id: "cawangan" },
-  { id: "lagi" },
-  { id: "hubungi" },
-  { id: "kerja" },
-  { id: "pengakuan" },
-  { id: "review" },
-  { id: "kategori", hidden: true },
+  { id: "kamu", part: 0 },
+  { id: "cawangan", part: 0 },
+  { id: "lagi", part: 1 },
+  { id: "hubungi", part: 1 },
+  { id: "kerja", part: 1 },
+  { id: "pengakuan", part: 2 },
+  { id: "review", part: 2 },
+  { id: "kategori", part: 2, hidden: true },
 ];
 
 export const screenIndex = (id: ScreenId) => JOIN_SCREENS.findIndex((s) => s.id === id);
-/** Screens that count towards the progress bar. */
-export const VISIBLE_COUNT = JOIN_SCREENS.filter((s) => !s.hidden).length;
+/** The three named parts of the progress bar, so people can see what is coming. */
+export const PARTS: MessageKey[] = ["joinPart1", "joinPart2", "joinPart3"];
+
+/** How full part `p` of the bar is when the person is on screen `step`: whole once passed, partly through it. */
+export function partFill(p: number, step: number): number {
+  const cur = JOIN_SCREENS[step].part;
+  if (cur > p) return 1;
+  if (cur < p) return 0;
+  const inPart = JOIN_SCREENS.map((s, i) => [s, i] as const).filter(([s]) => s.part === p && !s.hidden);
+  const at = Math.max(0, inPart.findIndex(([, i]) => i === step));
+  return (at === -1 ? inPart.length : at + 1) / inPart.length;
+}
 
 const digits = (s: string) => s.replace(/\D/g, "");
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

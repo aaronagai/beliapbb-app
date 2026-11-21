@@ -5,7 +5,7 @@ import { SignedFormUpload } from "./SignedFormUpload";
 import { BorangPreview } from "./BorangPreview";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import type { Draft } from "./joinData";
-import { JOIN_SCREENS, JoinScreenBody, Reveal, VISIBLE_COUNT, useLast, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
+import { JOIN_SCREENS, JoinScreenBody, PARTS, Reveal, partFill, useLast, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
 import { parseIc } from "./icInfo";
 import { normaliseDraft } from "./normalise";
 import { parlimenOf } from "./joinData";
@@ -527,9 +527,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const isReview = screen.id === "review";
   const sending = send.kind === "sending";
 
-  /** How far along the single progress bar is (the hidden category screen counts as the review). */
-  const progress = Math.min(step, REVIEW) / VISIBLE_COUNT;
-
   const ic = parseIc(d.noKadPengenalan);
   const icValue = ic.ok
     ? `${d.noKadPengenalan} · ${ic.jantina === "lelaki" ? t("applicationOptJantinaLelaki") : t("applicationOptJantinaPerempuan")} · ${ic.age} ${t("joinYears")}`
@@ -553,9 +550,14 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     <section className="section section--apply" aria-label={t("applicationTitle")}>
       <div className="join" data-dir={dir}>
         <nav className="join-progress" aria-label={t("stepsAria")}>
-          <span className="join-seg">
-            <i style={{ ["--p" as string]: progress } as React.CSSProperties} />
-          </span>
+          {PARTS.map((label, p) => (
+            <div key={label} className="join-part" data-state={screen.part === p ? "now" : screen.part > p ? "done" : "next"} aria-current={screen.part === p ? "step" : undefined}>
+              <span className="join-seg">
+                <i style={{ ["--p" as string]: partFill(p, step) } as React.CSSProperties} />
+              </span>
+              <span className="join-part-label">{t(label)}</span>
+            </div>
+          ))}
         </nav>
 
         <form
