@@ -2851,3 +2851,63 @@ textarea.join-input {
     clip: auto;
   }
 }
+
+/* ---- Step list motion (desktop): the marker slides between steps, ticks draw in ---- */
+@media (min-width: 1024px) {
+  .join-rail-bar {
+    position: absolute;
+    top: 0;
+    left: -2px;
+    width: 2px;
+    height: var(--item-h, 0);
+    background: var(--aw-accent);
+    transform: translateY(var(--item-y, 0));
+    pointer-events: none;
+  }
+
+  .join-rail-bar--group {
+    height: var(--group-h, 0);
+    background: var(--aw-accent-bar);
+    transform: translateY(var(--group-y, 0));
+  }
+
+  .join-rail.is-ready .join-rail-bar {
+    transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1), height 280ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  /* The bars do the highlighting now, not each row's own border */
+  .join-rail li[data-state="now"],
+  .join-rail-part[data-state="now"] .join-rail-title {
+    border-left-color: transparent;
+  }
+
+  .join-rail li,
+  .join-rail-title {
+    transition: color 200ms ease;
+  }
+
+  .join-rail li[data-state="done"] .join-rail-check {
+    animation: rail-check-in 240ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  @keyframes rail-check-in {
+    from {
+      opacity: 0;
+      transform: rotate(45deg) scale(0.4);
+    }
+    to {
+      opacity: 1;
+      transform: rotate(45deg) scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .join-rail.is-ready .join-rail-bar {
+      transition: none;
+    }
+
+    .join-rail li[data-state="done"] .join-rail-check {
+      animation: none;
+    }
+  }
+}

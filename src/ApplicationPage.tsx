@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { applicationEndpoint, attachApplicationPdf, bytesToBase64, submitApplication, uploadSignedForm } from "./applicationApi";
 import { useI18n, type MessageKey } from "./i18n";
 import { SignedFormUpload } from "./SignedFormUpload";
@@ -175,6 +175,29 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
   const errorText = stepError ?? (send.kind === "error" ? send.message : null);
   const shownError = useLast(errorText);
+
+  // Desktop step list: slide the marker to the current step (measured, so it follows any text wrapping).
+  const railRef = useRef<HTMLElement>(null);
+  const [railReady, setRailReady] = useState(false);
+  const moveRail = useCallback(() => {
+    const el = railRef.current;
+    const li = el?.querySelector<HTMLElement>('li[aria-current="step"]');
+    const group = el?.querySelector<HTMLElement>('.join-rail-part[data-state="now"]');
+    if (!el || !li || !group) return;
+    el.style.setProperty("--item-y", `${li.offsetTop}px`);
+    el.style.setProperty("--item-h", `${li.offsetHeight}px`);
+    el.style.setProperty("--group-y", `${group.offsetTop}px`);
+    el.style.setProperty("--group-h", `${group.offsetHeight}px`);
+  }, []);
+  useLayoutEffect(() => {
+    moveRail();
+    const id = requestAnimationFrame(() => setRailReady(true)); // no slide on the very first paint
+    window.addEventListener("resize", moveRail);
+    return () => {
+      cancelAnimationFrame(id);
+      window.removeEventListener("resize", moveRail);
+    };
+  });
 
   const patch = useCallback((p: Partial<Draft>) => {
     setD((prev) => ({ ...prev, ...p }));
@@ -560,7 +583,9 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           ))}
         </nav>
 
-        <aside className="join-rail" aria-label={t("stepsAria")}>
+        <aside className={`join-rail${railReady ? " is-ready" : ""}`} ref={railRef} aria-label={t("stepsAria")}>
+          <span className="join-rail-bar join-rail-bar--group" aria-hidden />
+          <span className="join-rail-bar" aria-hidden />
           {PARTS.map((label, p) => {
             const at = screen.hidden ? REVIEW : step; // editing the category from the review still counts as "review"
             const items = JOIN_SCREENS.map((sc, i) => [sc, i] as const).filter(([sc]) => sc.part === p && RAIL_LABEL[sc.id]);

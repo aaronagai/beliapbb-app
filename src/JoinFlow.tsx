@@ -323,7 +323,7 @@ function Cawangan({ d, patch, t }: BodyProps) {
         label={t("applicationLblKawasanParlimen")}
         placeholder={t("applicationOptParlimenSelect")}
         value={d.kawasanParlimen}
-        options={PARLIMEN_SARAWAK_OPTIONS.map((opt) => ({ value: opt, label: opt, sub: t("joinCountCawangan").replace("{{n}}", String(cawanganUnder(opt).length)) }))}
+        options={PARLIMEN_SARAWAK_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
         onChange={(parlimen) => {
           const keep = d.cawangan && cawanganUnder(parlimen).includes(d.cawangan);
           patch({ kawasanParlimen: parlimen, cawangan: keep ? d.cawangan : "", kawasanNegeri: keep ? d.kawasanNegeri : "" });
