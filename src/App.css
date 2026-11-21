@@ -3403,3 +3403,10 @@ textarea.join-input {
     margin-right: 13%;
   }
 }
+
+/* "...download it below" only makes sense on a phone, where the button is under the form. On a laptop the download is in the toolbar above. */
+@media (min-width: 1024px) {
+  .sent-below-hint {
+    display: none;
+  }
+}

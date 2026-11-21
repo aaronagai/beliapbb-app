@@ -413,7 +413,9 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
               {signed ? (
                 <div className="application-sign" role="status">
                   <h3 className="application-signed-title">{t("signDoneTitle")}</h3>
-                  <p className="application-sent-pdf-note">{t("signDoneBody")}</p>
+                  <p className="application-sent-pdf-note">
+                    {t("signDoneBody")} <span className="sent-below-hint">{t("signDoneBelow")}</span>
+                  </p>
                 </div>
               ) : filing ? (
                 <div className="application-sign" role="status">
