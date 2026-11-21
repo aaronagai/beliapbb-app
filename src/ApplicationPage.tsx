@@ -615,12 +615,10 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                       {i !== at && i <= maxStep && (i !== REVIEW || formSignature) ? (
                         <button type="button" className="join-rail-btn" onClick={() => goToStep(i)}>
                           {t(RAIL_LABEL[sc.id]!)}
-                          <span className="join-rail-check" aria-hidden />
                         </button>
                       ) : (
                         <>
                           {t(RAIL_LABEL[sc.id]!)}
-                          <span className="join-rail-check" aria-hidden />
                         </>
                       )}
                     </li>

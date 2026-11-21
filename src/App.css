@@ -2701,19 +2701,6 @@ textarea.join-input {
     border-left-color: var(--aw-accent);
   }
 
-  .join-rail-check {
-    display: none;
-    width: 4px;
-    height: 8px;
-    margin-bottom: 2px;
-    border-right: 1.75px solid var(--aw-green);
-    border-bottom: 1.75px solid var(--aw-green);
-    transform: rotate(45deg);
-  }
-
-  .join-rail li[data-state="done"] .join-rail-check {
-    display: block;
-  }
 }
 
 .join input[type="checkbox"] {
@@ -2886,29 +2873,12 @@ textarea.join-input {
     transition: color 200ms ease;
   }
 
-  .join-rail li[data-state="done"] .join-rail-check {
-    animation: rail-check-in 240ms cubic-bezier(0.23, 1, 0.32, 1) both;
-  }
-
-  @keyframes rail-check-in {
-    from {
-      opacity: 0;
-      transform: rotate(45deg) scale(0.4);
-    }
-    to {
-      opacity: 1;
-      transform: rotate(45deg) scale(1);
-    }
-  }
 
   @media (prefers-reduced-motion: reduce) {
     .join-rail.is-ready .join-rail-bar {
       transition: none;
     }
 
-    .join-rail li[data-state="done"] .join-rail-check {
-      animation: none;
-    }
   }
 }
 
