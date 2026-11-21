@@ -10,6 +10,7 @@ import { ArrowLeft } from "reicon-react";
 import { BANGSA_MSG } from "./joinData";
 import { parseIc } from "./icInfo";
 import { normaliseDraft } from "./normalise";
+import { fireConfetti } from "./confetti";
 import { parlimenOf } from "./joinData";
 import { WelcomePack } from "./WelcomePack";
 import { track } from "./analytics";
@@ -227,6 +228,16 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     return () => window.clearTimeout(id);
   }, [d, send.kind, saveLocally]);
 
+  // Celebrate when the received page arrives: a burst from the check badge as it pops.
+  useEffect(() => {
+    if (send.kind !== "sent") return;
+    const id = window.setTimeout(() => {
+      const b = document.querySelector(".sent-badge")?.getBoundingClientRect();
+      fireConfetti(b ? { x: b.left + b.width / 2, y: b.top + b.height / 2 } : { x: window.innerWidth / 2, y: window.innerHeight / 3 });
+    }, 360);
+    return () => window.clearTimeout(id);
+  }, [send.kind]);
+
   const go = (i: number, direction: "forward" | "back") => {
     track("join_step", { step: i + 1, screen: JOIN_SCREENS[i].id, back: direction === "back" });
     // The pad starts empty each time the declaration screen opens, so drop any older drawn signature.
@@ -437,7 +448,15 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           {pdf.kind === "making" ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : null}
           {pdf.kind === "ready" ? (
             <>
-              <BorangPreview ops={pdf.ops} />
+              <section className="sent-stage">
+                <header className="sent-stage-bar">
+                  <h3>{t("sentFormTitle")}</h3>
+                  <a className="sent-stage-download" href={pdf.url} download={pdf.name} onClick={() => track("form_downloaded", { signed, where: "bar" })}>
+                    {t("sentDownloadPdf")}
+                  </a>
+                </header>
+                <BorangPreview ops={pdf.ops} />
+              </section>
               {signed ? (
                 <div className="application-sign" role="status">
                   <h3 className="application-signed-title">{t("signDoneTitle")}</h3>
@@ -463,7 +482,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                 </div>
               )}
               <a
-                className="profile-save-btn profile-save-btn--secondary application-sent-pdf-btn"
+                className="profile-save-btn application-sent-pdf-btn sent-download-phone"
                 href={pdf.url}
                 download={pdf.name}
                 onClick={() => track("form_downloaded", { signed })}

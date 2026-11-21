@@ -3051,7 +3051,7 @@ textarea.join-input {
   display: block;
   width: 56px;
   height: 56px;
-  margin: 4px 0 16px;
+  margin: 4px auto 16px;
 }
 
 .sent-badge-disc {
@@ -3135,5 +3135,93 @@ textarea.join-input {
     to {
       opacity: 1;
     }
+  }
+}
+
+/* ---- Received page: the filled form as a paper sheet on a grey surface (PayPal on phone, Remote on laptop) ---- */
+.sent-stage {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--aw-surface-2);
+  border-radius: 10px;
+}
+
+.sent-stage-bar {
+  display: none;
+}
+
+.sent-stage .borang-preview {
+  gap: 16px;
+  margin: 0 auto;
+  max-width: 600px;
+}
+
+.sent-stage .borang-page {
+  border: 0;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 10px 30px rgb(0 0 0 / 0.12);
+}
+
+/* Phone: solid black download under the sheet, "continue" as a quiet button below it */
+.app2 .application-sent a.sent-download-phone.profile-save-btn {
+  color: var(--aw-on-accent);
+  background: var(--aw-accent);
+  border: 0;
+}
+
+@media (max-width: 1023.98px) {
+  .app2 .application-sent .application-sent-next.profile-save-btn {
+    color: var(--aw-muted);
+    background: transparent;
+    border: 0;
+  }
+}
+
+/* Laptop: a thin bar over the sheet with the download, like Remote */
+@media (min-width: 1024px) {
+  .app2 .application-sent {
+    max-width: 760px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .sent-stage {
+    padding: 0 0 28px;
+    overflow: hidden;
+  }
+
+  .sent-stage-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 10px 16px;
+    background: var(--aw-field);
+    border-bottom: 1px solid var(--aw-line);
+  }
+
+  .sent-stage-bar h3 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--aw-text);
+  }
+
+  .sent-stage-download {
+    padding: 8px 14px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--aw-accent);
+    text-decoration: none;
+    border: 1px solid var(--aw-accent);
+    border-radius: var(--radius-btn);
+  }
+
+  .sent-stage-download:hover {
+    background: var(--aw-accent-soft);
+  }
+
+  .app2 .application-sent a.sent-download-phone.profile-save-btn {
+    display: none;
   }
 }
