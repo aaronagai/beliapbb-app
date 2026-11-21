@@ -3038,3 +3038,102 @@ textarea.join-input {
   padding: 0 0 calc(24px + env(safe-area-inset-bottom));
   background: none;
 }
+
+/* ---- Review to "Permohonan diterima": the review lifts away, then a badge pops and the page rises in ---- */
+.join[data-leaving] {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.99);
+  transition: opacity 150ms cubic-bezier(0.4, 0, 1, 1), transform 160ms cubic-bezier(0.4, 0, 1, 1);
+  pointer-events: none;
+}
+
+.sent-badge {
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: 4px 0 16px;
+}
+
+.sent-badge-disc {
+  fill: var(--aw-accent, var(--color-text));
+  transform-origin: 28px 28px;
+  animation: sent-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.sent-badge-check {
+  stroke: var(--aw-on-accent, var(--color-bg));
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: sent-draw 300ms cubic-bezier(0.23, 1, 0.32, 1) 220ms forwards;
+}
+
+@keyframes sent-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sent-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes sent-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Everything after the badge rises in, one after another */
+.application-sent > :not(.sent-badge) {
+  animation: sent-rise 320ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.application-sent > :nth-child(2) { animation-delay: 200ms; }
+.application-sent > :nth-child(3) { animation-delay: 270ms; }
+.application-sent > :nth-child(4) { animation-delay: 340ms; }
+.application-sent > :nth-child(5) { animation-delay: 410ms; }
+.application-sent > :nth-child(n + 6) { animation-delay: 480ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .join[data-leaving] {
+    transition: none;
+  }
+
+  .sent-badge-disc {
+    animation: none;
+  }
+
+  .sent-badge-check {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .application-sent > :not(.sent-badge) {
+    animation: sent-fade 200ms ease-out both;
+    animation-delay: 0ms !important;
+  }
+
+  @keyframes sent-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

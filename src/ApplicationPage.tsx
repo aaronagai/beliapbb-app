@@ -158,6 +158,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const [step, setStep] = useState(0);
   /** Furthest screen reached, so the desktop step list only lets you jump to places you have been. */
   const [maxStep, setMaxStep] = useState(0);
+  /** True for a beat after a successful send, so the review fades away before the received page appears. */
+  const [leaving, setLeaving] = useState(false);
   /** Which way the last move went (screens slide in from that side), and whether a review row sent us back to edit. */
   const [dir, setDir] = useState<"forward" | "back">("forward");
   const [returnTo, setReturnTo] = useState(false);
@@ -278,6 +280,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     const result = await submitApplication(url, { ...submitted, website });
     if (result.ok) {
       track("join_submitted", { signed: formSignature !== null });
+      setLeaving(true);
+      await new Promise((r) => window.setTimeout(r, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 170));
       try {
         localStorage.removeItem(DRAFT_KEY);
       } catch {
@@ -290,7 +294,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
       saveApplication(rec);
       setRecord(rec);
       setSend({ kind: "sent", ref: result.ref });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      setLeaving(false);
+      window.scrollTo({ top: 0 });
       // Fill in the official PDF on this device (with the signature, if they drew one on the form page).
       setPdf({ kind: "making" });
       let bytes: Uint8Array | null = null;
@@ -419,6 +424,12 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     return (
       <section className="section section--apply" aria-label={t("applicationTitle")}>
         <div className="application-sent profile-card" role="status">
+          <div className="sent-badge" aria-hidden>
+            <svg viewBox="0 0 56 56" width="56" height="56" fill="none">
+              <circle className="sent-badge-disc" cx="28" cy="28" r="28" />
+              <path className="sent-badge-check" d="M17 29.5l7.5 7.5L39.5 21" pathLength="1" />
+            </svg>
+          </div>
           <h2>{t("applicationSentTitle")}</h2>
           <p className="application-sent-ref">{send.ref}</p>
           <p>{t("applicationSentBody")}</p>
@@ -598,7 +609,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
   return (
     <section className="section section--apply" aria-label={t("applicationTitle")}>
-      <div className="join" data-dir={dir}>
+      <div className="join" data-dir={dir} data-leaving={leaving || undefined}>
         <nav className="join-progress" aria-label={t("stepsAria")}>
           {PARTS.map((label, p) => (
             <div key={label} className="join-part" data-state={screen.part === p ? "now" : screen.part > p ? "done" : "next"} aria-current={screen.part === p ? "step" : undefined} aria-label={t(label)}>
