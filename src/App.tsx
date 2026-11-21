@@ -212,13 +212,20 @@ export function App() {
           </div>
           {focus ? (
             <div className="app2-header-right">
-              <div className="app2-lang" role="group" aria-label="Bahasa / Language">
-                {(["ms", "en"] as const).map((l) => (
-                  <button key={l} type="button" aria-pressed={language === l} onClick={() => setLanguage(l)} translate="no">
-                    {l === "ms" ? "BM" : "EN"}
-                  </button>
-                ))}
-              </div>
+              <button
+                type="button"
+                className="app2-lang"
+                role="switch"
+                aria-checked={language === "en"}
+                aria-label="Bahasa / Language"
+                data-lang={language}
+                onClick={() => setLanguage(language === "en" ? "ms" : "en")}
+                translate="no"
+              >
+                <span className="app2-lang-thumb" aria-hidden />
+                <span className="app2-lang-opt">BM</span>
+                <span className="app2-lang-opt">EN</span>
+              </button>
               <button type="button" className="app2-site-link app2-exit" onClick={() => go("home")} aria-label={t("focusExit")}>
                 <span className="app2-exit-text">{t("focusExit")}</span>
                 <span className="app2-exit-x" aria-hidden />

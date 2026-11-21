@@ -814,7 +814,7 @@
   }
 }
 
-/* Language switch in the join top bar: BM | EN */
+/* Language toggle in the join top bar: one switch, a thumb slides between BM and EN */
 .app2-header-right {
   display: flex;
   align-items: center;
@@ -822,29 +822,61 @@
 }
 
 .app2-lang {
-  display: inline-flex;
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
-  gap: 2px;
-}
-
-.app2-lang button {
-  min-width: 36px;
-  min-height: 36px;
-  padding: 0 8px;
+  width: 84px;
+  height: 36px;
+  padding: 3px;
   font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--aw-muted, var(--app-muted));
-  background: none;
-  border: 0;
+  background: var(--aw-surface-2, var(--color-hover));
+  border: 1px solid var(--aw-line, var(--app-line));
   border-radius: var(--radius-btn);
   cursor: pointer;
   touch-action: manipulation;
-  transition: color 150ms ease, background-color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.app2-lang button[aria-pressed="true"] {
-  color: var(--aw-text, var(--app-text));
+.app2-lang-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
+  background: var(--aw-field, #fff);
+  border-radius: calc(var(--radius-btn) - 2px);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.14), 0 0 0 1px var(--aw-line, rgb(0 0 0 / 0.06));
+  transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.app2-lang[data-lang="en"] .app2-lang-thumb {
+  transform: translateX(100%);
+}
+
+.app2-lang-opt {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  font-size: 12px;
   font-weight: 600;
-  background: var(--aw-surface-2, var(--color-hover));
+  letter-spacing: 0.02em;
+  color: var(--aw-muted, var(--app-muted));
+  transition: color 180ms ease;
+}
+
+.app2-lang[data-lang="ms"] .app2-lang-opt:first-of-type,
+.app2-lang[data-lang="en"] .app2-lang-opt:last-of-type {
+  color: var(--aw-text, var(--app-text));
+}
+
+.app2-lang:focus-visible {
+  outline: 2px solid var(--aw-text, currentColor);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app2-lang-thumb {
+    transition: none;
+  }
 }
