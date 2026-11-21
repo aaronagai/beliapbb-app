@@ -542,7 +542,7 @@ function confirmApplicant(ref, nama, cawangan, email, pdfBlob) {
       "Nombor rujukan: " + ref + "\n" +
       "Cawangan: " + cawangan + "\n\n" +
       (pdfBlob
-        ? "Borang permohonan anda yang telah diisi dilampirkan (PDF). Sila tandatangani borang: lukis tandatangan anda di skrin pada https://app.beliapbb.com/#sertai, atau cetak borang, tandatangan pada ruangan pemohon, kemudian ambil gambar atau imbas dan muat naik di pautan yang sama menggunakan nombor rujukan dan no. kad pengenalan anda. Permohonan hanya lengkap selepas borang bertandatangan diterima.\n\n"
+        ? "Borang permohonan anda yang telah diisi dilampirkan (PDF). Sila tandatangani borang: lukis tandatangan anda di skrin pada https://beliapbb.com/sertai/, atau cetak borang, tandatangan pada ruangan pemohon, kemudian ambil gambar atau imbas dan muat naik di pautan yang sama menggunakan nombor rujukan dan no. kad pengenalan anda. Permohonan hanya lengkap selepas borang bertandatangan diterima.\n\n"
         : "") +
       "Urus setia akan menyemak permohonan anda dan menghubungi anda. " +
       "Sila simpan nombor rujukan ini dan sebutkannya jika anda menghubungi kami di " + NOTIFY_EMAIL + ".\n\n" +
@@ -550,7 +550,7 @@ function confirmApplicant(ref, nama, cawangan, email, pdfBlob) {
       "Hi " + nama + ", we have received your Belia PBB membership application. " +
       "Your reference number is " + ref + ". " +
       (pdfBlob
-        ? "Your filled-in application form is attached (PDF). Please sign it: draw your signature on screen at https://app.beliapbb.com/#sertai, or print it, sign the applicant box, then photograph or scan it and upload it at the same link with your reference number and IC number. Your application is complete only once the signed form is received. "
+        ? "Your filled-in application form is attached (PDF). Please sign it: draw your signature on screen at https://beliapbb.com/sertai/, or print it, sign the applicant box, then photograph or scan it and upload it at the same link with your reference number and IC number. Your application is complete only once the signed form is received. "
         : "") +
       "The secretariat will review it and contact you. " +
       "Questions: " + NOTIFY_EMAIL + ".\n\n" +
