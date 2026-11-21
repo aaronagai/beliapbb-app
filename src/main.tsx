@@ -5,47 +5,27 @@ import "./fonts/tiktok-sans.css";
 import "./index.css";
 import { I18nProvider } from "./i18n";
 import { ThemeProvider } from "./theme";
-import { APP_URL } from "./links";
+import { LEGACY_HASH_TO_PATH, SITE_PAGES, SITE_URL, type SitePage } from "./links";
 import { initAnalytics, trackAppLinks } from "./analytics";
 
 /**
  * One entry, three builds:
- *   site     → beliapbb.com (landing + /kepimpinan)
- *   app      → app.beliapbb.com (the app at the root)
- *   combined → both from one origin, app under /app/ (GitHub Pages, until the move)
- * The target is a build-time constant, so each split build leaves the other half out.
+ *   site     → beliapbb.com: the landing page, /kepimpinan/ and the join flow + assistants (/sertai/, /tanya/, /ftes/, /perlembagaan/)
+ *   app      → app.beliapbb.com: retired, only redirects to beliapbb.com
+ *   combined → everything from one origin (GitHub Pages / local dev)
+ * The target is a build-time constant.
  */
 type BuildTarget = "site" | "app" | "combined";
 const TARGET = (import.meta.env.VITE_BUILD_TARGET ?? "combined") as BuildTarget;
 
 const base = import.meta.env.BASE_URL;
-const route = window.location.pathname.startsWith(base)
-  ? window.location.pathname.slice(base.length)
-  : "";
-const underApp = route === "app" || route.startsWith("app/");
-const isLeadership = route === "kepimpinan" || route.startsWith("kepimpinan/");
+const route = window.location.pathname.startsWith(base) ? window.location.pathname.slice(base.length) : "";
+const firstSegment = route.split("/")[0];
+const isLeadership = firstSegment === "kepimpinan";
+const sitePage = (SITE_PAGES as readonly string[]).includes(firstSegment) ? (firstSegment as SitePage) : null;
 
-// Links shared before the landing page existed (e.g. /#ftes) belong to the app.
-// Only the app's tab hashes move; the landing's own anchors (#ciri, #soalan) stay.
-const APP_TAB_HASHES = new Set([
-  "home",
-  "tanya",
-  "ftes",
-  "perlembagaan",
-  "berita",
-  "sertai",
-  "saya",
-  // Pre-2026 app tabs, still in shared links; the app maps them to their new homes.
-  "members",
-  "resources",
-  "apply",
-  "profile",
-  "education",
-  "employment",
-  "emerging-tech",
-  "emergingtech",
-]);
-const legacyAppHash = APP_TAB_HASHES.has(window.location.hash.slice(1).toLowerCase());
+/** Links from the old app (…/#sertai) and from before the landing page existed (/#ftes) land on the page that replaced them. */
+const legacyTarget = LEGACY_HASH_TO_PATH[window.location.hash.slice(1).toLowerCase()];
 
 function mount(node: ReactNode) {
   createRoot(document.getElementById("root")!).render(
@@ -57,29 +37,20 @@ function mount(node: ReactNode) {
   );
 }
 
-function mountApp() {
-  initAnalytics({ kind: "app", watchHash: true });
-  void import("./App").then(({ App }) => mount(<App />));
-}
-
 function mountSite() {
   initAnalytics({ kind: "site", watchHash: false });
   trackAppLinks();
   if (isLeadership) void import("./landing/Leadership").then(({ Leadership }) => mount(<Leadership />));
+  else if (sitePage) void import("./SiteApp").then(({ SiteApp }) => mount(<SiteApp initial={sitePage} />));
   else void import("./landing/Landing").then(({ Landing }) => mount(<Landing />));
 }
 
 if (TARGET === "app") {
-  mountApp();
-} else if (TARGET === "site") {
-  // Normally _redirects sends /app/* to the app domain before this runs; this is the fallback.
-  if (underApp) window.location.replace(`${APP_URL}${route.slice(4)}${window.location.hash}`);
-  else if (!isLeadership && legacyAppHash) window.location.replace(`${APP_URL}${window.location.hash}`);
-  else mountSite();
-} else if (!underApp && !isLeadership && legacyAppHash) {
-  window.location.replace(`${APP_URL}${window.location.hash}`);
-} else if (underApp) {
-  mountApp();
+  // The app site is retired. The server redirects first (_redirects); this is the fallback.
+  window.location.replace(`${SITE_URL}${legacyTarget ? `${legacyTarget}/` : ""}`);
+} else if (route === "" && legacyTarget !== undefined && legacyTarget !== "") {
+  // beliapbb.com/#sertai (a link made for the old app) → beliapbb.com/sertai/
+  window.location.replace(`${base}${legacyTarget}/`);
 } else {
   mountSite();
 }

@@ -8,7 +8,6 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { useI18n, type MessageKey } from "../i18n";
-import { fetchNewsFeed, type NewsCardModel } from "../jiwabakti";
 import { ARTICLES } from "./constitutionArticles";
 import "./ExploreCards.css";
 
@@ -39,20 +38,6 @@ function useSeen<T extends Element>() {
     return () => io.disconnect();
   }, [seen]);
   return [ref, seen] as const;
-}
-
-/** Whether the element is on screen right now (for loops that should pause offscreen). */
-function useInView<T extends Element>() {
-  const ref = useRef<T>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.4 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return [ref, inView] as const;
 }
 
 /* ── Tanya FTES: eligibility check ─────────────────────────────────────── */
@@ -364,155 +349,6 @@ export function ScrubberStage() {
         <span className="xc-scrub-hint">{t("landingScrubHint")}</span>
         <span>40</span>
       </div>
-    </div>
-  );
-}
-
-/* ── Berita: live stories ─────────────────────────────────────────────── */
-
-const STORY_COUNT = 5;
-const STORY_MS = 5000;
-/** Holding longer than this pauses (as in Stories) instead of counting as a tap. */
-const HOLD_MS = 220;
-
-function formatDate(iso: string, locale: string) {
-  try {
-    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(new Date(iso));
-  } catch {
-    return "";
-  }
-}
-
-export function NewsStoriesStage() {
-  const { t, language } = useI18n();
-  const [ref, inView] = useInView<HTMLDivElement>();
-  const [items, setItems] = useState<NewsCardModel[] | null>(null);
-  const [index, setIndex] = useState(0);
-  const [hovered, setHovered] = useState(false);
-  const [held, setHeld] = useState(false);
-  const [reduced] = useState(prefersReducedMotion);
-  const requested = useRef(false);
-  const holdTimer = useRef<number | undefined>(undefined);
-  const wasHold = useRef(false);
-
-  // Fetch the feed the first time the card comes on screen
-  useEffect(() => {
-    if (!inView || requested.current) return;
-    requested.current = true;
-    fetchNewsFeed({ count: STORY_COUNT })
-      .then((list) => list.length && setItems(list))
-      .catch(() => {
-        /* the placeholder stays */
-      });
-  }, [inView]);
-
-  const count = items?.length ?? 0;
-  const step = useCallback((by: 1 | -1) => setIndex((i) => (i + by + count) % count), [count]);
-  const paused = hovered || held || !inView || reduced;
-
-  function onZoneDown(e: ReactPointerEvent<HTMLButtonElement>) {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    wasHold.current = false;
-    holdTimer.current = window.setTimeout(() => {
-      wasHold.current = true;
-      setHeld(true);
-    }, HOLD_MS);
-  }
-
-  function onZoneUp() {
-    clearTimeout(holdTimer.current);
-    setHeld(false);
-  }
-
-  function onZoneClick(by: 1 | -1) {
-    // A hold only pauses; a tap moves
-    if (wasHold.current) {
-      wasHold.current = false;
-      return;
-    }
-    step(by);
-  }
-
-  if (!items) {
-    return (
-      <div className="xc-story xc-story--ghost" ref={ref} aria-busy="true">
-        <div className="xc-story-bars" aria-hidden="true">
-          {Array.from({ length: STORY_COUNT }, (_, i) => (
-            <span className="xc-story-bar" key={i} />
-          ))}
-        </div>
-        <div className="xc-story-text">
-          <i />
-          <i />
-          <small>{t("newsSource")}</small>
-        </div>
-      </div>
-    );
-  }
-
-  const item = items[index];
-  const dateLocale = language === "ms" ? "ms-MY" : "en-MY";
-
-  return (
-    <div
-      className="xc-story"
-      ref={ref}
-      data-paused={paused || undefined}
-      onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-    >
-      {items.map((it, i) => (
-        <span className="xc-story-photo" data-on={i === index || undefined} key={it.id} aria-hidden="true">
-          {it.image && <img src={it.image} alt="" loading={i < 2 ? "eager" : "lazy"} decoding="async" draggable={false} />}
-        </span>
-      ))}
-      <span className="xc-story-shade" aria-hidden="true" />
-
-      <div className="xc-story-bars" aria-hidden="true">
-        {items.map((it, i) => (
-          <span className="xc-story-bar" key={it.id} data-done={i < index || undefined}>
-            {i === index && (
-              <i
-                key={`${index}-${count}`}
-                className="xc-story-fill"
-                style={{ animationDuration: `${STORY_MS}ms` }}
-                onAnimationEnd={() => step(1)}
-              />
-            )}
-          </span>
-        ))}
-      </div>
-
-      <button
-        type="button"
-        className="xc-story-zone xc-story-zone--prev"
-        aria-label={t("landingNewsPrev")}
-        onPointerDown={onZoneDown}
-        onPointerUp={onZoneUp}
-        onPointerCancel={onZoneUp}
-        onClick={() => onZoneClick(-1)}
-      />
-      <button
-        type="button"
-        className="xc-story-zone xc-story-zone--next"
-        aria-label={t("landingNewsNext")}
-        onPointerDown={onZoneDown}
-        onPointerUp={onZoneUp}
-        onPointerCancel={onZoneUp}
-        onClick={() => onZoneClick(1)}
-      />
-
-      <a className="xc-story-text" href={item.url} target="_blank" rel="noopener noreferrer" aria-live="polite">
-        <span className="xc-story-title" key={item.id}>
-          {item.title}
-        </span>
-        <small>
-          {t("newsSource")} · <time dateTime={item.date}>{formatDate(item.date, dateLocale)}</time>
-          <span className="xc-story-count" aria-hidden="true">
-            {index + 1}/{count}
-          </span>
-        </small>
-      </a>
     </div>
   );
 }

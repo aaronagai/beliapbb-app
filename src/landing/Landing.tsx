@@ -2,15 +2,13 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useI18n, type MessageKey } from "../i18n";
 import { Logo } from "../Logo";
 import { CONSTITUTION_PDF_URL } from "../constitutionPdf";
-import { APP_URL, LEADERSHIP_URL, appLink } from "../links";
+import { LEADERSHIP_URL, appLink } from "../links";
 import { AppIcon, APP_ICON_KINDS, type AppIconKind } from "./AppIcons";
-import { AppDemo } from "./AppDemo";
-import { EligibilityStage, NewsStoriesStage, ScrubberStage } from "./ExploreCards";
+import { EligibilityStage, ScrubberStage } from "./ExploreCards";
 import { trackOnceVisible } from "../analytics";
 import "./Landing.css";
 
 const BASE = import.meta.env.BASE_URL;
-const APP_HREF = APP_URL;
 const appTab = appLink;
 export const LEADERSHIP_HREF = LEADERSHIP_URL;
 const CONTACT_EMAIL = "hello@beliapbb.com";
@@ -142,15 +140,6 @@ function Explore() {
               <a href={appTab("perlembagaan")}>{t("landingConstTitle")}</a>
             </h3>
             <p className="lp-card-body">{t("landingConstBody")}</p>
-          </article>
-          <article className="lp-card">
-            <div className="lp-card-stage lp-card-stage--story">
-              <NewsStoriesStage />
-            </div>
-            <h3 className="lp-card-title">
-              <a href={appTab("berita")}>{t("latestNews")}</a>
-            </h3>
-            <p className="lp-card-body">{t("landingNewsBody")}</p>
           </article>
         </div>
       </div>
@@ -360,7 +349,6 @@ function Cta() {
           <p className="lp-cta-body">{t("landingCtaBody")}</p>
           <div className="lp-ctas">
             <a className="lp-btn lp-btn--light" href={appTab("sertai")}>{t("landingJoin")}</a>
-            <a className="lp-btn lp-btn--ghost-light" href={APP_HREF}>{t("landingOpenApp")}</a>
           </div>
         </div>
       </div>
@@ -384,7 +372,6 @@ export function Footer() {
           <nav aria-label={t("landingFooterApp")}>
             <h2>{t("landingFooterApp")}</h2>
             <ul>
-              <li><a href={APP_HREF}>{t("navHome")}</a></li>
               <li><a href={appTab("ftes")}>{t("ftesNav")}</a></li>
               <li><a href={LEADERSHIP_HREF}>{t("leadershipNav")}</a></li>
               <li><a href={appTab("sertai")}>{t("navResources")}</a></li>
@@ -465,19 +452,7 @@ export function Landing() {
             <p className="lp-sub">{t("landingSub")}</p>
             <div className="lp-ctas">
               <a className="lp-btn lp-btn--dark" href={appTab("sertai")}>{t("landingJoin")}</a>
-              <a className="lp-btn lp-btn--text" href={APP_HREF}>
-                {t("landingOpenApp")}
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6-6m6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </a>
             </div>
-          </div>
-        </section>
-
-        <section className="lp-preview-wrap" aria-label={t("landingPreviewAlt")}>
-          <div className="lp-wrap">
-            <a className="lp-preview" href={appTab("ftes")}>
-              <AppDemo />
-            </a>
           </div>
         </section>
 

@@ -11,7 +11,7 @@
  * it still only runs on the two production hostnames.
  * Each domain is its own anonymous visit: landing → app is linked through the referrer, not a user id.
  */
-import { APP_URL } from "./links";
+import { SITE_PAGES, SITE_URL } from "./links";
 
 /** Project token of the "Belia PBB" PostHog project (US cloud). Write-only and public by design, like on sarawakseats.org. */
 const PROJECT_KEY = "phc_qhFLEqCutCAfZonXqTUeiHahdPMpfpGEFFuvPu6nEseV";
@@ -96,24 +96,24 @@ export function initAnalytics(options: { kind: "app" | "site"; watchHash: boolea
 /** Landing page: which button or link sent someone into the app, and from which part of the page. */
 export function trackAppLinks(): void {
   if (!analyticsEnabled) return;
-  const appOrigin = new URL(APP_URL, window.location.href).href;
+  const siteOrigin = new URL(SITE_URL, window.location.href).href;
   document.addEventListener(
     "click",
     (e) => {
       const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
-      if (!a || !a.href.startsWith(appOrigin)) return;
+      if (!a || !a.href.startsWith(siteOrigin)) return;
+      const to = a.href.slice(siteOrigin.length).split(/[/?#]/)[0];
+      if (!(SITE_PAGES as readonly string[]).includes(to)) return; // only links to the join flow / assistants
       const where = a.closest(".lp-nav")
         ? "nav"
         : a.closest(".lp-hero")
           ? "hero"
-          : a.closest(".lp-preview-wrap")
-            ? "preview"
-            : a.closest(".lp-cta")
-              ? "cta"
-              : a.closest("footer")
-                ? "footer"
-                : (a.closest("section[id]")?.id ?? "page");
-      track("app_link_click", { to: a.hash.replace("#", "") || "home", where }, true);
+          : a.closest(".lp-cta")
+            ? "cta"
+            : a.closest("footer")
+              ? "footer"
+              : (a.closest("section[id]")?.id ?? "page");
+      track("app_link_click", { to, where }, true);
     },
     true,
   );

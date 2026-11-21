@@ -1,14 +1,14 @@
 // Shapes a build's output for where it is hosted. Usage: node scripts/postbuild.mjs [combined|site|app] [outDir]
-//   combined → GitHub Pages: /app/ and /kepimpinan/ get their own copy of the SPA shell, 404 boots it too
-//   site     → Cloudflare Pages (beliapbb.com): /kepimpinan/ shell, /app/* redirects to the app domain, no PWA
-//   app      → Cloudflare Pages (app.beliapbb.com): the app at the root, its own manifest
+//   combined → GitHub Pages / local: /kepimpinan/ and the join + assistant pages get their own copy of the SPA shell, 404 boots it too
+//   site     → Cloudflare Pages (beliapbb.com): the same shells, old /app/* links redirect home, no PWA
+//   app      → Cloudflare Pages (app.beliapbb.com): retired, every address redirects (301) to beliapbb.com
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const target = process.argv[2] ?? "combined";
 const out = process.argv[3] ?? "dist";
 const SITE = (process.env.VITE_SITE_URL || "https://beliapbb.com/").replace(/\/?$/, "/");
-const APP = (process.env.VITE_APP_URL || "https://app.beliapbb.com/").replace(/\/?$/, "/");
+const PAGES = ["kepimpinan", "sertai", "tanya", "ftes", "perlembagaan"];
 
 const file = (p) => join(out, p);
 const shell = () => readFileSync(file("index.html"), "utf8");
@@ -19,28 +19,24 @@ const copyShell = (dir) => {
 const remove = (p) => existsSync(file(p)) && rmSync(file(p), { recursive: true });
 
 if (target === "combined") {
-  copyShell("app");
-  copyShell("kepimpinan");
+  PAGES.forEach(copyShell);
   copyFileSync(file("index.html"), file("404.html"));
 } else if (target === "site") {
   writeFileSync(file("index.html"), shell().replace(/\s*<link rel="manifest"[^>]*>/, ""));
   remove("manifest.webmanifest");
   remove("CNAME");
-  copyShell("kepimpinan");
+  PAGES.forEach(copyShell);
   copyFileSync(file("index.html"), file("404.html"));
-  // Old /app/ links (incl. the #tab part, which browsers keep across redirects)
-  writeFileSync(file("_redirects"), `/app ${APP} 301\n/app/* ${APP}:splat 301\n`);
+  // Old /app/ links (the #tab part survives redirects; the page maps it to the new address)
+  writeFileSync(file("_redirects"), "/app / 301\n/app/* /:splat 301\n");
 } else if (target === "app") {
-  const html = shell()
-    .replaceAll(`href="${SITE}"`, `href="${APP}"`)
-    .replaceAll(`content="${SITE}"`, `content="${APP}"`);
-  writeFileSync(file("index.html"), html);
-  const manifest = JSON.parse(readFileSync(file("manifest.webmanifest"), "utf8"));
-  writeFileSync(file("manifest.webmanifest"), JSON.stringify({ ...manifest, start_url: "./", scope: "./" }, null, 2) + "\n");
+  // Retired: nothing to serve, just send everyone (and their #hash) to the public site.
+  writeFileSync(file("_redirects"), `/* ${SITE}:splat 301\n`);
+  remove("manifest.webmanifest");
   remove("CNAME");
   remove("landing");
   remove("kepimpinan");
-  // No 404.html: Cloudflare Pages then serves index.html for every path (SPA mode)
+  remove("sw.js");
 } else {
   throw new Error(`Unknown target "${target}"`);
 }
