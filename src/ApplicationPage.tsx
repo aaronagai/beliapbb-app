@@ -4,6 +4,8 @@ import { useI18n, type MessageKey } from "./i18n";
 import { SignedFormUpload } from "./SignedFormUpload";
 import { BorangPreview } from "./BorangPreview";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
+import type { Draft } from "./joinData";
+import { JOIN_SCREENS, JoinScreenBody, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
 import { WelcomePack } from "./WelcomePack";
 import { track } from "./analytics";
 import { ApplicationSteps } from "./ApplicationSteps";
@@ -11,106 +13,11 @@ import { clearApplication, markApplicationSigned, readApplication, saveApplicati
 import type { BorangOp } from "./borangPdf";
 import {
   CAWANGAN_OPTIONS,
-  DUN_CAWANGAN_OPTIONS,
   getCawanganDisplayLabel,
 } from "./cawanganOptions";
 
 const BORANG_PDF = `${import.meta.env.BASE_URL}borang-permohonan-pbb.pdf`;
 const DRAFT_KEY = "beliapbb_application_draft";
-
-const PARLIMEN_SARAWAK_OPTIONS = [
-  "P.192 MAS GADING",
-  "P.193 SANTUBONG",
-  "P.194 PETRA JAYA",
-  "P.195 BANDAR KUCHING",
-  "P.196 STAMPIN",
-  "P.197 KOTA SAMARAHAN",
-  "P.198 PUNCAK BORNEO",
-  "P.199 SERIAN",
-  "P.200 BATANG SADONG",
-  "P.201 BATANG LUPAR",
-  "P.202 SRI AMAN",
-  "P.203 LUBOK ANTU",
-  "P.204 BETONG",
-  "P.205 SARATOK",
-  "P.206 TANJONG MANIS",
-  "P.207 IGAN",
-  "P.208 SARIKEI",
-  "P.209 JULAU",
-  "P.210 KANOWIT",
-  "P.211 LANANG",
-  "P.212 SIBU",
-  "P.213 MUKAH",
-  "P.214 SELANGAU",
-  "P.215 KAPIT",
-  "P.216 HULU RAJANG",
-  "P.217 BINTULU",
-  "P.218 SIBUTI",
-  "P.219 MIRI",
-  "P.220 BARAM",
-  "P.221 LIMBANG",
-  "P.222 LAWAS",
-] as const;
-
-const BANGSA_VALUES = [
-  "melayu_melanau",
-  "iban",
-  "kedayan",
-  "bidayuh",
-  "kayan",
-  "kelabit",
-  "kenyah",
-  "lun_bawang",
-  "lain",
-] as const;
-
-type BangsaVal = (typeof BANGSA_VALUES)[number];
-
-const BANGSA_MSG: Record<BangsaVal, MessageKey> = {
-  melayu_melanau: "applicationBangsa_melayu_melanau",
-  iban: "applicationBangsa_iban",
-  kedayan: "applicationBangsa_kedayan",
-  bidayuh: "applicationBangsa_bidayuh",
-  kayan: "applicationBangsa_kayan",
-  kelabit: "applicationBangsa_kelabit",
-  kenyah: "applicationBangsa_kenyah",
-  lun_bawang: "applicationBangsa_lun_bawang",
-  lain: "applicationBangsa_lain",
-};
-
-type Draft = {
-  cawangan: string;
-  rantingNo: string;
-  nama: string;
-  tarikhLahir: string;
-  agama: "" | "islam" | "kristian" | "lain";
-  agamaLain: string;
-  bangsa: BangsaVal | "";
-  bangsaLain: string;
-  tempatLahir: string;
-  jantina: "" | "lelaki" | "perempuan";
-  icBaru: boolean;
-  icLama: boolean;
-  noKadPengenalan: string;
-  alamatRumah: string;
-  alamatPejabat: string;
-  pekerjaan: "" | "kerajaan" | "swasta" | "sendiri" | "lain";
-  pekerjaanNyata: string;
-  telRumah: string;
-  telPejabat: string;
-  telBimbit: string;
-  email: string;
-  kawasanParlimen: string;
-  kawasanNegeri: string;
-  kategoriAhli: "" | "induk" | "belia" | "wanita" | "pemuda";
-  pengakuan: boolean;
-  pencadangNama: string;
-  pencadangIc: string;
-  pencadangJawatan: string;
-  penyokongNama: string;
-  penyokongIc: string;
-  penyokongJawatan: string;
-};
 
 const emptyDraft: Draft = {
   cawangan: "",
@@ -179,9 +86,8 @@ type PdfState =
   | { kind: "ready"; url: string; name: string; ops: BorangOp[] }
   | { kind: "failed" };
 
-/** The form, one short step at a time. Required fields are checked when leaving their step. */
-const STEPS = ["stepWho", "stepContact", "stepMembership", "stepReview"] as const;
-const STEP_REQUIRED: (keyof Draft)[][] = [["cawangan", "nama", "noKadPengenalan"], ["telBimbit"], ["kategoriAhli"], []];
+/** The last screen of the form: review, declaration, signature, send. */
+const REVIEW = JOIN_SCREENS.length - 1;
 
 function hasDraftContent(d: Draft): boolean {
   return Boolean(d.nama || d.cawangan || d.noKadPengenalan || d.telBimbit || d.email || d.alamatRumah);
@@ -243,6 +149,9 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const [stage, setStage] = useState<"sign" | "welcome">("sign");
   /** Which short step of the form is showing (0-3), and whether the intro has been dismissed. */
   const [step, setStep] = useState(0);
+  /** Which way the last move went (screens slide in from that side), and whether a review row sent us back to edit. */
+  const [dir, setDir] = useState<"forward" | "back">("forward");
+  const [returnTo, setReturnTo] = useState(false);
   const [started, setStarted] = useState(() => hasDraftContent(readDraft()));
   const [stepError, setStepError] = useState<string | null>(null);
   /** The official form as it will print, shown on the review step. */
@@ -257,8 +166,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   }, [focusMode, onFocusChange]);
   /* Spam trap: hidden from people, filled in by bots */
   const [website, setWebsite] = useState("");
-
-  const bangsaLabel = useCallback((v: BangsaVal) => t(BANGSA_MSG[v]), [t]);
 
   const patch = useCallback((p: Partial<Draft>) => {
     setD((prev) => ({ ...prev, ...p }));
@@ -285,7 +192,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
   // Review step: draw the official form from the answers so far (no reference number yet).
   useEffect(() => {
-    if (step !== 3 || send.kind === "sent") return;
+    if (step !== REVIEW || send.kind === "sent") return;
     let live = true;
     setPreviewOps(null);
     makeFilledPdf(d, "")
@@ -298,27 +205,38 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
-  const validateStep = (n: number): string | null => {
-    const labels = Object.fromEntries(REQUIRED) as Record<string, MessageKey>;
-    const missing = STEP_REQUIRED[n].filter((k) => !String(d[k]).trim()).map((k) => t(labels[k as string]));
-    if (missing.length) return t("applicationErrorMissing").replace("{{fields}}", missing.join(", "));
-    if (n === 0 && d.noKadPengenalan.replace(/\D/g, "").length !== 12) return t("applicationErrorIc");
-    return null;
-  };
-
-  const goStep = (next: number) => {
-    track("join_step", { step: next + 1, back: next < step });
+  const go = (i: number, direction: "forward" | "back") => {
+    track("join_step", { step: i + 1, screen: JOIN_SCREENS[i].id, back: direction === "back" });
+    // The signature pad only exists on the review screen: leaving it clears the drawn signature too.
+    if (step === REVIEW && i !== REVIEW) setFormSignature(null);
     setStepError(null);
-    setStep(next);
+    setDir(direction);
+    setStep(i);
     window.scrollTo({ top: 0 });
   };
 
-  const nextStep = () => {
-    const err = validateStep(step);
+  const next = () => {
+    const err = validateScreen(JOIN_SCREENS[step].id, d);
     if (err) {
-      setStepError(err);
-      track("join_step_blocked", { step: step + 1 });
-    } else goStep(step + 1);
+      setStepError(t(err));
+      track("join_step_blocked", { screen: JOIN_SCREENS[step].id });
+      return;
+    }
+    setReturnTo(false);
+    go(returnTo ? REVIEW : step + 1, "forward");
+  };
+
+  const skip = () => {
+    setReturnTo(false);
+    go(returnTo ? REVIEW : step + 1, "forward");
+  };
+
+  const back = () => go(step - 1, "back");
+
+  /** From a review row: edit one answer, then come straight back to the review. */
+  const jumpTo = (id: ScreenId) => {
+    setReturnTo(true);
+    go(screenIndex(id), "back");
   };
 
   const sendOnline = useCallback(async (url: string) => {
@@ -435,7 +353,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     setSaved(saveLocally());
   }, [d, endpoint, sendOnline, saveLocally]);
 
-  const pekerjaanNeedsDetail = d.pekerjaan === "kerajaan" || d.pekerjaan === "swasta" || d.pekerjaan === "sendiri" || d.pekerjaan === "lain";
 
   const startAnother = () => {
     track("join_another");
@@ -602,344 +519,67 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     );
   }
 
+  const screen = JOIN_SCREENS[step];
+  const isReview = screen.id === "review";
+  const sending = send.kind === "sending";
+
+  /** How full chapter `c` of the progress bar is: whole once passed, partly as you move through it. */
+  const chapterFill = (c: number) => {
+    if (screen.chapter > c) return 1;
+    if (screen.chapter < c) return 0;
+    const inChapter = JOIN_SCREENS.map((sc, i) => [sc, i] as const).filter(([sc]) => sc.chapter === c);
+    return (step - inChapter[0][1]) / inChapter.length;
+  };
+
+  const reviewRows: [ScreenId, MessageKey, string][] = [
+    ["nama", "joinRowName", d.nama],
+    ["ic", "joinRowIc", d.noKadPengenalan],
+    ["cawangan", "joinRowCaw", d.cawangan ? getCawanganDisplayLabel(d.cawangan, t) : ""],
+    ["telefon", "joinRowTel", d.telBimbit],
+    ["kategori", "joinRowKat", d.kategoriAhli ? t(`applicationOptKategori_${d.kategoriAhli}` as MessageKey) : ""],
+  ];
+
   return (
     <section className="section section--apply" aria-label={t("applicationTitle")}>
-      <nav className="form-stepper" aria-label={t("stepsAria")}>
-        <p className="form-stepper-count">
-          {t("stepCount").replace("{{n}}", String(step + 1)).replace("{{total}}", String(STEPS.length))} · <strong>{t(STEPS[step])}</strong>
-        </p>
-        <div className="form-stepper-bar" role="presentation">
-          {STEPS.map((key, i) => (
-            <span key={key} data-state={i < step ? "done" : i === step ? "current" : "todo"} />
+      <div className="join" data-dir={dir}>
+        <nav className="join-progress" aria-label={t("stepsAria")}>
+          {[0, 1, 2].map((c) => (
+            <span key={c} className="join-seg">
+              <i style={{ ["--p" as string]: chapterFill(c) } as React.CSSProperties} />
+            </span>
           ))}
-        </div>
-      </nav>
+        </nav>
 
-      <div className="application-form">
-        {step === 0 ? (
-          <>
-        <h2 className="application-section-title">{t("applicationSectionIdentity")}</h2>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-cawangan">
-            <span className="profile-label">{t("applicationLblCawangan")}</span>
-            <select
-              id="app-cawangan"
-              className="profile-input profile-select"
-              value={d.cawangan}
-              onChange={(e) => patch({ cawangan: e.target.value })}
-            >
-              <option value="">{t("profileCawanganSelect")}</option>
-              {CAWANGAN_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {getCawanganDisplayLabel(opt, t)}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-ranting">
-            <span className="profile-label">{t("applicationLblRantingNo")}</span>
-            <input
-              id="app-ranting"
-              className="profile-input"
-              value={d.rantingNo}
-              onChange={(e) => patch({ rantingNo: e.target.value })}
-              autoComplete="off"
-            />
-          </label>
-        </div>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-nama">
-            <span className="profile-label">{t("applicationLblNamaIc")}</span>
-            <input
-              id="app-nama"
-              className="profile-input"
-              value={d.nama}
-              onChange={(e) => patch({ nama: e.target.value })}
-              autoComplete="name"
-            />
-          </label>
-        </div>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-dob">
-            <span className="profile-label">{t("applicationLblTarikhLahir")}</span>
-            <input
-              id="app-dob"
-              className="profile-input"
-              type="date"
-              value={d.tarikhLahir}
-              onChange={(e) => patch({ tarikhLahir: e.target.value })}
-            />
-          </label>
-        </div>
-
-        <div className="profile-card">
-          <fieldset className="application-fieldset">
-            <legend className="profile-label">{t("applicationLblAgama")}</legend>
-            <label className="application-radio">
-              <input type="radio" name="agama" checked={d.agama === "islam"} onChange={() => patch({ agama: "islam", agamaLain: "" })} />
-              <span>{t("applicationOptAgamaIslam")}</span>
-            </label>
-            <label className="application-radio">
-              <input type="radio" name="agama" checked={d.agama === "kristian"} onChange={() => patch({ agama: "kristian", agamaLain: "" })} />
-              <span>{t("applicationOptAgamaKristian")}</span>
-            </label>
-            <label className="application-radio">
-              <input type="radio" name="agama" checked={d.agama === "lain"} onChange={() => patch({ agama: "lain" })} />
-              <span>{t("applicationOptAgamaLain")}</span>
-            </label>
-            {d.agama === "lain" ? (
-              <input
-                className="profile-input application-radio-follow"
-                value={d.agamaLain}
-                onChange={(e) => patch({ agamaLain: e.target.value })}
-                placeholder={t("applicationLblNyatakan")}
-              />
-            ) : null}
-          </fieldset>
-        </div>
-
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-bangsa">
-            <span className="profile-label">{t("applicationLblBangsa")}</span>
-            <select
-              id="app-bangsa"
-              className="profile-input profile-select"
-              value={d.bangsa}
-              onChange={(e) => patch({ bangsa: e.target.value as BangsaVal | "", bangsaLain: "" })}
-            >
-              <option value="">{t("applicationBangsaSelect")}</option>
-              {BANGSA_VALUES.map((v) => (
-                <option key={v} value={v}>
-                  {bangsaLabel(v)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {d.bangsa === "lain" ? (
-            <label className="profile-field application-field-spaced" htmlFor="app-bangsa-lain">
-              <span className="profile-label">{t("applicationLblNyatakan")}</span>
-              <input
-                id="app-bangsa-lain"
-                className="profile-input"
-                value={d.bangsaLain}
-                onChange={(e) => patch({ bangsaLain: e.target.value })}
-              />
-            </label>
-          ) : null}
-        </div>
-
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-tempat-lahir">
-            <span className="profile-label">{t("applicationLblTempatLahir")}</span>
-            <input
-              id="app-tempat-lahir"
-              className="profile-input"
-              value={d.tempatLahir}
-              onChange={(e) => patch({ tempatLahir: e.target.value })}
-            />
-          </label>
-        </div>
-
-        <div className="profile-card">
-          <fieldset className="application-fieldset">
-            <legend className="profile-label">{t("applicationLblJantina")}</legend>
-            <label className="application-radio">
-              <input type="radio" name="jantina" checked={d.jantina === "lelaki"} onChange={() => patch({ jantina: "lelaki" })} />
-              <span>{t("applicationOptJantinaLelaki")}</span>
-            </label>
-            <label className="application-radio">
-              <input type="radio" name="jantina" checked={d.jantina === "perempuan"} onChange={() => patch({ jantina: "perempuan" })} />
-              <span>{t("applicationOptJantinaPerempuan")}</span>
-            </label>
-          </fieldset>
-        </div>
-
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-ic">
-            <span className="profile-label">{t("applicationLblIcNo")}</span>
-            <input
-              id="app-ic"
-              className="profile-input"
-              inputMode="numeric"
-              value={d.noKadPengenalan}
-              onChange={(e) => patch({ noKadPengenalan: e.target.value })}
-              autoComplete="off"
-            />
-          </label>
-          <div className="application-ic-flags">
-            <label className="application-check">
-              <input type="checkbox" checked={d.icBaru} onChange={(e) => patch({ icBaru: e.target.checked })} />
-              <span>{t("applicationLblIcBaru")}</span>
-            </label>
-            <label className="application-check">
-              <input type="checkbox" checked={d.icLama} onChange={(e) => patch({ icLama: e.target.checked })} />
-              <span>{t("applicationLblIcLama")}</span>
-            </label>
-          </div>
-          <p className="application-hint">{t("applicationIcHint")}</p>
-        </div>
-
-          </>
-        ) : null}
-        {step === 1 ? (
-          <>
-        <h2 className="application-section-title">{t("applicationSectionAddress")}</h2>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-addr-home">
-            <span className="profile-label">{t("applicationLblAlamatRumah")}</span>
-            <textarea
-              id="app-addr-home"
-              className="profile-input application-textarea"
-              rows={3}
-              value={d.alamatRumah}
-              onChange={(e) => patch({ alamatRumah: e.target.value })}
-            />
-          </label>
-        </div>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-addr-work">
-            <span className="profile-label">{t("applicationLblAlamatPejabat")}</span>
-            <textarea
-              id="app-addr-work"
-              className="profile-input application-textarea"
-              rows={3}
-              value={d.alamatPejabat}
-              onChange={(e) => patch({ alamatPejabat: e.target.value })}
-            />
-          </label>
-        </div>
-
-        <div className="profile-card">
-          <fieldset className="application-fieldset">
-            <legend className="profile-label">{t("applicationLblPekerjaan")}</legend>
-            {(
-              [
-                ["kerajaan", "applicationOptPekerjaan_kerajaan"],
-                ["swasta", "applicationOptPekerjaan_swasta"],
-                ["sendiri", "applicationOptPekerjaan_sendiri"],
-                ["lain", "applicationOptPekerjaan_lain"],
-              ] as const
-            ).map(([p, key]) => (
-              <label key={p} className="application-radio">
-                <input type="radio" name="pekerjaan" checked={d.pekerjaan === p} onChange={() => patch({ pekerjaan: p })} />
-                <span>{t(key)}</span>
-              </label>
-            ))}
-            {pekerjaanNeedsDetail ? (
-              <input
-                className="profile-input application-radio-follow"
-                value={d.pekerjaanNyata}
-                onChange={(e) => patch({ pekerjaanNyata: e.target.value })}
-                placeholder={t("applicationLblNyatakan")}
-              />
-            ) : null}
-          </fieldset>
-        </div>
-
-        <h2 className="application-section-title">{t("applicationSectionContact")}</h2>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-tel-r">
-            <span className="profile-label">{t("applicationLblTelRumah")}</span>
-            <input id="app-tel-r" className="profile-input" value={d.telRumah} onChange={(e) => patch({ telRumah: e.target.value })} />
-          </label>
-        </div>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-tel-p">
-            <span className="profile-label">{t("applicationLblTelPejabat")}</span>
-            <input id="app-tel-p" className="profile-input" value={d.telPejabat} onChange={(e) => patch({ telPejabat: e.target.value })} />
-          </label>
-        </div>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-tel-m">
-            <span className="profile-label">{t("applicationLblTelBimbit")}</span>
-            <input id="app-tel-m" className="profile-input" value={d.telBimbit} onChange={(e) => patch({ telBimbit: e.target.value })} />
-          </label>
-        </div>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-email">
-            <span className="profile-label">{t("applicationLblEmail")}</span>
-            <input
-              id="app-email"
-              type="email"
-              className="profile-input"
-              value={d.email}
-              onChange={(e) => patch({ email: e.target.value })}
-              autoComplete="email"
-            />
-          </label>
-        </div>
-
-          </>
-        ) : null}
-        {step === 2 ? (
-          <>
-        <h2 className="application-section-title">{t("applicationSectionElectoral")}</h2>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-kp">
-            <span className="profile-label">{t("applicationLblKawasanParlimen")}</span>
-            <select
-              id="app-kp"
-              className="profile-input profile-select"
-              value={d.kawasanParlimen}
-              onChange={(e) => patch({ kawasanParlimen: e.target.value })}
-            >
-              <option value="">{t("applicationOptParlimenSelect")}</option>
-              {PARLIMEN_SARAWAK_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div className="profile-card">
-          <label className="profile-field" htmlFor="app-kn">
-            <span className="profile-label">{t("applicationLblKawasanNegeri")}</span>
-            <select
-              id="app-kn"
-              className="profile-input profile-select"
-              value={d.kawasanNegeri}
-              onChange={(e) => patch({ kawasanNegeri: e.target.value })}
-            >
-              <option value="">{t("applicationOptDunSelect")}</option>
-              {DUN_CAWANGAN_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {getCawanganDisplayLabel(opt, t)}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <h2 className="application-section-title">{t("applicationSectionCategory")}</h2>
-        <div className="profile-card">
-          <fieldset className="application-fieldset">
-            <legend className="profile-label">{t("applicationLblKategoriAhli")}</legend>
-            {(
-              [
-                ["induk", "applicationOptKategori_induk"],
-                ["wanita", "applicationOptKategori_wanita"],
-                ["pemuda", "applicationOptKategori_pemuda"],
-                ["belia", "applicationOptKategori_belia"],
-              ] as const
-            ).map(([k, key]) => (
-              <label key={k} className="application-radio">
-                <input type="radio" name="kat" checked={d.kategoriAhli === k} onChange={() => patch({ kategoriAhli: k })} />
-                <span>{t(key)}</span>
-              </label>
-            ))}
-          </fieldset>
-        </div>
-
-          </>
-        ) : null}
-        {step === 3 ? (
-          <>
-        <h2 className="application-section-title">{t("reviewTitle")}</h2>
-        <p className="application-sent-pdf-note">{t("reviewHint")}</p>
-        {previewOps === null ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : previewOps.length ? <BorangPreview ops={previewOps} /> : null}
+        <form
+          className="join-screen"
+          key={screen.id}
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (isReview) {
+              if (d.pengakuan && !sending) submit();
+            } else next();
+          }}
+        >
+          <div className="join-body">
+            {isReview ? (
+              <>
+                <h2 className="join-title">{t("reviewTitle")}</h2>
+                <p className="join-hint">{t("reviewHint")}</p>
+                <ul className="join-rows">
+                  {reviewRows.map(([id, label, value]) => (
+                    <li key={id}>
+                      <div>
+                        <span className="join-row-label">{t(label)}</span>
+                        <span className="join-row-value">{value || "—"}</span>
+                      </div>
+                      <button type="button" className="join-link" onClick={() => jumpTo(id)}>
+                        {t("joinChange")}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {previewOps === null ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : previewOps.length ? <BorangPreview ops={previewOps} /> : null}
 
         <h2 className="application-section-title">{t("applicationSectionDeclaration")}</h2>
         <div className="profile-card profile-card--tight-top">
@@ -958,35 +598,17 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
         </div>
 
         <p className="application-office-note">{t("applicationOfficeNote")}</p>
+              </>
+            ) : (
+              <JoinScreenBody screen={screen} d={d} patch={patch} t={t} />
+            )}
+          </div>
 
-          </>
-        ) : null}
+          <label className="application-hp" aria-hidden="true">
+            Website
+            <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+          </label>
 
-        <label className="application-hp" aria-hidden="true">
-          Website
-          <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
-        </label>
-
-        <div className="application-actions">
-          {step < 3 ? (
-            <button type="button" className="profile-save-btn" onClick={nextStep}>
-              {t("stepNext")}
-            </button>
-          ) : (
-            <button type="button" className="profile-save-btn" disabled={!d.pengakuan || send.kind === "sending"} onClick={submit}>
-              {endpoint ? t(send.kind === "sending" ? "applicationSending" : "applicationSendBtn") : t("applicationSubmitBtn")}
-            </button>
-          )}
-          {step > 0 ? (
-            <button
-              type="button"
-              className="profile-save-btn profile-save-btn--secondary"
-              onClick={() => goStep(step - 1)}
-              disabled={send.kind === "sending"}
-            >
-              {t("stepBack")}
-            </button>
-          ) : null}
           {stepError ? (
             <p className="application-error-msg" role="alert">
               {stepError}
@@ -1002,7 +624,33 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
               {t("applicationSubmitDone")}
             </p>
           ) : null}
-        </div>
+
+          <div className="join-footer">
+            {step > 0 && !returnTo ? (
+              <button type="button" className="join-link" onClick={back} disabled={sending}>
+                {t("stepBack")}
+              </button>
+            ) : (
+              <span />
+            )}
+            <div className="join-footer-end">
+              {screen.optional ? (
+                <button type="button" className="join-link" onClick={skip}>
+                  {t("joinSkip")}
+                </button>
+              ) : null}
+              <button type="submit" className="profile-save-btn join-next" disabled={isReview ? !d.pengakuan || sending : false}>
+                {isReview
+                  ? endpoint
+                    ? t(sending ? "applicationSending" : "applicationSendBtn")
+                    : t("applicationSubmitBtn")
+                  : returnTo
+                    ? t("joinSave")
+                    : t("stepNext")}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </section>
   );

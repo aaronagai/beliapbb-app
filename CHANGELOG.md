@@ -4,6 +4,9 @@ All notable changes to this project are documented in this file.
 
 ## 0.0.12.8 — 2026-11-20
 
+### Changed
+- The join form is now a sequence of short screens, one question each (the Duolingo / Airbnb pattern, from Mobbin), in our own monochrome look: three chapters (Tentang anda, Hubungi anda, Keahlian) with a 3-segment progress bar and a short intro to each; choices (gender, religion, race, work, category) as big tappable cards; IC formatted as you type with a privacy line right under the field; the state seat follows the cawangan so it is never asked; optional extras (office address and phones, parliamentary seat) can be skipped; a review screen with tappable rows ("Ubah" jumps back to that one answer and returns), then the official form, signature and send. Screens slide in from the side you are moving towards (fade only with reduced motion). Grey circles stand in for icons and illustrations until those exist. Same fields as before. The analytics event join_step now also carries the screen name
+
 ### Added
 - Analytics (PostHog, same approach as sarawakseats.org): visits plus a few named actions, no cookies (persistence in memory, so no consent banner), no autocapture, no session recording, no surveys or flags, text masked, query strings stripped, and only on beliapbb.com / app.beliapbb.com. Nothing typed into the application is ever sent. Events: app_link_click (which landing button, from where), how_to_join_seen, join_started, join_step, join_step_blocked, join_submit, join_submitted, join_submit_failed, join_signed (digital or paper), form_downloaded, join_done, join_another. On by default with the "Belia PBB" project token (US cloud); VITE_POSTHOG_KEY can override it. A short cookie-free-statistics note is in the landing footer and on Saya
 
