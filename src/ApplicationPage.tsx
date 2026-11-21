@@ -225,7 +225,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   };
 
   const next = () => {
-    const err = validateScreen(JOIN_SCREENS[step].id, d);
+    const err = validateScreen(JOIN_SCREENS[step].id, d) ?? (JOIN_SCREENS[step].id === "pengakuan" && !formSignature ? "joinSignNeed" : null);
     if (err) {
       setStepError(t(err));
       track("join_step_blocked", { screen: JOIN_SCREENS[step].id });
@@ -349,13 +349,13 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   }, [send, sentData, endpoint, signature, sentIc]);
 
   const submit = useCallback(() => {
-    if (!d.pengakuan) return;
+    if (!d.pengakuan || !formSignature) return;
     if (endpoint) {
       void sendOnline(endpoint);
       return;
     }
     setSaved(saveLocally());
-  }, [d, endpoint, sendOnline, saveLocally]);
+  }, [d, formSignature, endpoint, sendOnline, saveLocally]);
 
 
   const startAnother = () => {
