@@ -2956,3 +2956,11 @@ textarea.join-input {
     line-height: 1;
   }
 }
+
+@media (min-width: 1024px) {
+  .join-footer .join-back {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+}
