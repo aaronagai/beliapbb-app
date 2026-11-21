@@ -398,7 +398,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           </div>
           <h2>{t("applicationSentTitle")}</h2>
           <p className="application-sent-ref">{send.ref}</p>
-          <p>{t("applicationSentBody")}</p>
           {pdf.kind === "making" ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : null}
           {pdf.kind === "ready" ? (
             <>
