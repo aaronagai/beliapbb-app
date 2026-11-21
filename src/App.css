@@ -2723,3 +2723,21 @@ textarea.join-input {
 .signpad-clear {
   color: var(--aw-accent);
 }
+
+.signpad-stage {
+  position: relative;
+}
+
+.signpad-clue {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #b9b9c2;
+  pointer-events: none;
+  transition: opacity 160ms ease-out;
+}
+
+.signpad-clue[data-hidden="true"] {
+  opacity: 0;
+}
