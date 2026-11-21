@@ -10,7 +10,7 @@ import type { MessageKey } from "./i18n";
  * number (date of birth, gender, age, member category, birthplace state), so we read it instead of asking.
  * Icons and illustrations don't exist yet; every spot for one is a plain grey circle (`.join-dot`).
  */
-export type ScreenId = "kamu" | "cawangan" | "lagi" | "hubungi" | "kerja" | "review" | "kategori";
+export type ScreenId = "kamu" | "cawangan" | "lagi" | "hubungi" | "kerja" | "pengakuan" | "review" | "kategori";
 
 /** `hidden` screens are skipped when moving through the form; they open from a review row ("Ubah"). */
 export type JoinScreen = { id: ScreenId; hidden?: true };
@@ -21,6 +21,7 @@ export const JOIN_SCREENS: JoinScreen[] = [
   { id: "lagi" },
   { id: "hubungi" },
   { id: "kerja" },
+  { id: "pengakuan" },
   { id: "review" },
   { id: "kategori", hidden: true },
 ];
@@ -56,6 +57,7 @@ export function validateScreen(id: ScreenId, d: Draft): MessageKey | null {
       return d.tiadaEmail || EMAIL.test(d.email.trim()) ? null : "joinEmailNeed";
     }
     case "kerja": return d.pekerjaan ? null : need;
+    case "pengakuan": return d.pengakuan ? null : "joinPengakuanNeed";
     case "kategori": return d.kategoriAhli ? null : need;
     default: return null;
   }
@@ -492,6 +494,7 @@ function Hubungi({ d, patch, t }: BodyProps) {
         className="profile-input join-input join-textarea"
         autoComplete="street-address"
         rows={3}
+        placeholder={t("joinAlamatPlaceholder")}
         value={d.alamatRumah}
         onChange={(e) => patch({ alamatRumah: e.target.value })}
       />

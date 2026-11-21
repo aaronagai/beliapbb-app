@@ -1905,3 +1905,16 @@
 .join-option[aria-checked="true"] {
   background: var(--color-hover-strong);
 }
+
+.join-declaration {
+  margin-top: 1.25rem;
+}
+
+.join-declaration .application-declaration-text {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.join-declaration .application-form-sign {
+  margin-top: 1.5rem;
+}

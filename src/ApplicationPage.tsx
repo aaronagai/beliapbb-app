@@ -92,6 +92,7 @@ type PdfState =
 
 /** The last screen of the form: review, declaration, signature, send. */
 const REVIEW = screenIndex("review");
+const PENGAKUAN = screenIndex("pengakuan");
 
 function hasDraftContent(d: Draft): boolean {
   return Boolean(d.nama || d.cawangan || d.noKadPengenalan || d.telBimbit || d.email || d.alamatRumah);
@@ -203,7 +204,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     if (step !== REVIEW || send.kind === "sent") return;
     let live = true;
     setPreviewOps(null);
-    makeFilledPdf(normaliseDraft(d), "")
+    makeFilledPdf(normaliseDraft(d), "", formSignature ? { ...formSignature, date: kuchingToday() } : undefined)
       .then((made) => live && setPreviewOps(made.ops))
       .catch(() => live && setPreviewOps([]));
     return () => {
@@ -215,8 +216,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
   const go = (i: number, direction: "forward" | "back") => {
     track("join_step", { step: i + 1, screen: JOIN_SCREENS[i].id, back: direction === "back" });
-    // The signature pad only exists on the review screen: leaving it clears the drawn signature too.
-    if (step === REVIEW && i !== REVIEW) setFormSignature(null);
+    // The pad starts empty each time the declaration screen opens, so drop any older drawn signature.
+    if (i === PENGAKUAN) setFormSignature(null);
     setStepError(null);
     setDir(direction);
     setStep(i);
@@ -569,7 +570,26 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           }}
         >
           <div className="join-body">
-            {isReview ? (
+            {screen.id === "pengakuan" ? (
+              <>
+                <h2 className="join-title">{t("applicationSectionDeclaration")}</h2>
+
+                <div className="join-declaration">
+          <p className="application-declaration-text">{t("applicationDeclarationBody")}</p>
+          <p className="application-declaration-text">{t("applicationPrivacyNote")}</p>
+          <label className="application-check application-declaration-check">
+            <input type="checkbox" checked={d.pengakuan} onChange={(e) => patch({ pengakuan: e.target.checked })} />
+            <span>{t("applicationDeclarationCheckbox")}</span>
+          </label>
+
+          <div className="application-form-sign">
+            <h3 className="application-signed-title">{t("formSignTitle")}</h3>
+            <p className="application-sent-pdf-note">{t("formSignHint")}</p>
+            <SignaturePad onChange={setFormSignature} disabled={send.kind === "sending"} />
+          </div>
+        </div>
+              </>
+            ) : isReview ? (
               <>
                 <h2 className="join-title">{t("reviewTitle")}</h2>
                 <p className="join-hint">{t("reviewHint")}</p>
@@ -588,21 +608,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                 </ul>
                 {previewOps === null ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : previewOps.length ? <BorangPreview ops={previewOps} /> : null}
 
-        <h2 className="application-section-title">{t("applicationSectionDeclaration")}</h2>
-        <div className="profile-card profile-card--tight-top">
-          <p className="application-declaration-text">{t("applicationDeclarationBody")}</p>
-          <p className="application-declaration-text">{t("applicationPrivacyNote")}</p>
-          <label className="application-check application-declaration-check">
-            <input type="checkbox" checked={d.pengakuan} onChange={(e) => patch({ pengakuan: e.target.checked })} />
-            <span>{t("applicationDeclarationCheckbox")}</span>
-          </label>
-
-          <div className="application-form-sign">
-            <h3 className="application-signed-title">{t("formSignTitle")}</h3>
-            <p className="application-sent-pdf-note">{t("formSignHint")}</p>
-            <SignaturePad onChange={setFormSignature} disabled={send.kind === "sending"} />
-          </div>
-        </div>
               </>
             ) : (
               <JoinScreenBody screen={screen} d={d} patch={patch} t={t} />
