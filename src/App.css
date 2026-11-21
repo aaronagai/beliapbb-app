@@ -2222,14 +2222,14 @@
 /* =====================================================================================
    Join page, Airwallex style: their type scale, weights and greys, a left step list,
    a centred form column and outlined Back / filled Next buttons.
-   The one brand decision lives here: --aw-accent. Airwallex purple by default; set it
-   to var(--color-text) (and --aw-accent-hover to #000) to go back to our black.
+   Accent is our monochrome (black on light, white on dark), one token: --aw-accent.
    ===================================================================================== */
 :root {
-  --aw-accent: #612fff;
-  --aw-accent-hover: #4f1fe6;
-  --aw-accent-soft: rgb(97 47 255 / 0.07);
-  --aw-accent-bar: rgb(97 47 255 / 0.35);
+  --aw-accent: #0d0d0d;
+  --aw-accent-hover: #000;
+  --aw-on-accent: #fff;
+  --aw-accent-soft: rgb(0 0 0 / 0.05);
+  --aw-accent-bar: rgb(0 0 0 / 0.3);
   --aw-text: #1a1a1f;
   --aw-label: #3d3d46;
   --aw-muted: #6b6b76;
@@ -2239,16 +2239,17 @@
   --aw-border-hover: #b9b9c3;
   --aw-field: #fff;
   --aw-surface-2: #f6f6f9;
-  --aw-green: #1a9d54;
+  --aw-green: #0d0d0d; /* ticks stay monochrome */
   --aw-red: #d92d3a;
   --aw-shadow: 0 8px 24px rgb(16 16 40 / 0.12);
 }
 
 [data-theme="dark"] {
-  --aw-accent: #8f73ff;
-  --aw-accent-hover: #a58cff;
-  --aw-accent-soft: rgb(143 115 255 / 0.14);
-  --aw-accent-bar: rgb(143 115 255 / 0.45);
+  --aw-accent: #f2f2f5;
+  --aw-accent-hover: #fff;
+  --aw-on-accent: #0d0d0d;
+  --aw-accent-soft: rgb(255 255 255 / 0.08);
+  --aw-accent-bar: rgb(255 255 255 / 0.35);
   --aw-text: #f2f2f5;
   --aw-label: #c9c9d2;
   --aw-muted: #9b9ba8;
@@ -2258,7 +2259,7 @@
   --aw-border-hover: #52525f;
   --aw-field: #141418;
   --aw-surface-2: #1a1a20;
-  --aw-green: #3ccf7a;
+  --aw-green: #f2f2f5;
   --aw-red: #ff6b73;
   --aw-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
 }
@@ -2415,7 +2416,7 @@ textarea.join-input {
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0;
-  color: #fff;
+  color: var(--aw-on-accent);
   background: var(--aw-accent);
   border: 0;
 }
