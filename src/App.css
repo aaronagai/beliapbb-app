@@ -2727,6 +2727,7 @@ textarea.join-input {
 
 .signpad-clue[data-hidden="true"] {
   opacity: 0;
+  transition-duration: 80ms; /* goes the instant they touch */
 }
 
 /* ---- Phone footer: small square Back + wide Next (Recime layout, Uber Eats colours: soft grey and black) ---- */

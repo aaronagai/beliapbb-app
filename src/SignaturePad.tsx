@@ -45,6 +45,7 @@ export function SignaturePad({ onChange, disabled = false }: { onChange: (sig: S
   const strokes = useRef<Pt[][]>([]);
   const activePointer = useRef<number | null>(null);
   const [empty, setEmpty] = useState(true);
+  const [touching, setTouching] = useState(false); // finger or mouse is down right now
 
   const redraw = useCallback(() => {
     const c = canvas.current;
@@ -100,6 +101,7 @@ export function SignaturePad({ onChange, disabled = false }: { onChange: (sig: S
     e.preventDefault();
     canvas.current?.setPointerCapture(e.pointerId);
     activePointer.current = e.pointerId;
+    setTouching(true);
     strokes.current.push([at(e)]);
     redraw();
   };
@@ -119,6 +121,7 @@ export function SignaturePad({ onChange, disabled = false }: { onChange: (sig: S
   const up = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (activePointer.current !== e.pointerId) return;
     activePointer.current = null;
+    setTouching(false);
     const sig = exportSignature();
     setEmpty(!sig);
     onChange(sig);
@@ -146,7 +149,7 @@ export function SignaturePad({ onChange, disabled = false }: { onChange: (sig: S
           onPointerCancel={up}
         />
         {/* A grey pen-and-scribble clue that this is where to sign; it fades once they start drawing. */}
-        <div className="signpad-clue" data-hidden={!empty} aria-hidden>
+        <div className="signpad-clue" data-hidden={touching || !empty} aria-hidden>
           <PenLine size={40} />
         </div>
       </div>
