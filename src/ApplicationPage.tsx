@@ -601,7 +601,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
                 <div className="join-declaration">
           <p className="application-declaration-text">{t("applicationDeclarationBody")}</p>
-          <p className="application-declaration-text">{t("applicationPrivacyNote")}</p>
           <label className="application-check application-declaration-check">
             <input type="checkbox" checked={d.pengakuan} onChange={(e) => patch({ pengakuan: e.target.checked })} />
             <span>{t("applicationDeclarationCheckbox")}</span>
