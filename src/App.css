@@ -2911,3 +2911,46 @@ textarea.join-input {
     }
   }
 }
+
+/* Desktop step list: places you have been are links */
+@media (min-width: 1024px) {
+  .join-rail li {
+    padding: 0;
+  }
+
+  .join-rail li > .join-rail-btn,
+  .join-rail li:not(:has(.join-rail-btn)) {
+    padding: 8px 16px 8px 32px;
+  }
+
+  .join-rail-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 8px 16px 8px 32px;
+    font: inherit;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    text-align: left;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  .join-rail-btn:focus-visible {
+    outline: 2px solid var(--aw-text);
+    outline-offset: -2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .join-rail-btn:hover {
+      color: var(--aw-text);
+      background: var(--aw-surface-2);
+    }
+  }
+}

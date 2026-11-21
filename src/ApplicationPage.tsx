@@ -155,6 +155,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const [stage, setStage] = useState<"sign" | "welcome">("sign");
   /** Which short step of the form is showing (0-3), and whether the intro has been dismissed. */
   const [step, setStep] = useState(0);
+  /** Furthest screen reached, so the desktop step list only lets you jump to places you have been. */
+  const [maxStep, setMaxStep] = useState(0);
   /** Which way the last move went (screens slide in from that side), and whether a review row sent us back to edit. */
   const [dir, setDir] = useState<"forward" | "back">("forward");
   const [returnTo, setReturnTo] = useState(false);
@@ -245,7 +247,15 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     setStepError(null);
     setDir(direction);
     setStep(i);
+    setMaxStep((m) => Math.max(m, Math.min(i, REVIEW)));
     window.scrollTo({ top: 0 });
+  };
+
+  /** From the desktop step list: go straight to a screen you have already been to. */
+  const goToStep = (i: number) => {
+    if (i === step || sending) return;
+    setReturnTo(false);
+    go(i, i < step ? "back" : "forward");
   };
 
   const next = () => {
@@ -396,6 +406,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     clearApplication();
     setRecord(null);
     setStep(0);
+    setMaxStep(0);
     setStarted(false);
     setStepError(null);
     setPreviewOps(null);
@@ -599,8 +610,17 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                 <ul>
                   {items.map(([sc, i]) => (
                     <li key={sc.id} data-state={i < at ? "done" : i === at ? "now" : "next"} aria-current={i === at ? "step" : undefined}>
-                      {t(RAIL_LABEL[sc.id]!)}
-                      <span className="join-rail-check" aria-hidden />
+                      {i !== at && i <= maxStep && (i !== REVIEW || formSignature) ? (
+                        <button type="button" className="join-rail-btn" onClick={() => goToStep(i)}>
+                          {t(RAIL_LABEL[sc.id]!)}
+                          <span className="join-rail-check" aria-hidden />
+                        </button>
+                      ) : (
+                        <>
+                          {t(RAIL_LABEL[sc.id]!)}
+                          <span className="join-rail-check" aria-hidden />
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -690,7 +710,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
               </button>
             ) : null}
             <div className="join-footer-end">
-              <button type="submit" className="profile-save-btn join-next" disabled={isReview ? !d.pengakuan || sending : false}>
+              <button type="submit" className="profile-save-btn join-next" disabled={isReview ? !d.pengakuan || !formSignature || sending : false}>
                 {isReview
                   ? endpoint
                     ? t(sending ? "applicationSending" : "applicationSendBtn")
