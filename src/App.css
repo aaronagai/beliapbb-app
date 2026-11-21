@@ -3311,3 +3311,32 @@ textarea.join-input {
     align-items: flex-end;
   }
 }
+
+/* Received page, phone: one black button (Seterusnya) and "Muat turun" as plain grey text under it (the PayPal pattern) */
+.app2 .application-sent .sent-actions a.sent-download-phone.profile-save-btn {
+  min-height: 44px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--aw-muted);
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app2 .application-sent .sent-actions a.sent-download-phone.profile-save-btn:hover {
+    color: var(--aw-text);
+    background: none;
+  }
+}
+
+/* Received page actions: even rhythm. The grey link has a 44px tap area, so its text already sits ~13px from the button. */
+.app2 .application-sent .sent-actions {
+  gap: 0;
+  margin-top: 12px;
+  margin-bottom: -14px; /* the link's own tap padding supplies the space below its text */
+}
+
+.app2 .application-sent .sent-actions > * {
+  margin: 0;
+}
