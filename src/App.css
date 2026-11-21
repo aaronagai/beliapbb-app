@@ -3349,3 +3349,35 @@ textarea.join-input {
   letter-spacing: 0.04em;
   color: var(--aw-muted);
 }
+
+/* Received page: no outlined card. On a phone the form pages run edge to edge on a grey band so page 2 clearly peeks in. */
+.app2 .application-sent.profile-card {
+  padding: 8px 0 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 1023.98px) {
+  .sent-stage {
+    margin: 20px -20px 0;
+    padding: 20px 0 6px;
+    border-radius: 0;
+  }
+
+  .sent-stage .borang-preview--swipe {
+    gap: 10px;
+  }
+
+  .sent-stage .borang-preview--swipe .borang-page {
+    flex-basis: 74%;
+  }
+
+  .sent-stage .borang-preview--swipe .borang-page:first-child {
+    margin-left: 13%;
+  }
+
+  .sent-stage .borang-preview--swipe .borang-page:last-child {
+    margin-right: 13%;
+  }
+}
