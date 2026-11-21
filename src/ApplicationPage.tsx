@@ -656,12 +656,11 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
           <div className="join-footer">
             {step > 0 && !returnTo ? (
-              <button type="button" className="join-link" onClick={back} disabled={sending}>
-                {t("stepBack")}
+              <button type="button" className="join-link join-back" onClick={back} disabled={sending} aria-label={t("stepBack")}>
+                <span className="join-back-arrow" aria-hidden />
+                <span className="join-back-text">{t("stepBack")}</span>
               </button>
-            ) : (
-              <span />
-            )}
+            ) : null}
             <div className="join-footer-end">
               <button type="submit" className="profile-save-btn join-next" disabled={isReview ? !d.pengakuan || sending : false}>
                 {isReview

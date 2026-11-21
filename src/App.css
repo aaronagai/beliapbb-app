@@ -2741,3 +2741,139 @@ textarea.join-input {
 .signpad-clue[data-hidden="true"] {
   opacity: 0;
 }
+
+/* ---- Phone footer: small square Back + wide Next (Recime layout, Uber Eats colours: soft grey and black) ---- */
+:root {
+  --aw-back-bg: #f3f3f3;
+  --aw-back-bg-hover: #e8e8e8;
+}
+
+[data-theme="dark"] {
+  --aw-back-bg: #232326;
+  --aw-back-bg-hover: #2d2d31;
+}
+
+.join-footer {
+  gap: 12px;
+}
+
+.join-footer-end {
+  flex: 1;
+  margin-left: 0;
+}
+
+.app2 .join .join-next.profile-save-btn {
+  width: 100%;
+  min-height: 3.25rem;
+  border-radius: 12px;
+}
+
+.join-footer .join-back {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0;
+  color: var(--aw-text);
+  background: var(--aw-back-bg);
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms ease-out, background-color 150ms ease;
+}
+
+.join-footer .join-back:active {
+  transform: scale(0.96);
+}
+
+.join-back-arrow {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.join-back-arrow::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 1px;
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.join-back-arrow::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 1px;
+  width: 9px;
+  height: 9px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  border-radius: 1px;
+  transform: scale(0.8) rotate(45deg);
+  transform-origin: center;
+}
+
+/* On a phone the button is the arrow alone; the word stays for screen readers */
+.join-back-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .join-footer .join-back:hover {
+    background: var(--aw-back-bg-hover);
+  }
+}
+
+/* Desktop keeps the Airwallex outlined "Kembali" */
+@media (min-width: 1024px) {
+  .join-footer-end {
+    flex: none;
+  }
+
+  .app2 .join .join-next.profile-save-btn {
+    width: auto;
+    border-radius: 8px;
+  }
+
+  .join-footer .join-back {
+    display: inline-flex;
+    width: auto;
+    height: auto;
+    padding: 0 24px;
+    color: var(--aw-accent);
+    background: transparent;
+    border: 1px solid var(--aw-accent);
+    border-radius: 8px;
+  }
+
+  .join-footer .join-back:hover {
+    background: var(--aw-accent-soft);
+  }
+
+  .join-back-arrow {
+    display: none;
+  }
+
+  .join-back-text {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+  }
+}
