@@ -14,7 +14,6 @@ import { fireConfetti } from "./confetti";
 import { parlimenOf } from "./joinData";
 import { WelcomePack } from "./WelcomePack";
 import { track } from "./analytics";
-import { ApplicationSteps } from "./ApplicationSteps";
 import { clearApplication, markApplicationSigned, readApplication, saveApplication, type ApplicationRecord } from "./applicationRecord";
 import type { BorangOp } from "./borangPdf";
 import {
@@ -141,18 +140,11 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const [saved, setSaved] = useState(false);
   const [send, setSend] = useState<SendState>({ kind: "idle" });
   const [pdf, setPdf] = useState<PdfState>({ kind: "none" });
-  /** Kept in memory only, to pre-fill the signed-form upload right after submitting. */
-  const [sentIc, setSentIc] = useState("");
-  /** The submitted answers, kept in memory so the form can be re-drawn with the signature on it. */
-  const [sentData, setSentData] = useState<Draft | null>(null);
-  const [signature, setSignature] = useState<SignatureResult | null>(null);
   /** Signature drawn on the form page itself, before submitting (optional). */
   const [formSignature, setFormSignature] = useState<SignatureResult | null>(null);
-  const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState(false);
   /** The signed copy is being filed (takes a few seconds): show that instead of the signing pad. */
   const [filing, setFiling] = useState(false);
-  const [signError, setSignError] = useState<MessageKey | null>(null);
   /** After submitting: the sign page, then the welcome pack on its own page. */
   const [stage, setStage] = useState<"sign" | "welcome">("sign");
   /** Which short step of the form is showing (0-3), and whether the intro has been dismissed. */
@@ -299,8 +291,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
         /* private mode */
       }
       setD(emptyDraft);
-      setSentIc(submitted.noKadPengenalan.replace(/\D/g, ""));
-      setSentData(submitted);
       const rec: ApplicationRecord = { ref: result.ref, signed: false, at: new Date().toISOString() };
       saveApplication(rec);
       setRecord(rec);
@@ -352,37 +342,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     });
   }, [d, website, formSignature, saveLocally, t]);
 
-  /** Stamp the drawn signature and today's date onto the form, show it, and file the signed copy. */
-  const signForm = useCallback(async () => {
-    if (send.kind !== "sent" || !sentData || !endpoint) return;
-    if (!signature) {
-      setSignError("signPadNeed");
-      return;
-    }
-    setSigning(true);
-    setSignError(null);
-    try {
-      const made = await makeFilledPdf(sentData, send.ref, { ...signature, date: kuchingToday() });
-      const blob = new Blob([made.bytes as BlobPart], { type: "application/pdf" });
-      const result = await uploadSignedForm(endpoint, send.ref, sentIc, [bytesToBase64(made.bytes)], "digital");
-      // Show the signed form either way; only mark it submitted once the secretariat has it.
-      setPdf((prev) => {
-        if (prev.kind === "ready") URL.revokeObjectURL(prev.url);
-        return { kind: "ready", url: URL.createObjectURL(blob), name: `Borang-PBB-${send.ref}-bertandatangan.pdf`, ops: made.ops };
-      });
-      if (result.ok) {
-        track("join_signed", { method: "digital", where: "after" });
-        setSigned(true);
-        markApplicationSigned();
-        setRecord((r) => (r ? { ...r, signed: true } : r));
-      } else setSignError(result.error === "busy" || result.error === "network" || result.error === "server" ? "signedErrorGeneric" : "signedErrorMatch");
-    } catch {
-      setSignError("signedErrorGeneric");
-    } finally {
-      setSigning(false);
-    }
-  }, [send, sentData, endpoint, signature, sentIc]);
-
   const submit = useCallback(() => {
     if (!formSignature) return;
     if (endpoint) {
@@ -397,12 +356,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     track("join_another");
     if (pdf.kind === "ready") URL.revokeObjectURL(pdf.url);
     setPdf({ kind: "none" });
-    setSentIc("");
-    setSentData(null);
-    setSignature(null);
     setSigned(false);
     setFiling(false);
-    setSignError(null);
     setFormSignature(null);
     clearApplication();
     setRecord(null);
@@ -444,7 +399,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           <h2>{t("applicationSentTitle")}</h2>
           <p className="application-sent-ref">{send.ref}</p>
           <p>{t("applicationSentBody")}</p>
-          <ApplicationSteps signed={signed} />
           {pdf.kind === "making" ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : null}
           {pdf.kind === "ready" ? (
             <>
@@ -467,19 +421,9 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                   <h3 className="application-signed-title">{t("signFiling")}</h3>
                 </div>
               ) : (
-                <div className="application-sign">
-                  <h3 className="application-signed-title">{t("signPadTitle")}</h3>
-                  <p className="application-sent-pdf-note">{t("signPadIntro")}</p>
-                  <SignaturePad onChange={setSignature} disabled={signing} />
-                  <button type="button" className="profile-save-btn application-sent-pdf-btn" onClick={() => void signForm()} disabled={signing}>
-                    {signing ? t("signPadSigning") : t("signPadSubmit")}
-                  </button>
-                  {signError ? (
-                    <p className="application-error-msg" role="alert">
-                      {t(signError)}
-                    </p>
-                  ) : null}
-                </div>
+                <p className="application-sent-pdf-note" role="status">
+                  {t("sentSignPending")}
+                </p>
               )}
               <a
                 className="profile-save-btn application-sent-pdf-btn sent-download-phone"
@@ -489,16 +433,9 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
               >
                 {t(signed ? "applicationPdfDownloadSigned" : "applicationPdfDownload")}
               </a>
-              {signed ? null : <p className="application-sent-pdf-note">{t("applicationPdfNext")}</p>}
             </>
           ) : null}
           {pdf.kind === "failed" ? <p className="application-sent-pdf-note">{t("applicationPdfFailed")}</p> : null}
-          {signed ? null : (
-            <details className="application-signed-details">
-              <summary>{t("signPaperSummary")}</summary>
-              <SignedFormUpload initialRef={send.ref} initialIc={sentIc} />
-            </details>
-          )}
           {pdf.kind === "making" ? null : (
             <button
               type="button"
