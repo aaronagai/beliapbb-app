@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import type { BorangOp } from "./borangPdf";
 
 const W = 540;
@@ -12,9 +13,38 @@ const PAGES = [`${import.meta.env.BASE_URL}borang-halaman-1.png`, `${import.meta
  * (the field it belongs to, e.g. "nama", "tarikhLahir") and a `--i` custom property = its order in
  * the form. Ticks carry `pathLength="1"` so a stroke-dashoffset 1 → 0 draws them in.
  */
-export function BorangPreview({ ops }: { ops: BorangOp[] }) {
+export function BorangPreview({ ops, swipe = false }: { ops: BorangOp[]; swipe?: boolean }) {
+  const scroller = useRef<HTMLElement>(null);
+  const [at, setAt] = useState(0);
+
+  /** Which page is nearest the middle of the row. */
+  const onScroll = () => {
+    const el = scroller.current;
+    if (!el) return;
+    const box = el.getBoundingClientRect();
+    const mid = box.left + box.width / 2;
+    let nearest = 0;
+    let best = Infinity;
+    Array.from(el.children).forEach((child, i) => {
+      const r = child.getBoundingClientRect();
+      const d = Math.abs(r.left + r.width / 2 - mid);
+      if (d < best) {
+        best = d;
+        nearest = i;
+      }
+    });
+    setAt(nearest);
+  };
+
+  const goTo = (i: number) => {
+    const page = scroller.current?.children[i] as HTMLElement | undefined;
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    page?.scrollIntoView({ behavior: calm ? "auto" : "smooth", inline: "center", block: "nearest" });
+  };
+
   return (
-    <figure className="borang-preview" aria-label="Borang Permohonan Keahlian PBB">
+    <>
+    <figure className={`borang-preview${swipe ? " borang-preview--swipe" : ""}`} aria-label="Borang Permohonan Keahlian PBB" ref={scroller} onScroll={swipe ? onScroll : undefined}>
       {PAGES.map((src, page) => (
         <svg key={src} className="borang-page" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Muka ${page + 1}/2`}>
           <image href={src} width={W} height={H} />
@@ -60,5 +90,13 @@ export function BorangPreview({ ops }: { ops: BorangOp[] }) {
         </svg>
       ))}
     </figure>
+    {swipe ? (
+      <div className="borang-dots" role="group" aria-label="Muka borang">
+        {PAGES.map((_, i) => (
+          <button key={i} type="button" className="borang-dot" aria-label={`Muka ${i + 1}/2`} aria-current={at === i} onClick={() => goTo(i)} />
+        ))}
+      </div>
+    ) : null}
+    </>
   );
 }

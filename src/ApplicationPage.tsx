@@ -408,7 +408,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                     {t("sentDownloadPdf")}
                   </a>
                 </header>
-                <BorangPreview ops={pdf.ops} />
+                <BorangPreview ops={pdf.ops} swipe />
               </section>
               {signed ? (
                 <div className="application-sign" role="status">
@@ -424,25 +424,25 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                   {t("sentSignPending")}
                 </p>
               )}
-              <a
-                className="profile-save-btn application-sent-pdf-btn sent-download-phone"
-                href={pdf.url}
-                download={pdf.name}
-                onClick={() => track("form_downloaded", { signed })}
-              >
-                {t(signed ? "applicationPdfDownloadSigned" : "applicationPdfDownload")}
-              </a>
             </>
           ) : null}
           {pdf.kind === "failed" ? <p className="application-sent-pdf-note">{t("applicationPdfFailed")}</p> : null}
           {pdf.kind === "making" ? null : (
-            <button
-              type="button"
-              className={`profile-save-btn application-sent-next${signed ? "" : " profile-save-btn--secondary"}`}
-              onClick={() => goTo("welcome")}
-            >
-              {t("welcomePackNext")}
-            </button>
+            <div className="sent-actions">
+              <button type="button" className="profile-save-btn application-sent-next" onClick={() => goTo("welcome")}>
+                {t("welcomePackNext")}
+              </button>
+              {pdf.kind === "ready" ? (
+                <a
+                  className="profile-save-btn profile-save-btn--secondary application-sent-pdf-btn sent-download-phone"
+                  href={pdf.url}
+                  download={pdf.name}
+                  onClick={() => track("form_downloaded", { signed })}
+                >
+                  {t("sentDownloadPdf")}
+                </a>
+              ) : null}
+            </div>
           )}
         </div>
       </section>

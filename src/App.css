@@ -3162,20 +3162,6 @@ textarea.join-input {
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 10px 30px rgb(0 0 0 / 0.12);
 }
 
-/* Phone: solid black download under the sheet, "continue" as a quiet button below it */
-.app2 .application-sent a.sent-download-phone.profile-save-btn {
-  color: var(--aw-on-accent);
-  background: var(--aw-accent);
-  border: 0;
-}
-
-@media (max-width: 1023.98px) {
-  .app2 .application-sent .application-sent-next.profile-save-btn {
-    color: var(--aw-muted);
-    background: transparent;
-    border: 0;
-  }
-}
 
 /* Laptop: a thin bar over the sheet with the download, like Remote */
 @media (min-width: 1024px) {
@@ -3223,5 +3209,105 @@ textarea.join-input {
 
   .app2 .application-sent a.sent-download-phone.profile-save-btn {
     display: none;
+  }
+}
+
+/* Received page: the two form pages side by side. Page 1 starts in the middle; swipe (or tap a dot) for page 2. */
+.sent-stage .borang-preview--swipe {
+  display: flex;
+  gap: 14px;
+  max-width: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0 18px; /* room for the shadow */
+}
+
+.sent-stage .borang-preview--swipe::-webkit-scrollbar {
+  display: none;
+}
+
+.sent-stage .borang-preview--swipe .borang-page {
+  flex: 0 0 82%;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.sent-stage .borang-preview--swipe .borang-page:first-child {
+  margin-left: 9%;
+}
+
+.sent-stage .borang-preview--swipe .borang-page:last-child {
+  margin-right: 9%;
+}
+
+.borang-dots {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: -4px;
+}
+
+.borang-dot {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.borang-dot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--aw-border);
+  transition: background-color 180ms ease, transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.borang-dot[aria-current="true"]::after {
+  background: var(--aw-text);
+  transform: scale(1.25);
+}
+
+@media (min-width: 1024px) {
+  .sent-stage .borang-preview--swipe .borang-page {
+    flex-basis: 56%;
+  }
+
+  .sent-stage .borang-preview--swipe .borang-page:first-child {
+    margin-left: 22%;
+  }
+
+  .sent-stage .borang-preview--swipe .borang-page:last-child {
+    margin-right: 22%;
+  }
+}
+
+/* Received page actions: Seterusnya first (the main button), then Muat turun */
+.sent-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.sent-actions .profile-save-btn {
+  margin: 0;
+}
+
+@media (min-width: 1024px) {
+  .sent-actions {
+    align-items: flex-end;
   }
 }
