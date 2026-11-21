@@ -5,7 +5,9 @@ import { SignedFormUpload } from "./SignedFormUpload";
 import { BorangPreview } from "./BorangPreview";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import type { Draft } from "./joinData";
-import { JOIN_SCREENS, JoinScreenBody, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
+import { JOIN_SCREENS, JoinScreenBody, VISIBLE_COUNT, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
+import { parseIc } from "./icInfo";
+import { parlimenOf } from "./joinData";
 import { WelcomePack } from "./WelcomePack";
 import { track } from "./analytics";
 import { ApplicationSteps } from "./ApplicationSteps";
@@ -41,6 +43,7 @@ const emptyDraft: Draft = {
   telPejabat: "",
   telBimbit: "",
   email: "",
+  tiadaEmail: false,
   kawasanParlimen: "",
   kawasanNegeri: "",
   kategoriAhli: "",
@@ -87,7 +90,7 @@ type PdfState =
   | { kind: "failed" };
 
 /** The last screen of the form: review, declaration, signature, send. */
-const REVIEW = JOIN_SCREENS.length - 1;
+const REVIEW = screenIndex("review");
 
 function hasDraftContent(d: Draft): boolean {
   return Boolean(d.nama || d.cawangan || d.noKadPengenalan || d.telBimbit || d.email || d.alamatRumah);
@@ -101,8 +104,8 @@ function prefillFromProfile(d: Draft): Draft {
     if (!raw) return d;
     const p = JSON.parse(raw) as { name?: unknown; cawangan?: unknown };
     const name = typeof p.name === "string" ? p.name.trim() : "";
-    const cawangan = typeof p.cawangan === "string" && CAWANGAN_OPTIONS.includes(p.cawangan) ? p.cawangan : "";
-    return { ...d, nama: name.toUpperCase(), cawangan };
+    const cawangan = typeof p.cawangan === "string" && /^N\.\d+\s/.test(p.cawangan) && CAWANGAN_OPTIONS.includes(p.cawangan) ? p.cawangan : "";
+    return { ...d, nama: name.toUpperCase(), cawangan, kawasanNegeri: cawangan, kawasanParlimen: cawangan ? parlimenOf(cawangan) : "" };
   } catch {
     return d;
   }
@@ -170,6 +173,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const patch = useCallback((p: Partial<Draft>) => {
     setD((prev) => ({ ...prev, ...p }));
     setSaved(false);
+    setStepError(null); // an old "answer this first" message goes away as soon as they change something
   }, []);
 
   const saveLocally = useCallback(() => {
@@ -222,11 +226,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
       track("join_step_blocked", { screen: JOIN_SCREENS[step].id });
       return;
     }
-    setReturnTo(false);
-    go(returnTo ? REVIEW : step + 1, "forward");
-  };
-
-  const skip = () => {
     setReturnTo(false);
     go(returnTo ? REVIEW : step + 1, "forward");
   };
@@ -523,31 +522,33 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const isReview = screen.id === "review";
   const sending = send.kind === "sending";
 
-  /** How full chapter `c` of the progress bar is: whole once passed, partly as you move through it. */
-  const chapterFill = (c: number) => {
-    if (screen.chapter > c) return 1;
-    if (screen.chapter < c) return 0;
-    const inChapter = JOIN_SCREENS.map((sc, i) => [sc, i] as const).filter(([sc]) => sc.chapter === c);
-    return (step - inChapter[0][1]) / inChapter.length;
-  };
+  /** How far along the single progress bar is (the hidden category screen counts as the review). */
+  const progress = Math.min(step, REVIEW) / VISIBLE_COUNT;
+
+  const ic = parseIc(d.noKadPengenalan);
+  const icValue = ic.ok
+    ? `${d.noKadPengenalan} · ${ic.jantina === "lelaki" ? t("applicationOptJantinaLelaki") : t("applicationOptJantinaPerempuan")} · ${ic.age} ${t("joinYears")}`
+    : d.noKadPengenalan;
+  const kategoriValue = d.kategoriAhli
+    ? `${t(`applicationOptKategori_${d.kategoriAhli}` as MessageKey)}${ic.ok && ic.kategori === d.kategoriAhli ? ` · ${t("joinByAge")}` : ""}`
+    : "";
 
   const reviewRows: [ScreenId, MessageKey, string][] = [
-    ["nama", "joinRowName", d.nama],
-    ["ic", "joinRowIc", d.noKadPengenalan],
+    ["kamu", "joinRowName", d.nama],
+    ["kamu", "joinRowIc", icValue],
     ["cawangan", "joinRowCaw", d.cawangan ? getCawanganDisplayLabel(d.cawangan, t) : ""],
-    ["telefon", "joinRowTel", d.telBimbit],
-    ["kategori", "joinRowKat", d.kategoriAhli ? t(`applicationOptKategori_${d.kategoriAhli}` as MessageKey) : ""],
+    ["hubungi", "joinRowTel", d.telBimbit],
+    ["hubungi", "joinRowEmail", d.email || (d.tiadaEmail ? t("joinNoEmail") : "")],
+    ["kategori", "joinRowKat", kategoriValue],
   ];
 
   return (
     <section className="section section--apply" aria-label={t("applicationTitle")}>
       <div className="join" data-dir={dir}>
         <nav className="join-progress" aria-label={t("stepsAria")}>
-          {[0, 1, 2].map((c) => (
-            <span key={c} className="join-seg">
-              <i style={{ ["--p" as string]: chapterFill(c) } as React.CSSProperties} />
-            </span>
-          ))}
+          <span className="join-seg">
+            <i style={{ ["--p" as string]: progress } as React.CSSProperties} />
+          </span>
         </nav>
 
         <form
@@ -568,7 +569,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                 <p className="join-hint">{t("reviewHint")}</p>
                 <ul className="join-rows">
                   {reviewRows.map(([id, label, value]) => (
-                    <li key={id}>
+                    <li key={label}>
                       <div>
                         <span className="join-row-label">{t(label)}</span>
                         <span className="join-row-value">{value || "—"}</span>
@@ -634,11 +635,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
               <span />
             )}
             <div className="join-footer-end">
-              {screen.optional ? (
-                <button type="button" className="join-link" onClick={skip}>
-                  {t("joinSkip")}
-                </button>
-              ) : null}
               <button type="submit" className="profile-save-btn join-next" disabled={isReview ? !d.pengakuan || sending : false}>
                 {isReview
                   ? endpoint

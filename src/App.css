@@ -1213,7 +1213,7 @@
 
 .join-progress {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 6px;
   margin: 0.25rem 0 1.75rem;
 }
@@ -1267,6 +1267,7 @@
 
 .join-body {
   flex: 1;
+  padding-bottom: 1.5rem; /* so the last field never sits under the pinned footer */
 }
 
 .join-title {
@@ -1517,4 +1518,121 @@
 
 .join-title + .join-options {
   margin-top: 1.25rem;
+}
+
+/* Compact choices that share a screen with other questions */
+.join-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.join-chip {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 120ms ease-out, background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.join-chip:active {
+  transform: scale(0.97);
+}
+
+.join-chip[aria-checked="true"] {
+  color: var(--color-bg);
+  background: var(--color-text);
+  border-color: var(--color-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .join-chip:hover:not([aria-checked="true"]) {
+    background: var(--color-hover);
+  }
+}
+
+.join-chip:focus-visible,
+.join-check input:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-text));
+  outline-offset: 2px;
+}
+
+/* What we read from the IC */
+.join-derived {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  background: var(--color-hover);
+  border-radius: 0.9rem;
+  animation: join-in-fade 180ms ease-out both;
+}
+
+.join-derived.is-error {
+  color: #b42318;
+  background: rgb(180 35 24 / 0.08);
+}
+
+.join-fixed {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  font-weight: 500;
+  background: var(--color-hover);
+  border-radius: 0.9rem;
+}
+
+.join-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.join-check input {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--color-text);
+}
+
+.join-note,
+.join-nudge {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.join-nudge {
+  padding: 0.65rem 0.85rem;
+  color: var(--color-text);
+  background: var(--color-hover);
+  border-radius: 0.75rem;
+}
+
+/* Optional extras, folded away */
+.join-more {
+  margin-top: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.join-more > summary {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.join-input:disabled {
+  opacity: 0.5;
 }

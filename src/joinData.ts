@@ -1,4 +1,6 @@
 import type { MessageKey } from "./i18n";
+import { CAWANGAN_OPTIONS } from "./cawanganOptions";
+import { PARLIMEN_DUN } from "./parlimenDun";
 
 export const PARLIMEN_SARAWAK_OPTIONS = [
   "P.192 MAS GADING",
@@ -82,6 +84,8 @@ export type Draft = {
   telPejabat: string;
   telBimbit: string;
   email: string;
+  /** Ticked when the applicant has no e-mail (they are encouraged to get one, but not blocked). */
+  tiadaEmail: boolean;
   kawasanParlimen: string;
   kawasanNegeri: string;
   kategoriAhli: "" | "induk" | "belia" | "wanita" | "pemuda";
@@ -94,3 +98,31 @@ export type Draft = {
   penyokongJawatan: string;
 };
 
+
+/** Towns / districts offered for "tempat lahir" when the IC says born in Sarawak. */
+export const SARAWAK_TOWNS = [
+  "Asajaya", "Balingian", "Bau", "Bekenu", "Belaga", "Beluru", "Betong", "Bintangor", "Bintulu", "Dalat", "Daro", "Debak",
+  "Engkilili", "Julau", "Kanowit", "Kapit", "Kota Samarahan", "Kuching", "Lawas", "Limbang", "Long Lama", "Lubok Antu",
+  "Lundu", "Marudi", "Matu", "Miri", "Mukah", "Pakan", "Pusa", "Saratok", "Sarikei", "Sebauh", "Sebuyau", "Selangau",
+  "Serian", "Sibu", "Simunjan", "Song", "Spaoh", "Sri Aman", "Sundar", "Tatau", "Tebedu",
+] as const;
+
+/** "P.192 MAS GADING" → "P.192" */
+const parlimenCode = (value: string) => value.split(" ")[0];
+
+/** Cawangan (DUN) under a Parlimen, e.g. "P.192 MAS GADING" → ["N.1 OPAR", "N.2 TASIK BIRU"]. SETIAUSAHA EKSEKUTIF is not offered. */
+export function cawanganUnder(parlimen: string): string[] {
+  const nums = PARLIMEN_DUN[parlimenCode(parlimen)] ?? [];
+  return CAWANGAN_OPTIONS.filter((opt) => {
+    const m = /^N\.(\d+)\s/.exec(opt);
+    return m !== null && nums.includes(Number(m[1]));
+  });
+}
+
+/** The Parlimen a cawangan belongs to, as written in PARLIMEN_SARAWAK_OPTIONS (or "" if unknown). */
+export function parlimenOf(cawangan: string): string {
+  const m = /^N\.(\d+)\s/.exec(cawangan);
+  if (!m) return "";
+  const code = Object.keys(PARLIMEN_DUN).find((c) => PARLIMEN_DUN[c].includes(Number(m[1])));
+  return PARLIMEN_SARAWAK_OPTIONS.find((o) => o.startsWith(`${code} `)) ?? "";
+}
