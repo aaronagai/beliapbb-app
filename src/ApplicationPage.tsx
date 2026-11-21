@@ -5,7 +5,7 @@ import { SignedFormUpload } from "./SignedFormUpload";
 import { BorangPreview } from "./BorangPreview";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import type { Draft } from "./joinData";
-import { JOIN_SCREENS, JoinScreenBody, VISIBLE_COUNT, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
+import { JOIN_SCREENS, JoinScreenBody, Reveal, VISIBLE_COUNT, useLast, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
 import { parseIc } from "./icInfo";
 import { normaliseDraft } from "./normalise";
 import { parlimenOf } from "./joinData";
@@ -520,6 +520,8 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   }
 
   const screen = JOIN_SCREENS[step];
+  const errorText = stepError ?? (send.kind === "error" ? send.message : null);
+  const shownError = useLast(errorText);
   const isReview = screen.id === "review";
   const sending = send.kind === "sending";
 
@@ -611,16 +613,11 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
             <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
           </label>
 
-          {stepError ? (
+          <Reveal open={!!errorText}>
             <p className="application-error-msg" role="alert">
-              {stepError}
+              {shownError}
             </p>
-          ) : null}
-          {send.kind === "error" ? (
-            <p className="application-error-msg" role="alert">
-              {send.message}
-            </p>
-          ) : null}
+          </Reveal>
           {saved ? (
             <p className="application-saved-msg" role="status">
               {t("applicationSubmitDone")}

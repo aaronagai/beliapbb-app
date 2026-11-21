@@ -1566,7 +1566,7 @@
 
 /* What we read from the IC */
 .join-derived {
-  margin: 1rem 0 0;
+  margin: 1rem 0 0.25rem;
   padding: 0.75rem 1rem;
   font-size: 0.9375rem;
   background: var(--color-hover);
@@ -1614,20 +1614,6 @@
 }
 
 /* Optional extras, folded away */
-.join-more {
-  margin-top: 1.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--color-border);
-}
-
-.join-more > summary {
-  display: flex;
-  align-items: center;
-  min-height: 2.75rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
 .join-input:disabled {
   opacity: 0.5;
 }
@@ -1665,21 +1651,102 @@
   border-radius: 50%;
 }
 
-.join-info { font-size: 0; }
-.join-info::before { font-size: 0.8125rem; }
 
-.join-helpbox {
-  margin: 0 0 0.5rem;
-  padding: 0.7rem 0.9rem;
-  font-size: 0.875rem;
-  line-height: 1.45;
-  background: var(--color-hover);
-  border-radius: 0.75rem;
-  animation: join-in-fade 180ms ease-out both;
+/* Smooth open/close for blocks that appear on demand: no rigid jump */
+.reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 160ms cubic-bezier(0.23, 1, 0.32, 1), opacity 120ms ease-out;
 }
 
-.join-helpbox a {
+.reveal[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 240ms cubic-bezier(0.23, 1, 0.32, 1), opacity 200ms ease-out 40ms;
+}
+
+.reveal-inner {
+  min-height: 0;
+  overflow: hidden;
+  /* room so focus rings are not clipped */
+  padding: 3px;
+  margin: -3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal[data-open="true"] {
+    transition: opacity 120ms linear;
+  }
+}
+
+/* (?) popover floats over the page, so nothing moves */
+.join-label-row {
+  position: relative;
+}
+
+.join-pop {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% - 0.25rem);
+  right: 0;
+  left: 0;
+  padding: 0.8rem 0.95rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.9rem;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.12);
+  transform-origin: top right;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.96) translateY(-4px);
+  transition: opacity 120ms ease-out, transform 120ms ease-out, visibility 0s 120ms;
+}
+
+.join-pop[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 160ms ease-out, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.join-pop a {
   font-weight: 600;
   color: inherit;
   text-underline-offset: 2px;
+}
+
+/* Extras toggle */
+.join-more-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 1.25rem;
+  padding: 0;
+  font: inherit;
+  font-weight: 500;
+  color: var(--color-text);
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.join-chevron {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.join-more-toggle[aria-expanded="true"] .join-chevron {
+  transform: rotate(-135deg);
 }

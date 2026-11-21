@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { getCawanganDisplayLabel } from "./cawanganOptions";
 import { BANGSA_MSG, BANGSA_VALUES, PARLIMEN_SARAWAK_OPTIONS, SARAWAK_TOWNS, cawanganUnder, parlimenOf, type Draft } from "./joinData";
 import { SARAWAK_CODE, STATE_NAMES, parseIc } from "./icInfo";
@@ -62,6 +62,31 @@ export function validateScreen(id: ScreenId, d: Draft): MessageKey | null {
 }
 
 type T = (key: MessageKey) => string;
+
+/** Keeps showing the last real value while something fades out, so text doesn't vanish before the animation ends. */
+export function useLast<V>(value: V | null | undefined | false): V | null {
+  const last = useRef<V | null>(null);
+  if (value) last.current = value;
+  return last.current;
+}
+
+/**
+ * Smoothly opens and closes a block (height + fade) instead of snapping content in and pushing everything down.
+ * The content stays mounted but is inert while closed. `focus` moves focus to its first field once opened.
+ */
+export function Reveal({ open, focus = false, children }: { open: boolean; focus?: boolean; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (open && focus) ref.current?.querySelector<HTMLElement>("input, select, textarea")?.focus({ preventScroll: true });
+  }, [open, focus]);
+  return (
+    <div className="reveal" data-open={open} inert={!open} aria-hidden={!open}>
+      <div className="reveal-inner" ref={ref}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 /** Compact selectable pills, for short lists that share a screen with other questions. */
 function Chips<V extends string>({
@@ -170,6 +195,7 @@ type BodyProps = { d: Draft; patch: (p: Partial<Draft>) => void; t: T };
 /** Name and IC. The IC fills in birth date, gender, category and (outside Sarawak) birthplace by itself. */
 function Kamu({ d, patch, t }: BodyProps) {
   const ic = parseIc(d.noKadPengenalan);
+  const shown = useLast(ic.ok ? ic : null);
 
   const onIc = (raw: string) => {
     const formatted = formatIc(raw);
@@ -211,18 +237,18 @@ function Kamu({ d, patch, t }: BodyProps) {
         onChange={(e) => onIc(e.target.value)}
       />
 
-      {ic.ok ? (
+      <Reveal open={ic.ok}>
         <p className="join-derived" role="status">
-          {ic.kategori ? (
+          {shown && shown.kategori ? (
             <>
-              {ic.jantina === "lelaki" ? t("applicationOptJantinaLelaki") : t("applicationOptJantinaPerempuan")} · {ic.age} {t("joinYears")} ·{" "}
-              <strong>{t(KATEGORI_KEY(ic.kategori))}</strong>
+              {shown.jantina === "lelaki" ? t("applicationOptJantinaLelaki") : t("applicationOptJantinaPerempuan")} · {shown.age} {t("joinYears")} ·{" "}
+              <strong>{t(KATEGORI_KEY(shown.kategori))}</strong>
             </>
-          ) : (
+          ) : shown ? (
             t("joinUnder18")
-          )}
+          ) : null}
         </p>
-      ) : null}
+      </Reveal>
     </>
   );
 }
@@ -236,27 +262,38 @@ function Cawangan({ d, patch, t }: BodyProps) {
   }, []);
 
   const [help, setHelp] = useState(false);
+  const helpRef = useRef<HTMLDivElement>(null);
+  // Close the popover on an outside tap or Escape.
+  useEffect(() => {
+    if (!help) return;
+    const away = (e: PointerEvent) => {
+      if (!helpRef.current?.contains(e.target as Node)) setHelp(false);
+    };
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setHelp(false);
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [help]);
   const options = d.kawasanParlimen ? cawanganUnder(d.kawasanParlimen) : [];
 
   return (
     <>
       <Heading title={t("qCawangan")} hint={t("qCawanganHint")} />
-      <div className="join-label-row">
+      <div className="join-label-row" ref={helpRef}>
         <label className="join-label" htmlFor="join-parlimen">
           {t("applicationLblKawasanParlimen")}
         </label>
-        <button type="button" className="join-info" aria-expanded={help} aria-label={t("joinParlimenHelpAria")} onClick={() => setHelp(!help)}>
-          ?
-        </button>
-      </div>
-      {help ? (
-        <p className="join-helpbox">
+        <button type="button" className="join-info" aria-expanded={help} aria-label={t("joinParlimenHelpAria")} onClick={() => setHelp(!help)} />
+        <div className="join-pop" data-open={help} role="note" inert={!help}>
           {t("joinParlimenHelp")}{" "}
           <a href="https://mysprsemak.spr.gov.my/semakan/daftarPemilih" target="_blank" rel="noopener noreferrer">
             {t("joinParlimenHelpLink")}
           </a>
-        </p>
-      ) : null}
+        </div>
+      </div>
       <select
         id="join-parlimen"
         className="profile-input profile-select join-input"
@@ -346,16 +383,15 @@ function Lagi({ d, patch, t }: BodyProps) {
             ))}
             <option value="__lain">{t("applicationOptAgamaLain")}</option>
           </select>
-          {otherTown ? (
+          <Reveal open={otherTown} focus>
             <input
               className="profile-input join-input join-input--second"
               aria-label={t("applicationLblNyatakan")}
               placeholder={t("applicationLblNyatakan")}
-              autoFocus
               value={d.tempatLahir}
               onChange={(e) => patch({ tempatLahir: e.target.value })}
             />
-          ) : null}
+          </Reveal>
         </>
       ) : (
         <input id="join-pob" className="profile-input join-input" placeholder={t("joinBornAbroad")} value={d.tempatLahir} onChange={(e) => patch({ tempatLahir: e.target.value })} />
@@ -372,7 +408,7 @@ function Lagi({ d, patch, t }: BodyProps) {
           ["lain", t("applicationOptAgamaLain")],
         ]}
       />
-      {d.agama === "lain" ? (
+      <Reveal open={d.agama === "lain"} focus>
         <input
           className="profile-input join-input join-input--second"
           placeholder={t("applicationLblNyatakan")}
@@ -380,7 +416,7 @@ function Lagi({ d, patch, t }: BodyProps) {
           value={d.agamaLain}
           onChange={(e) => patch({ agamaLain: e.target.value })}
         />
-      ) : null}
+      </Reveal>
 
       <p className="join-label">{t("applicationLblBangsa")}</p>
       <Chips
@@ -389,7 +425,7 @@ function Lagi({ d, patch, t }: BodyProps) {
         onPick={(v) => patch({ bangsa: v, bangsaLain: v === "lain" ? d.bangsaLain : "" })}
         options={BANGSA_VALUES.map((v) => [v, t(BANGSA_MSG[v])] as const)}
       />
-      {d.bangsa === "lain" ? (
+      <Reveal open={d.bangsa === "lain"} focus>
         <input
           className="profile-input join-input join-input--second"
           placeholder={t("applicationLblNyatakan")}
@@ -397,7 +433,7 @@ function Lagi({ d, patch, t }: BodyProps) {
           value={d.bangsaLain}
           onChange={(e) => patch({ bangsaLain: e.target.value })}
         />
-      ) : null}
+      </Reveal>
     </>
   );
 }
@@ -441,7 +477,12 @@ function Hubungi({ d, patch, t }: BodyProps) {
         <input type="checkbox" checked={d.tiadaEmail} onChange={(e) => patch({ tiadaEmail: e.target.checked, email: e.target.checked ? "" : d.email })} />
         <span>{t("joinNoEmail")}</span>
       </label>
-      <p className={d.tiadaEmail ? "join-nudge" : "join-note"}>{t(d.tiadaEmail ? "joinNoEmailNudge" : "joinEmailWhy")}</p>
+      <Reveal open={!d.tiadaEmail}>
+        <p className="join-note">{t("joinEmailWhy")}</p>
+      </Reveal>
+      <Reveal open={d.tiadaEmail}>
+        <p className="join-nudge">{t("joinNoEmailNudge")}</p>
+      </Reveal>
 
       <label className="join-label" htmlFor="join-alamat">
         {t("applicationLblAlamatRumah")}
@@ -460,6 +501,7 @@ function Hubungi({ d, patch, t }: BodyProps) {
 
 /** Work, with the optional extras tucked away. */
 function Kerja({ d, patch, t }: BodyProps) {
+  const [more, setMore] = useState(() => !!(d.alamatPejabat || d.telRumah || d.telPejabat));
   return (
     <>
       <Heading title={t("qPekerjaan")} />
@@ -474,7 +516,7 @@ function Kerja({ d, patch, t }: BodyProps) {
           ["lain", t("applicationOptPekerjaan_lain")],
         ]}
       />
-      {d.pekerjaan ? (
+      <Reveal open={!!d.pekerjaan}>
         <input
           className="profile-input join-input join-input--second"
           placeholder={`${t("applicationLblNyatakan")} (${t("joinOptional")})`}
@@ -482,10 +524,13 @@ function Kerja({ d, patch, t }: BodyProps) {
           value={d.pekerjaanNyata}
           onChange={(e) => patch({ pekerjaanNyata: e.target.value })}
         />
-      ) : null}
+      </Reveal>
 
-      <details className="join-more">
-        <summary>{t("joinMore")}</summary>
+      <button type="button" className="join-more-toggle" aria-expanded={more} onClick={() => setMore(!more)}>
+        {t("joinMore")}
+        <span className="join-chevron" aria-hidden />
+      </button>
+      <Reveal open={more}>
         <label className="join-label" htmlFor="join-office">
           {t("applicationLblAlamatPejabat")}
         </label>
@@ -498,7 +543,7 @@ function Kerja({ d, patch, t }: BodyProps) {
           {t("applicationLblTelPejabat")}
         </label>
         <input id="join-telpejabat" type="tel" inputMode="tel" className="profile-input join-input" value={d.telPejabat} onChange={(e) => patch({ telPejabat: e.target.value })} onBlur={() => patch({ telPejabat: formatPhone(d.telPejabat) })} />
-      </details>
+      </Reveal>
     </>
   );
 }
