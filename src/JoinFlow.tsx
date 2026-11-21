@@ -235,14 +235,28 @@ function Cawangan({ d, patch, t }: BodyProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [help, setHelp] = useState(false);
   const options = d.kawasanParlimen ? cawanganUnder(d.kawasanParlimen) : [];
 
   return (
     <>
       <Heading title={t("qCawangan")} hint={t("qCawanganHint")} />
-      <label className="join-label" htmlFor="join-parlimen">
-        {t("applicationLblKawasanParlimen")}
-      </label>
+      <div className="join-label-row">
+        <label className="join-label" htmlFor="join-parlimen">
+          {t("applicationLblKawasanParlimen")}
+        </label>
+        <button type="button" className="join-info" aria-expanded={help} aria-label={t("joinParlimenHelpAria")} onClick={() => setHelp(!help)}>
+          ?
+        </button>
+      </div>
+      {help ? (
+        <p className="join-helpbox">
+          {t("joinParlimenHelp")}{" "}
+          <a href="https://mysprsemak.spr.gov.my/semakan/daftarPemilih" target="_blank" rel="noopener noreferrer">
+            {t("joinParlimenHelpLink")}
+          </a>
+        </p>
+      ) : null}
       <select
         id="join-parlimen"
         className="profile-input profile-select join-input"
