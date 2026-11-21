@@ -7,6 +7,7 @@ import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import type { Draft } from "./joinData";
 import { JOIN_SCREENS, JoinScreenBody, PARTS, RAIL_LABEL, Reveal, partFill, useLast, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
 import { ArrowLeft } from "reicon-react";
+import { BANGSA_MSG } from "./joinData";
 import { parseIc } from "./icInfo";
 import { normaliseDraft } from "./normalise";
 import { parlimenOf } from "./joinData";
@@ -163,7 +164,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const [started, setStarted] = useState(() => hasDraftContent(readDraft()));
   const [stepError, setStepError] = useState<string | null>(null);
   /** The official form as it will print, shown on the review step. */
-  const [previewOps, setPreviewOps] = useState<BorangOp[] | null>(null);
   /** An application already sent from this device. */
   const [record, setRecord] = useState<ApplicationRecord | null>(() => readApplication());
   /** Joining (intro, steps, the pages right after sending) runs without the tab bar; the status view does not. */
@@ -224,21 +224,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     }, 500);
     return () => window.clearTimeout(id);
   }, [d, send.kind, saveLocally]);
-
-  // Review step: draw the official form from the answers so far (no reference number yet).
-  useEffect(() => {
-    if (step !== REVIEW || send.kind === "sent") return;
-    let live = true;
-    setPreviewOps(null);
-    makeFilledPdf(normaliseDraft(d), "", formSignature ? { ...formSignature, date: kuchingToday() } : undefined)
-      .then((made) => live && setPreviewOps(made.ops))
-      .catch(() => live && setPreviewOps([]));
-    return () => {
-      live = false;
-    };
-    // Only when the review step opens; later edits to the declaration don't redraw the form.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
 
   const go = (i: number, direction: "forward" | "back") => {
     track("join_step", { step: i + 1, screen: JOIN_SCREENS[i].id, back: direction === "back" });
@@ -409,7 +394,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     setMaxStep(0);
     setStarted(false);
     setStepError(null);
-    setPreviewOps(null);
     setStage("sign");
     setSend({ kind: "idle" });
   };
@@ -564,23 +548,52 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const isReview = screen.id === "review";
   const sending = send.kind === "sending";
 
+  // Review cards (Turo style): the answers grouped in a few cards, tidied exactly as the sheet will hold them.
   const ic = parseIc(d.noKadPengenalan);
-  const icValue = ic.ok
-    ? `${d.noKadPengenalan} · ${ic.jantina === "lelaki" ? t("applicationOptJantinaLelaki") : t("applicationOptJantinaPerempuan")} · ${ic.age} ${t("joinYears")}`
-    : d.noKadPengenalan;
-  const kategoriValue = ic.ok && !ic.kategori
-    ? t("joinUnder18Row")
-    : d.kategoriAhli
-    ? `${t(`applicationOptKategori_${d.kategoriAhli}` as MessageKey)}${ic.ok && ic.kategori === d.kategoriAhli ? ` · ${t("joinByAge")}` : ""}`
-    : "";
-
-  const reviewRows: [ScreenId, MessageKey, string][] = [
-    ["kamu", "joinRowName", d.nama],
-    ["kamu", "joinRowIc", icValue],
-    ["cawangan", "joinRowCaw", d.cawangan ? getCawanganDisplayLabel(d.cawangan, t) : ""],
-    ["hubungi", "joinRowTel", d.telBimbit],
-    ["hubungi", "joinRowEmail", d.email || (d.tiadaEmail ? t("joinNoEmail") : "")],
-    ["kategori", "joinRowKat", kategoriValue],
+  const nd = normaliseDraft(d);
+  const dash = (v: string) => v || "—";
+  const gender = ic.ok ? (ic.jantina === "lelaki" ? t("applicationOptJantinaLelaki") : t("applicationOptJantinaPerempuan")) : "";
+  const icValue = ic.ok ? `${nd.noKadPengenalan} · ${gender} · ${ic.age} ${t("joinYears")}` : nd.noKadPengenalan;
+  const agamaKey = { islam: "applicationOptAgamaIslam", kristian: "applicationOptAgamaKristian", lain: "applicationOptAgamaLain" } as const;
+  const agamaValue = d.agama === "lain" ? nd.agamaLain || t(agamaKey.lain) : d.agama ? t(agamaKey[d.agama]) : "";
+  const bangsaValue = d.bangsa === "lain" ? nd.bangsaLain || t(BANGSA_MSG.lain) : d.bangsa ? t(BANGSA_MSG[d.bangsa]) : "";
+  const kerjaValue = d.pekerjaan ? `${t(`applicationOptPekerjaan_${d.pekerjaan}` as MessageKey)}${nd.pekerjaanNyata ? ` (${nd.pekerjaanNyata})` : ""}` : "";
+  const kategoriValue =
+    ic.ok && !ic.kategori
+      ? t("joinUnder18Row")
+      : d.kategoriAhli
+        ? `${t(`applicationOptKategori_${d.kategoriAhli}` as MessageKey)}${ic.ok && ic.kategori === d.kategoriAhli ? ` · ${t("joinByAge")}` : ""}`
+        : "";
+  const reviewCards: { title: MessageKey; edit: ScreenId; rows: [MessageKey, string][] }[] = [
+    {
+      title: "reviewCardPeople",
+      edit: "kamu",
+      rows: [
+        ["joinRowName", nd.nama],
+        ["joinRowIc", icValue],
+        ["applicationLblTempatLahir", nd.tempatLahir],
+        ["applicationLblAgama", agamaValue],
+        ["applicationLblBangsa", bangsaValue],
+      ],
+    },
+    {
+      title: "reviewCardContact",
+      edit: "hubungi",
+      rows: [
+        ["applicationLblTelBimbit", nd.telBimbit],
+        ["joinRowEmail", nd.email || (d.tiadaEmail ? t("joinNoEmail") : "")],
+        ["applicationLblAlamatRumah", nd.alamatRumah],
+      ],
+    },
+    {
+      title: "reviewCardMember",
+      edit: "cawangan",
+      rows: [
+        ["joinRowCaw", d.cawangan ? getCawanganDisplayLabel(d.cawangan, t) : ""],
+        ["joinRowKat", kategoriValue],
+        ["applicationLblPekerjaan", kerjaValue],
+      ],
+    },
   ];
 
   return (
@@ -660,21 +673,35 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
               <>
                 <h2 className="join-title">{t("reviewTitle")}</h2>
                 <p className="join-hint">{t("reviewHint")}</p>
-                <ul className="join-rows">
-                  {reviewRows.map(([id, label, value]) => (
-                    <li key={label}>
-                      <div>
-                        <span className="join-row-label">{t(label)}</span>
-                        <span className="join-row-value">{value || "—"}</span>
-                      </div>
-                      <button type="button" className="join-link" onClick={() => jumpTo(id)}>
+                <div className="review-cards">
+                  {reviewCards.map((card) => (
+                    <section key={card.title} className="review-card">
+                      <header className="review-card-head">
+                        <h3>{t(card.title)}</h3>
+                        <button type="button" className="join-link" onClick={() => jumpTo(card.edit)}>
+                          {t("joinChange")}
+                        </button>
+                      </header>
+                      <dl>
+                        {card.rows.map(([label, value]) => (
+                          <div key={label}>
+                            <dt>{t(label)}</dt>
+                            <dd>{dash(value)}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </section>
+                  ))}
+                  <section className="review-card">
+                    <header className="review-card-head">
+                      <h3>{t("reviewCardSign")}</h3>
+                      <button type="button" className="join-link" onClick={() => jumpTo("pengakuan")}>
                         {t("joinChange")}
                       </button>
-                    </li>
-                  ))}
-                </ul>
-                {previewOps === null ? <p className="application-sent-pdf-note">{t("applicationPdfMaking")}</p> : previewOps.length ? <BorangPreview ops={previewOps} /> : null}
-
+                    </header>
+                    {formSignature ? <img className="review-sign" src={formSignature.dataUrl} alt={t("reviewCardSign")} /> : <p className="review-empty">—</p>}
+                  </section>
+                </div>
               </>
             ) : (
               <JoinScreenBody screen={screen} d={d} patch={patch} t={t} />
