@@ -6,6 +6,7 @@ import { BorangPreview } from "./BorangPreview";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import type { Draft } from "./joinData";
 import { JOIN_SCREENS, JoinScreenBody, PARTS, RAIL_LABEL, Reveal, partFill, useLast, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
+import { ArrowLeft } from "reicon-react";
 import { parseIc } from "./icInfo";
 import { normaliseDraft } from "./normalise";
 import { parlimenOf } from "./joinData";
@@ -657,7 +658,9 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           <div className="join-footer">
             {step > 0 && !returnTo ? (
               <button type="button" className="join-link join-back" onClick={back} disabled={sending} aria-label={t("stepBack")}>
-                <span className="join-back-arrow" aria-hidden />
+                <span className="join-back-arrow" aria-hidden>
+                  <ArrowLeft size={22} />
+                </span>
                 <span className="join-back-text">{t("stepBack")}</span>
               </button>
             ) : null}
