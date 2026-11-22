@@ -1023,17 +1023,23 @@ button.lp-btn {
 }
 
 .lp-branch-code {
-  grid-row: span 2;
+  grid-column: 1;
+  grid-row: 1 / span 2;
   color: var(--lp-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .lp-branch-area {
+  grid-column: 2;
+  grid-row: 1;
   font-size: 14px;
   color: var(--lp-muted);
 }
 
 .lp-branch-name {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
   font-weight: 500;
 }
 
@@ -1069,9 +1075,11 @@ button.lp-btn {
     align-items: baseline;
   }
 
-  .lp-branch-wa { grid-row: auto; align-self: center; }
-
-  .lp-branch-code { grid-row: auto; }
+  .lp-branch-code, .lp-branch-area, .lp-branch-name, .lp-branch-wa { grid-row: 1; }
+  .lp-branch-code { grid-column: 1; }
+  .lp-branch-area { grid-column: 2; }
+  .lp-branch-name { grid-column: 3; }
+  .lp-branch-wa { grid-column: 4; align-self: center; }
   .lp-branch-area { font-size: 16px; color: var(--lp-text); }
 }
 
