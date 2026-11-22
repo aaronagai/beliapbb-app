@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { applicationEndpoint, attachApplicationPdf, bytesToBase64, submitApplication, uploadSignedForm } from "./applicationApi";
 import { useI18n, type MessageKey } from "./i18n";
-import { SignedFormUpload } from "./SignedFormUpload";
 import { BorangPreview } from "./BorangPreview";
+import { PhotoPicker } from "./PhotoPicker";
 import { SignaturePad, type SignatureResult } from "./SignaturePad";
 import type { Draft } from "./joinData";
 import { JOIN_SCREENS, JoinScreenBody, PARTS, RAIL_LABEL, Reveal, partFill, useLast, screenIndex, validateScreen, type ScreenId } from "./JoinFlow";
@@ -123,6 +123,7 @@ async function makeFilledPdf(
   data: Draft,
   ref: string,
   signature?: { dataUrl: string; aspect: number; date: string },
+  photo?: string | null,
 ): Promise<{ bytes: Uint8Array; ops: BorangOp[] }> {
   const [{ fillBorangPdf }, template] = await Promise.all([
     import("./borangPdf"),
@@ -131,7 +132,7 @@ async function makeFilledPdf(
       return r.arrayBuffer();
     }),
   ]);
-  return fillBorangPdf(template, data, ref, signature);
+  return fillBorangPdf(template, data, ref, signature, photo ?? undefined);
 }
 
 export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (focus: boolean) => void; onExit?: () => void }) {
@@ -143,6 +144,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   const [pdf, setPdf] = useState<PdfState>({ kind: "none" });
   /** Signature drawn on the form page itself, before submitting (optional). */
   const [formSignature, setFormSignature] = useState<SignatureResult | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
   const [signed, setSigned] = useState(false);
   /** The signed copy is being filed (takes a few seconds): show that instead of the signing pad. */
   const [filing, setFiling] = useState(false);
@@ -250,7 +252,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   };
 
   const next = () => {
-    const err = validateScreen(JOIN_SCREENS[step].id, d) ?? (JOIN_SCREENS[step].id === "pengakuan" && !formSignature ? "joinSignNeed" : null);
+    const err = validateScreen(JOIN_SCREENS[step].id, d) ?? (JOIN_SCREENS[step].id === "pengakuan" && !formSignature ? "joinSignNeed" : null) ?? (JOIN_SCREENS[step].id === "gambar" && !photo ? "photoNeed" : null);
     if (err) {
       setStepError(t(err));
       track("join_step_blocked", { screen: JOIN_SCREENS[step].id });
@@ -304,7 +306,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
       let filedSigned = false;
       try {
         const sig = formSignature ? { ...formSignature, date: kuchingToday() } : undefined;
-        const made = await makeFilledPdf(submitted, result.ref, sig);
+        const made = await makeFilledPdf(submitted, result.ref, sig, photo);
         bytes = made.bytes;
         const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
         setPdf({
@@ -360,6 +362,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
     setSigned(false);
     setFiling(false);
     setFormSignature(null);
+    setPhoto(null);
     clearApplication();
     setRecord(null);
     setStep(0);
@@ -460,17 +463,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
   if (record) {
     return (
       <section className="section section--apply" aria-label={t("applicationTitle")}>
-        <WelcomePack first={record.first} signed={record.signed} pendingText={t("statusPending")} onAnother={startAnother}>
-          {record.signed ? null : (
-            <SignedFormUpload
-              initialRef={record.ref}
-              onDone={() => {
-                markApplicationSigned();
-                setRecord((r) => (r ? { ...r, signed: true } : r));
-              }}
-            />
-          )}
-        </WelcomePack>
+        <WelcomePack first={record.first} signed={record.signed} pendingText={t("statusPending")} onAnother={startAnother} />
       </section>
     );
   }
@@ -497,12 +490,6 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           >
             {t("startBtn")}
           </button>
-          {endpoint ? (
-            <details className="application-signed-details">
-              <summary>{t("startHaveRef")}</summary>
-              <SignedFormUpload />
-            </details>
-          ) : null}
         </div>
       </section>
     );
@@ -510,7 +497,7 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
 
   const screen = JOIN_SCREENS[step];
   /** Next looks grey until this screen's required answers are in, then goes solid (it stays tappable to explain what is missing). */
-  const ready = screen.id === "review" ? !!formSignature : !validateScreen(screen.id, d) && (screen.id !== "pengakuan" || !!formSignature);
+  const ready = screen.id === "review" ? !!formSignature : !validateScreen(screen.id, d) && (screen.id !== "pengakuan" || !!formSignature) && (screen.id !== "gambar" || !!photo);
   const isReview = screen.id === "review";
   const sending = send.kind === "sending";
 
@@ -635,6 +622,12 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
           </div>
         </div>
               </>
+            ) : screen.id === "gambar" ? (
+              <>
+                <h2 className="join-title">{t("photoTitle")}</h2>
+                <p className="join-hint">{t("photoHint")}</p>
+                <PhotoPicker value={photo} onChange={setPhoto} />
+              </>
             ) : isReview ? (
               <>
                 <h2 className="join-title">{t("reviewTitle")}</h2>
@@ -658,6 +651,15 @@ export function ApplicationPage({ onFocusChange, onExit }: { onFocusChange?: (fo
                       </dl>
                     </section>
                   ))}
+                  <section className="review-card">
+                    <header className="review-card-head">
+                      <h3>{t("reviewCardPhoto")}</h3>
+                      <button type="button" className="join-link" onClick={() => jumpTo("gambar")}>
+                        {t("joinChange")}
+                      </button>
+                    </header>
+                    {photo ? <img className="review-photo" src={photo} alt={t("photoAlt")} /> : <p className="review-empty">—</p>}
+                  </section>
                   <section className="review-card">
                     <header className="review-card-head">
                       <h3>{t("reviewCardSign")}</h3>

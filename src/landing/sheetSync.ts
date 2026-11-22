@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAhliRows } from "../ahliData";
-import { MAJLIS_TERTINGGI, whatsappHref, type CouncilMember, type CouncilSocials } from "./leadershipData";
+import { COUNCIL_PHONES, MAJLIS_TERTINGGI, whatsappHref, type CouncilMember, type CouncilSocials } from "./leadershipData";
 
 /**
  * The leadership page reads the "Kepimpinan Belia PBB Sarawak" Google Sheet live, so the
@@ -116,7 +116,7 @@ function toCouncil(rows: string[][]): CouncilMember[] {
     .map((r) => {
       const phone = col(r, "whatsapp").replace(/\D/g, "");
       const socials: CouncilSocials = {
-        whatsapp: phone.length >= 9 ? whatsappHref(phone) : undefined,
+        whatsapp: phone.length >= 9 ? whatsappHref(phone) : COUNCIL_PHONES[col(r, "nama").trim()] ? whatsappHref(COUNCIL_PHONES[col(r, "nama").trim()]) : undefined,
         instagram: profileUrl("instagram", col(r, "instagram")),
         facebook: profileUrl("facebook", col(r, "facebook")),
         tiktok: profileUrl("tiktok", col(r, "tiktok")),

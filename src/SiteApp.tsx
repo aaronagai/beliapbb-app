@@ -77,7 +77,8 @@ export function SiteApp({ initial }: { initial: SitePage }) {
           <div className="app2-header-left">
             <a className="app2-brand" href={SITE_URL} translate="no">
               <Logo className="app2-brand-logo" alt={t("logoAlt")} />
-              <span>Belia PBB</span>
+              <span className={joining ? "app2-brand-name" : undefined}>Belia PBB</span>
+              {joining ? <span className="app2-brand-short">{t("joinBarTitle")}</span> : null}
             </a>
             {joining ? (
               <>

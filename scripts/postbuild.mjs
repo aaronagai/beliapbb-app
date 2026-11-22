@@ -12,9 +12,35 @@ const PAGES = ["kepimpinan", "sertai", "tanya", "ftes", "perlembagaan"];
 
 const file = (p) => join(out, p);
 const shell = () => readFileSync(file("index.html"), "utf8");
+// Link previews (WhatsApp, Facebook …) read the shell's own meta tags, so /sertai/ gets its own title, text and image.
+const META = {
+  sertai: {
+    title: "Sertai Belia PBB",
+    description: "Isi borang keahlian PBB di telefon anda, tandatangan di skrin. Kira-kira 5 minit.",
+    image: "og-sertai.png",
+    alt: "Sertai Belia PBB: borang keahlian di beliapbb.com/sertai",
+  },
+};
+const withMeta = (html, dir) => {
+  const m = META[dir];
+  if (!m) return html;
+  const url = `${SITE}${dir}/`;
+  return html
+    .replace(/<title>[^<]*<\/title>/, `<title>${m.title}</title>`)
+    .replace(/(name="description" content=")[^"]*/, `$1${m.description}`)
+    .replace(/(property="og:title" content=")[^"]*/, `$1${m.title}`)
+    .replace(/(property="og:description" content=")[^"]*/, `$1${m.description}`)
+    .replace(/(property="og:url" content=")[^"]*/, `$1${url}`)
+    .replace(/(property="og:image" content=")[^"]*/, `$1${SITE}${m.image}`)
+    .replace(/(property="og:image:alt" content=")[^"]*/, `$1${m.alt}`)
+    .replace(/(name="twitter:title" content=")[^"]*/, `$1${m.title}`)
+    .replace(/(name="twitter:description" content=")[^"]*/, `$1${m.description}`)
+    .replace(/(name="twitter:image" content=")[^"]*/, `$1${SITE}${m.image}`)
+    .replace(/(name="twitter:image:alt" content=")[^"]*/, `$1${m.alt}`);
+};
 const copyShell = (dir) => {
   mkdirSync(file(dir), { recursive: true });
-  copyFileSync(file("index.html"), file(`${dir}/index.html`));
+  writeFileSync(file(`${dir}/index.html`), withMeta(shell(), dir));
 };
 const remove = (p) => existsSync(file(p)) && rmSync(file(p), { recursive: true });
 

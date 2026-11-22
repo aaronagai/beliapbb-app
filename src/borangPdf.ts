@@ -51,6 +51,8 @@ export type BorangSignature = { dataUrl: string; aspect: number; date: string };
 
 /** Where the signature and date go on page 2 ("Tandatangan/ Cap Jari Pemohon" and "Tarikh"), from the top-left. */
 const SIGN_BOX = { x: 182, y: 221, w: 134, h: 44 } as const;
+/** The photo box at the top right of page 1, from the top-left. */
+const PHOTO_BOX = { x: 412, y: 99.5, w: 105, h: 131.5 } as const;
 const SIGN_DATE = { x: 404, baseline: 264, size: 10 } as const;
 
 export const BORANG_PAGE = { width: 540, height: 780 } as const;
@@ -159,6 +161,7 @@ export async function fillBorangPdf(
   d: BorangData,
   ref: string,
   signature?: BorangSignature,
+  photo?: string,
 ): Promise<{ bytes: Uint8Array; ops: BorangOp[] }> {
   const pdf = await PDFDocument.load(templateBytes);
   const font = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -288,6 +291,11 @@ export async function fillBorangPdf(
   group = "kategoriAhli";
   if (d.kategoriAhli) tick(1, TICK.kategori[d.kategoriAhli]);
 
+  if (photo) {
+    group = "gambar";
+    ops.push({ kind: "image", page: 0, group, ...PHOTO_BOX, dataUrl: photo });
+  }
+
   if (signature) {
     group = "tandatangan";
     // Fit the signature inside its box, keeping its shape, sitting on the signature line.
@@ -306,7 +314,7 @@ export async function fillBorangPdf(
     if (op.kind === "text") {
       page.drawText(op.text, { x: op.x, y: PAGE_H - op.y, size: op.size, font, color: INK });
     } else if (op.kind === "image") {
-      const png = await pdf.embedPng(op.dataUrl);
+      const png = op.dataUrl.startsWith("data:image/jpeg") ? await pdf.embedJpg(op.dataUrl) : await pdf.embedPng(op.dataUrl);
       page.drawImage(png, { x: op.x, y: PAGE_H - op.y - op.h, width: op.w, height: op.h });
     } else {
       const [x0, y0, x1, y1] = op.box;

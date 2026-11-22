@@ -11,7 +11,7 @@ import { Picker } from "./Picker";
  * number (date of birth, gender, age, member category, birthplace state), so we read it instead of asking.
  * Icons and illustrations don't exist yet; every spot for one is a plain grey circle (`.join-dot`).
  */
-export type ScreenId = "kamu" | "cawangan" | "lagi" | "hubungi" | "kerja" | "pengakuan" | "review" | "kategori";
+export type ScreenId = "kamu" | "cawangan" | "lagi" | "hubungi" | "kerja" | "gambar" | "pengakuan" | "review" | "kategori";
 
 /** `hidden` screens are skipped when moving through the form; they open from a review row ("Ubah"). */
 export type JoinScreen = { id: ScreenId; part: 0 | 1 | 2; hidden?: true };
@@ -22,6 +22,7 @@ export const JOIN_SCREENS: JoinScreen[] = [
   { id: "lagi", part: 1 },
   { id: "hubungi", part: 1 },
   { id: "kerja", part: 1 },
+  { id: "gambar", part: 1 },
   { id: "pengakuan", part: 2 },
   { id: "review", part: 2 },
   { id: "kategori", part: 2, hidden: true },
@@ -35,6 +36,7 @@ export const RAIL_LABEL: Partial<Record<ScreenId, MessageKey>> = {
   lagi: "railLagi",
   hubungi: "railHubungi",
   kerja: "railKerja",
+  gambar: "railGambar",
   pengakuan: "railPengakuan",
   review: "railReview",
 };
@@ -481,10 +483,12 @@ function Hubungi({ d, patch, t }: BodyProps) {
         value={d.email}
         onChange={(e) => patch({ email: e.target.value })}
       />
-      <label className="join-check">
-        <input type="checkbox" checked={d.tiadaEmail} onChange={(e) => patch({ tiadaEmail: e.target.checked, email: e.target.checked ? "" : d.email })} />
-        <span>{t("joinNoEmail")}</span>
-      </label>
+      <Reveal open={d.email.trim() === ""}>
+        <label className="join-check">
+          <input type="checkbox" checked={d.tiadaEmail} onChange={(e) => patch({ tiadaEmail: e.target.checked, email: e.target.checked ? "" : d.email })} />
+          <span>{t("joinNoEmail")}</span>
+        </label>
+      </Reveal>
       <Reveal open={!d.tiadaEmail}>
         <p className="join-note">{t("joinEmailWhy")}</p>
       </Reveal>

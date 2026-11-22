@@ -61,6 +61,7 @@
   border: 0;
   background: none;
   color: inherit;
+  text-decoration: none;
   font: inherit;
   font-size: 17px;
   font-weight: 500;
@@ -879,4 +880,12 @@
   .app2-lang-thumb {
     transition: none;
   }
+}
+
+/* Join page: the phone's top bar says "Apply"; the laptop keeps "Belia PBB | Permohonan Keahlian PBB". */
+.app2-brand-short { display: none; }
+@media (max-width: 899px) {
+  .app2.is-focus .app2-brand-name { display: none; }
+  .app2.is-focus .app2-brand-short { display: inline; }
+  .app2.is-focus .app-page-title--quiet { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 }
