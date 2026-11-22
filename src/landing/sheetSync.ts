@@ -13,14 +13,14 @@ const COUNCIL_TAB = "Majlis Tertinggi";
 const BRANCH_TAB = "Ketua Belia Cawangan";
 const CACHE_KEY = "belia-leadership-v1";
 
-export type Branch = { cawangan: string; name: string };
+export type Branch = { cawangan: string; name: string; /** WhatsApp link (wa.me), when the person's number is public */ whatsapp?: string };
 export type LeadershipData = { council: CouncilMember[]; branches: Branch[] };
 
 const BUNDLED: LeadershipData = {
   council: MAJLIS_TERTINGGI,
   branches: getAhliRows()
     .filter((r) => /^N\.\d+\s/.test(r.cawangan))
-    .map((r) => ({ cawangan: r.cawangan, name: r.name })),
+    .map((r) => ({ cawangan: r.cawangan, name: r.name, whatsapp: r.phone ? whatsappHref(r.phone) : undefined })),
 };
 
 function tabCsvUrl(tab: string) {
@@ -138,7 +138,18 @@ function toBranches(rows: string[][]): Branch[] {
   const col = columnReader(rows);
   return rows
     .slice(1)
-    .map((r) => ({ cawangan: col(r, "cawangan"), name: col(r, "nama") }))
+    .map((r) => {
+      const cawangan = col(r, "cawangan");
+      const phone = col(r, "whatsapp").replace(/\D/g, "");
+      const bundled = BUNDLED.branches.find((b) => b.cawangan === cawangan);
+      const sameLeader = bundled && bundled.name.trim().toLowerCase() === col(r, "nama").trim().toLowerCase();
+      return {
+        cawangan,
+        name: col(r, "nama"),
+        // A number typed in the sheet wins; otherwise keep the bundled one only while the leader is the same person.
+        whatsapp: phone.length >= 9 ? whatsappHref(phone) : sameLeader ? bundled?.whatsapp : undefined,
+      };
+    })
     .filter((b) => /^N\.\s?\d+/i.test(b.cawangan));
 }
 

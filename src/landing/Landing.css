@@ -1015,7 +1015,7 @@ button.lp-btn {
 
 .lp-branches li {
   display: grid;
-  grid-template-columns: 52px 1fr;
+  grid-template-columns: 52px 1fr 36px;
   gap: 2px 12px;
   padding: 14px 0;
   border-bottom: 1px solid var(--lp-line);
@@ -1037,6 +1037,27 @@ button.lp-btn {
   font-weight: 500;
 }
 
+.lp-branch-wa {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-right: -8px;
+  border-radius: 8px;
+  color: var(--lp-muted);
+  transition: color var(--duration-quick) ease, background-color var(--duration-quick) ease;
+}
+
+.lp-branch-wa svg { width: 16px; height: 16px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-branch-wa:hover { color: var(--lp-text); background: var(--lp-surface); }
+}
+
 .lp-branch-name.is-pending {
   font-weight: 400;
   color: var(--lp-muted);
@@ -1044,9 +1065,11 @@ button.lp-btn {
 
 @media (min-width: 768px) {
   .lp-branches li {
-    grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1.4fr);
+    grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1.4fr) 36px;
     align-items: baseline;
   }
+
+  .lp-branch-wa { grid-row: auto; align-self: center; }
 
   .lp-branch-code { grid-row: auto; }
   .lp-branch-area { font-size: 16px; color: var(--lp-text); }

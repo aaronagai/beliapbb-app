@@ -127,7 +127,7 @@ function Branches({ branches }: { branches: Branch[] }) {
     () =>
       branches.map((b) => {
         const [code, ...rest] = formatCawanganLabel(b.cawangan).split(" ");
-        return { code, area: rest.join(" "), name: b.name };
+        return { code, area: rest.join(" "), name: b.name, whatsapp: b.whatsapp };
       }),
     [branches],
   );
@@ -178,6 +178,17 @@ function Branches({ branches }: { branches: Branch[] }) {
                 <span className={`lp-branch-name${b.name ? "" : " is-pending"}`}>
                   {b.name || t("memberPending")}
                 </span>
+                {b.whatsapp && b.name ? (
+                  <a
+                    className="lp-branch-wa"
+                    href={b.whatsapp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={t("leadershipSocialAria").replace("{{name}}", b.name).replace("{{platform}}", PLATFORM_NAMES.whatsapp)}
+                  >
+                    <SocialIcon platform="whatsapp" />
+                  </a>
+                ) : null}
               </li>
             ))}
           </ul>
